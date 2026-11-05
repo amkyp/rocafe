@@ -49,6 +49,7 @@ const faDigits = s => String(s).replace(/\d/g,d=>"۰۱۲۳۴۵۶۷۸۹"[d]);
 const D = s => lang==="fa" ? faDigits(s) : String(s);
 const money = k => { const v=(k*1000).toLocaleString("en-US"); return lang==="fa" ? faDigits(v).replace(/,/g,"٬")+" تومان" : v+" Toman"; };
 const norm = s => (s||"").replace(/‌/g," ").replace(/ي/g,"ی").replace(/ك/g,"ک").replace(/\s+/g," ").trim().toLowerCase();
+const PIN = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12z" fill="currentColor"/><circle cx="12" cy="10" r="2.6" fill="var(--bg)"/></svg>`;
 /* only allow expected link types from the settings file (never javascript: etc.) */
 const safeUrl = (u, protocols = ["https:"]) => { try { const x = new URL(u, location.href); return protocols.includes(x.protocol) ? x.href : "#"; } catch { return "#"; } };
 const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -103,7 +104,7 @@ function applyLang(){
   const lb=document.getElementById("langBtn"); lb.textContent=t.lang; lb.setAttribute("lang", lang==="fa"?"en":"fa"); lb.title = lang==="fa" ? "English" : "فارسی";
   document.getElementById("q").placeholder=t.ph;
   const v = `
-   <a class="mapcard card" href="${esc(safeUrl(CONFIG.mapUrl))}" target="_blank" rel="noopener noreferrer">
+   <div class="mapcard card">
      <div class="mapart" aria-hidden="true">
        <svg class="streets" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice" fill="none" stroke-linecap="round">
          <path d="M-10 118 C60 104 120 96 190 70 S280 30 320 24" stroke="var(--bg)" stroke-width="14"/>
@@ -113,8 +114,11 @@ function applyLang(){
        </svg>
        <svg class="pinm" viewBox="0 0 24 24"><path d="M12 23s8-7 8-13a8 8 0 1 0-16 0c0 6 8 13 8 13z" fill="#18181b"/><circle cx="12" cy="10" r="3.2" fill="#f2c230"/></svg>
      </div>
-     <div class="mapinfo"><small>${t.addr}</small><b>${t.addrV}</b><span class="go">${t.map}</span></div>
-   </a>
+     <div class="mapinfo"><small>${t.addr}</small><b>${t.addrV}</b>
+       <small class="maplbl">${t.map}</small>
+       <div class="maplinks">${(CONFIG.maps||[]).map(m=>`<a class="mapgo" href="${esc(safeUrl(m.url))}" target="_blank" rel="noopener noreferrer">${PIN}<span>${esc(t["app_"+m.app]||m.app)}</span></a>`).join("")}</div>
+     </div>
+   </div>
    <div class="vcard card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg><div class="grow"><small>${t.phone}</small><a href="${esc(safeUrl("tel:"+CONFIG.phone,["tel:"]))}"><b class="ltr">${esc(CONFIG.phoneDisplay)}</b></a></div><button type="button" class="pill" data-copy="${esc(CONFIG.phoneCopy)}">${lang==="fa"?"کپی":"Copy"}</button></div>
    <a class="vcard card" href="${esc(safeUrl("https://instagram.com/"+encodeURIComponent(CONFIG.instagram)+"/"))}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg><div><small>${t.insta}</small><b class="ltr">@${esc(CONFIG.instagram)}</b></div></a>`;
   document.getElementById("vgrid").innerHTML=v; document.getElementById("vgrid2").innerHTML=v;

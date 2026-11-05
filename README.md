@@ -54,8 +54,9 @@ for 5 minutes at most anyway, so a forgotten release fixes itself quickly.
 
 ## Changing the cafe details
 
-Edit `data/config.js`: phone number, Instagram handle and the map link. When you have
-your Neshan or Balad share link, paste it into `mapUrl`. The map button will then open it.
+Edit `data/config.js`: phone number, Instagram handle, opening hours and the directions buttons
+(`maps`: Neshan, Balad, Google Maps, in that order). Each button opens a search for the cafe until
+you paste the real place link: open the cafe in that app, press Share, copy the link into `url`.
 
 ## Photos
 

@@ -56,7 +56,10 @@ for (const [en, file] of Object.entries(IMG)) {
 for (const k of Object.keys(T.fa)) if (!(k in T.en)) bad(`strings.js: "${k}" has Persian text but no English`);
 for (const k of Object.keys(T.en)) if (!(k in T.fa)) bad(`strings.js: "${k}" has English text but no Persian`);
 if (!/^\+\d{8,15}$/.test(CONFIG.phone)) bad(`config.js: phone should look like +981155226936`);
-if (!/^https:\/\//.test(CONFIG.mapUrl)) bad(`config.js: mapUrl must start with https://`);
+for (const m of CONFIG.maps || []) {
+  if (!/^https:\/\//.test(m.url)) bad(`config.js: the ${m.app} map link must start with https://`);
+  if (!T.fa["app_" + m.app] || !T.en["app_" + m.app]) bad(`config.js: map app "${m.app}" needs a name in strings.js (app_${m.app})`);
+}
 if (!/^[\w.]+$/.test(CONFIG.instagram)) bad(`config.js: instagram should be the handle only, without @ or a link`);
 if (CONFIG.hours) for (const [d, slots] of Object.entries(CONFIG.hours))
   for (const s of slots) for (const tm of s) if (!/^([01]\d|2[0-4]):[0-5]\d$/.test(tm)) bad(`config.js: hours for ${d} has "${tm}", use 24h time like "09:00"`);
