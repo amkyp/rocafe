@@ -1,0 +1,93 @@
+// Ro Cafe menu: checks the site before publishing. No installs needed: run `node tools/check.mjs`
+// from the site folder. It stops with a clear message if something would break the live menu.
+import { readFileSync, existsSync } from "node:fs";
+import { createHash } from "node:crypto";
+import vm from "node:vm";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const read = f => readFileSync(path.join(ROOT, f), "utf8");
+const problems = [];
+const bad = msg => problems.push(msg);
+
+/* ---------- 1. load the data files exactly as the browser does ---------- */
+const ctx = vm.createContext({});
+for (const f of ["data/config.js", "data/strings.js", "data/menu.js"]) {
+  try { vm.runInContext(read(f), ctx, { filename: f }); }
+  catch (e) { console.error(`✖ ${f} has a typo and cannot be read: ${e.message}`); process.exit(1); }
+}
+const { CONFIG, T, MENU, DESC, TAGS, IMG } = vm.runInContext("({CONFIG,T,MENU,DESC,TAGS,IMG})", ctx);
+
+/* ---------- 2. menu ---------- */
+const names = new Set(), catIds = new Set();
+for (const c of MENU) {
+  if (!/^[a-z][a-z0-9-]*$/.test(c.id)) bad(`category id "${c.id}" should be lowercase letters`);
+  if (catIds.has(c.id)) bad(`category id "${c.id}" is used twice`);
+  catIds.add(c.id);
+  if (!c.fa || !c.en) bad(`category "${c.id}" needs a Persian and an English name`);
+  for (const it of c.items) {
+    if (it.espresso) {
+      for (const b of it.beans) if (!(b[2] > 0)) bad(`espresso bean "${b[1]}" needs a price`);
+      names.add(it.en); continue;
+    }
+    const [fa, en, p] = it;
+    const where = `item "${en || fa}" in ${c.id}`;
+    if (typeof fa !== "string" || !fa.trim()) bad(`${where}: Persian name is missing`);
+    if (typeof en !== "string" || !en.trim()) bad(`${where}: English name is missing`);
+    if (typeof p !== "number" || !(p > 0) || p > 10000) bad(`${where}: price should be a number in thousand toman (e.g. 265)`);
+    if (names.has(en)) bad(`${where}: English name is used twice (photos and tags are matched by it)`);
+    names.add(en);
+  }
+}
+const TAG_CODES = new Set(Object.keys(T.fa).filter(k => k.startsWith("tag_")).map(k => k.slice(4)));
+for (const [en, tags] of Object.entries(TAGS)) {
+  if (!names.has(en)) bad(`TAGS mentions "${en}", which is not on the menu`);
+  for (const t of tags) if (!TAG_CODES.has(t)) bad(`TAGS for "${en}": unknown tag "${t}"`);
+}
+for (const en of Object.keys(DESC)) if (!names.has(en)) bad(`DESC mentions "${en}", which is not on the menu`);
+for (const [en, file] of Object.entries(IMG)) {
+  if (!names.has(en)) bad(`IMG mentions "${en}", which is not on the menu`);
+  if (!/^[\w-]+$/.test(file)) bad(`IMG file name "${file}" should use only letters, digits, - and _`);
+  for (const dir of ["img", "img/lg"]) if (!existsSync(path.join(ROOT, dir, file + ".webp"))) bad(`photo missing: ${dir}/${file}.webp`);
+}
+
+/* ---------- 3. texts and settings ---------- */
+for (const k of Object.keys(T.fa)) if (!(k in T.en)) bad(`strings.js: "${k}" has Persian text but no English`);
+for (const k of Object.keys(T.en)) if (!(k in T.fa)) bad(`strings.js: "${k}" has English text but no Persian`);
+if (!/^\+\d{8,15}$/.test(CONFIG.phone)) bad(`config.js: phone should look like +981155226936`);
+if (!/^https:\/\//.test(CONFIG.mapUrl)) bad(`config.js: mapUrl must start with https://`);
+if (!/^[\w.]+$/.test(CONFIG.instagram)) bad(`config.js: instagram should be the handle only, without @ or a link`);
+if (CONFIG.hours) for (const [d, slots] of Object.entries(CONFIG.hours))
+  for (const s of slots) for (const tm of s) if (!/^([01]\d|2[0-4]):[0-5]\d$/.test(tm)) bad(`config.js: hours for ${d} has "${tm}", use 24h time like "09:00"`);
+
+/* ---------- 4. release consistency ---------- */
+const html = read("index.html"), sw = read("sw.js");
+const vers = new Set([...html.matchAll(/\?v=(\d+)/g)].map(m => m[1]));
+const swVers = new Set([...sw.matchAll(/\?v=(\d+)/g)].map(m => m[1]));
+const swName = (sw.match(/VERSION = "ro-v(\d+)"/) || [])[1];
+if (vers.size !== 1) bad(`index.html mixes versions: ?v=${[...vers].join(", ?v=")}`);
+else if (swVers.size !== 1 || !swVers.has([...vers][0]) || swName !== [...vers][0]) bad(`sw.js version does not match index.html (run node tools/release.mjs)`);
+for (const m of sw.matchAll(/"([^"]+\?v=\d+|[^"]+\.(?:svg|webmanifest))"/g)) {
+  const f = m[1].split("?")[0]; if (!existsSync(path.join(ROOT, f))) bad(`sw.js saves "${f}" for offline use, but that file does not exist`);
+}
+
+/* ---------- 5. security rules ---------- */
+const inline = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
+const csp = (html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/) || [])[1];
+if (!csp) bad("index.html: Content-Security-Policy is missing");
+else for (const s of inline) {
+  const h = createHash("sha256").update(s).digest("base64");
+  if (!csp.includes(`'sha256-${h}'`)) bad(`index.html: the small inline script changed; its hash must be updated (run node tools/release.mjs)`);
+}
+if (/\son[a-z]+="/i.test(html)) bad("index.html: inline event handlers (onclick=…) are blocked by the security policy");
+if (/\sstyle="/i.test(html) || /\sstyle="/.test(read("assets/js/app.js"))) bad("inline style=\"…\" is blocked by the security policy; use a CSS class");
+for (const f of ["_headers", ".htaccess"]) if (csp && !read(f).includes(csp)) bad(`${f}: security policy differs from index.html (run node tools/release.mjs)`);
+
+/* ---------- result ---------- */
+if (problems.length) {
+  console.error(`✖ ${problems.length} problem${problems.length > 1 ? "s" : ""}:\n  - ` + problems.join("\n  - "));
+  process.exit(1);
+}
+const count = MENU.reduce((a, c) => a + c.items.length, 0);
+console.log(`✓ All good: ${MENU.length} categories, ${count} items, ${Object.keys(IMG).length} photos, version ${[...vers][0]}.`);

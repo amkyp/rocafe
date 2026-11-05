@@ -1,8 +1,17 @@
-# Ro Cafe menu: settings for Netlify and Cloudflare Pages (they compress automatically).
+# Ro Cafe menu: response headers for Netlify and Cloudflare Pages (GitHub Pages ignores this file).
+# A real header can do a little more than the <meta> copy in index.html: block framing and sniffing.
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Cross-Origin-Opener-Policy: same-origin
+  Strict-Transport-Security: max-age=31536000
+/
+  Content-Security-Policy: default-src 'none'; script-src 'self' 'sha256-HQtwz+k05BNv7DrTcBE6Cra5pbjbLotoWzxfuLiLl8E='; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests; frame-ancestors 'none'
 /index.html
+  Content-Security-Policy: default-src 'none'; script-src 'self' 'sha256-HQtwz+k05BNv7DrTcBE6Cra5pbjbLotoWzxfuLiLl8E='; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests; frame-ancestors 'none'
+  Cache-Control: no-cache
+/sw.js
   Cache-Control: no-cache
 /assets/*
   Cache-Control: public, max-age=31536000, immutable

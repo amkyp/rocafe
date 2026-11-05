@@ -18,6 +18,8 @@ data/strings.js       interface wording in Persian and English    <- edit
 img/                  item photos (small, used in the list)
 img/lg/               item photos (large, used on the item card)
 tools/qr-card.html    makes the printable QR card for any address
+tools/check.mjs       checks the menu data and the release before publishing
+tools/release.mjs     raises the version number, then runs the check
 ```
 
 All links inside the site are relative, so the same folder works at
@@ -38,9 +40,17 @@ Open `data/menu.js` in any text editor.
 - **Remove an item:** delete its line (keep the commas tidy).
 - **Tags:** add the English name to `TAGS` with `pm` (plant milk), `cf` (caffeine-free) or `n` (contains nuts).
 
-After editing, raise the version number in `index.html` (for example `?v=2` becomes `?v=3`
-on every line that has one) so phones load the new files straight away. Menu data is only
-kept for 5 minutes anyway, so a forgotten number fixes itself quickly.
+After editing, run this in the site folder (needs [Node.js](https://nodejs.org), nothing to install):
+
+```
+node tools/release.mjs
+```
+
+It raises the version number everywhere it appears, so phones load the new files straight away,
+and then checks the menu: prices are numbers, every photo exists, no name is used twice, Persian
+and English texts match, links are valid. If something is wrong it says what and where, and you
+fix it before publishing. `node tools/check.mjs` runs only the check. Menu data is kept on phones
+for 5 minutes at most anyway, so a forgotten release fixes itself quickly.
 
 ## Changing the cafe details
 
@@ -84,8 +94,22 @@ then make a new QR card with the new address.
 On a real host (HTTPS), the menu saves itself on the phone after the first visit (`sw.js`):
 it then opens instantly and still works with no internet, and customers can add it to their
 home screen like an app (`manifest.webmanifest`). Prices and the page are always checked online
-first, so they stay current. After a release, raise `VERSION` in `sw.js` and keep its file
-list's `?v=` numbers the same as in `index.html`.
+first, so they stay current. `tools/release.mjs` keeps `VERSION` in `sw.js` in step with the page.
+
+## Security
+
+The site collects nothing: no forms, accounts, cookies, trackers or outside scripts. Phones
+remember only the chosen language and light/dark mode. The page also carries a strict security
+policy (in `index.html`) that lets only the site's own files run, so even a mistake in the menu
+data cannot turn into running code, and every value from the data files is escaped before it is
+shown. Links from `config.js` are accepted only as `https://` (and `tel:` for the phone).
+
+- Keep it this way: no `onclick="…"` or `style="…"` in the HTML, and no scripts from other sites.
+  `tools/check.mjs` warns if one slips in.
+- On GitHub Pages the policy works from the page itself. On Netlify, Cloudflare Pages or an Apache
+  host (your own domain), `_headers` or `.htaccess` also sends it as a real header, adding
+  protection against the menu being framed inside another site.
+- Use HTTPS on your own domain (free with Cloudflare or Let's Encrypt); `.htaccess` redirects to it.
 
 ## Making the QR card
 

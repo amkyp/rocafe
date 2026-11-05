@@ -36,17 +36,25 @@ for (const c of MENU) c.items = c.items.map(x=>{
 });
 
 /* ---------- state ---------- */
-let lang = "fa"; try{ lang = localStorage.getItem("ro-lang") || "fa"; }catch(e){}
+/* localStorage can be missing (private mode) or hold anything: read through these and validate. */
+const store = {
+  get(k){ try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v){ try { localStorage.setItem(k, v); } catch { /* storage unavailable: setting just isn't remembered */ } }
+};
+const LANGS = ["fa", "en"];
+let lang = LANGS.includes(store.get("ro-lang")) ? store.get("ro-lang") : "fa";
 let query = ""; const bill = {}; let people = 1;
 
 const faDigits = s => String(s).replace(/\d/g,d=>"۰۱۲۳۴۵۶۷۸۹"[d]);
 const D = s => lang==="fa" ? faDigits(s) : String(s);
 const money = k => { const v=(k*1000).toLocaleString("en-US"); return lang==="fa" ? faDigits(v).replace(/,/g,"٬")+" تومان" : v+" Toman"; };
 const norm = s => (s||"").replace(/‌/g," ").replace(/ي/g,"ی").replace(/ك/g,"ک").replace(/\s+/g," ").trim().toLowerCase();
-const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+/* only allow expected link types from the settings file (never javascript: etc.) */
+const safeUrl = (u, protocols = ["https:"]) => { try { const x = new URL(u, location.href); return protocols.includes(x.protocol) ? x.href : "#"; } catch { return "#"; } };
+const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let thumbN = 0;
-const thumb = it => { const f = IMG[it.en]; const eager = thumbN++ < 6; return f ? `<img src="img/${f}.webp" alt="" ${eager?'fetchpriority="high"':'loading="lazy"'} decoding="async" width="104" height="104">` : svg(it.icon); };
-const tagsHTML = it => { const t=TAGS[it.en]; return t&&t.length ? `<div class="tags">${t.map(x=>`<span class="tag ${x}">${T[lang]['tag_'+x]}</span>`).join('')}</div>` : ''; };
+const thumb = it => { const f = IMG[it.en]; const eager = thumbN++ < 6; return f ? `<img src="img/${encodeURIComponent(f)}.webp" alt="" ${eager?'fetchpriority="high"':'loading="lazy"'} decoding="async" width="104" height="104">` : svg(it.icon); };
+const tagsHTML = it => { const t=TAGS[it.en]; return t&&t.length ? `<div class="tags">${t.map(x=>`<span class="tag ${esc(x)}">${esc(T[lang]['tag_'+x]||x)}</span>`).join('')}</div>` : ''; };
 let filt = new Set();
 const svg = k => `<svg viewBox="0 0 50 50" aria-hidden="true">${ICONS[k]||ICONS.cup}</svg>`;
 function hl(t){ if(!query) return esc(t); const s=norm(t), i=s.indexOf(query); if(i<0||s.length!==t.length) return esc(t); return esc(t.slice(0,i))+"<mark>"+esc(t.slice(i,i+query.length))+"</mark>"+esc(t.slice(i+query.length)); }
@@ -62,15 +70,15 @@ function itemHTML(it){
   const t=T[lang], name = lang==="fa"?it.fa:it.en, sub = lang==="fa"?it.dfa:it.den;
   if(it.espresso){
     const b=it.beans[it.sel], key="e"+it.sel, q=bill[key]||0;
-    return `<div class="it has-beans" data-open="${it.id}" role="button" tabindex="0"><div class="pic" style="background:var(${it.cat.tint})">${thumb(it)}</div>
+    return `<div class="it has-beans" data-open="${it.id}" role="button" tabindex="0"><div class="pic">${thumb(it)}</div>
       <div class="info"><h3>${hl(name)}</h3><span class="price num">${D(b[2])} <small>${t.unit}</small></span></div>
-      <button class="add${q?" has":""} num" data-add="${key}" aria-label="${esc(ITEMS[key][lang])}">${q?D(q):"+"}</button>
-      <div class="beans" role="radiogroup" aria-label="${t.bean}">${it.beans.map((bb,i)=>`<button class="bean${i===it.sel?" on":""}" role="radio" aria-checked="${i===it.sel}" data-bean="${i}">${lang==="fa"?bb[0]:bb[1]}</button>`).join("")}</div></div>`;
+      <button type="button" class="add${q?" has":""} num" data-add="${key}" aria-label="${esc(ITEMS[key][lang])}">${q?D(q):"+"}</button>
+      <div class="beans" role="radiogroup" aria-label="${t.bean}">${it.beans.map((bb,i)=>`<button type="button" class="bean${i===it.sel?" on":""}" role="radio" aria-checked="${i===it.sel}" data-bean="${i}">${esc(lang==="fa"?bb[0]:bb[1])}</button>`).join("")}</div></div>`;
   }
   const q=bill[it.id]||0;
-  return `<div class="it" data-open="${it.id}" role="button" tabindex="0"><div class="pic" style="background:var(${it.cat.tint})">${thumb(it)}</div>
+  return `<div class="it" data-open="${it.id}" role="button" tabindex="0"><div class="pic">${thumb(it)}</div>
     <div class="info"><h3>${hl(name)}</h3>${sub?`<p>${hl(sub)}</p>`:""}${tagsHTML(it)}<span class="price num">${D(it.p)} <small>${t.unit}</small></span></div>
-    <button class="add${q?" has":""} num" data-add="${it.id}" aria-label="${esc(name)}">${q?D(q):"+"}</button></div>`;
+    <button type="button" class="add${q?" has":""} num" data-add="${it.id}" aria-label="${esc(name)}">${q?D(q):"+"}</button></div>`;
 }
 
 function render(){
@@ -78,12 +86,12 @@ function render(){
   let html="", total=0;
   for(const c of MENU){
     const list=c.items.filter(it=>matches(it,c)); if(!list.length) continue; total+=list.length;
-    html+=`<section class="sec" id="${c.id}"><div class="sec-h"><h2>${lang==="fa"?c.fa:c.en}</h2></div><div class="grid">${list.map(itemHTML).join("")}</div></section>`;
+    html+=`<section class="sec" id="${esc(c.id)}" data-tint="${esc(c.tint.replace(/^--t-/,""))}"><div class="sec-h"><h2>${esc(lang==="fa"?c.fa:c.en)}</h2></div><div class="grid">${list.map(itemHTML).join("")}</div></section>`;
   }
   document.getElementById("menu").innerHTML=html; markLoaded();
   document.getElementById("visit").hidden=false;
   document.getElementById("empty").style.display=total?"none":"block";
-  document.getElementById("chips").innerHTML=MENU.filter(c=>c.items.some(it=>matches(it,c))).map(c=>`<button class="chip" data-go="${c.id}">${lang==="fa"?c.fa:c.en}</button>`).join("")+`<span class="chip-ind" aria-hidden="true"></span>`;
+  document.getElementById("chips").innerHTML=MENU.filter(c=>c.items.some(it=>matches(it,c))).map(c=>`<button type="button" class="chip" data-go="${esc(c.id)}">${esc(lang==="fa"?c.fa:c.en)}</button>`).join("")+`<span class="chip-ind" aria-hidden="true"></span>`;
   spy();
 }
 
@@ -95,7 +103,7 @@ function applyLang(){
   const lb=document.getElementById("langBtn"); lb.textContent=t.lang; lb.setAttribute("lang", lang==="fa"?"en":"fa"); lb.title = lang==="fa" ? "English" : "فارسی";
   document.getElementById("q").placeholder=t.ph;
   const v = `
-   <a class="mapcard card" href="${CONFIG.mapUrl}" target="_blank" rel="noopener">
+   <a class="mapcard card" href="${esc(safeUrl(CONFIG.mapUrl))}" target="_blank" rel="noopener noreferrer">
      <div class="mapart" aria-hidden="true">
        <svg class="streets" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice" fill="none" stroke-linecap="round">
          <path d="M-10 118 C60 104 120 96 190 70 S280 30 320 24" stroke="var(--bg)" stroke-width="14"/>
@@ -107,11 +115,11 @@ function applyLang(){
      </div>
      <div class="mapinfo"><small>${t.addr}</small><b>${t.addrV}</b><span class="go">${t.map}</span></div>
    </a>
-   <div class="vcard card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg><div class="grow"><small>${t.phone}</small><a href="tel:${CONFIG.phone}"><b class="ltr">${CONFIG.phoneDisplay}</b></a></div><button class="pill" data-copy="${CONFIG.phoneCopy}">${lang==="fa"?"کپی":"Copy"}</button></div>
-   <a class="vcard card" href="https://instagram.com/${CONFIG.instagram}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg><div><small>${t.insta}</small><b class="ltr">@${CONFIG.instagram}</b></div></a>`;
+   <div class="vcard card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg><div class="grow"><small>${t.phone}</small><a href="${esc(safeUrl("tel:"+CONFIG.phone,["tel:"]))}"><b class="ltr">${esc(CONFIG.phoneDisplay)}</b></a></div><button type="button" class="pill" data-copy="${esc(CONFIG.phoneCopy)}">${lang==="fa"?"کپی":"Copy"}</button></div>
+   <a class="vcard card" href="${esc(safeUrl("https://instagram.com/"+encodeURIComponent(CONFIG.instagram)+"/"))}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg><div><small>${t.insta}</small><b class="ltr">@${esc(CONFIG.instagram)}</b></div></a>`;
   document.getElementById("vgrid").innerHTML=v; document.getElementById("vgrid2").innerHTML=v;
   renderFilters(); render(); updateBill(); renderHours(); renderCopy(); syncBarH();
-  document.getElementById("infoBtn").setAttribute("aria-label", t.info); document.getElementById("filterBtn").setAttribute("aria-label", t.filter); if(detailId && document.getElementById('detailSheet').classList.contains('open')) drawDetail();
+  document.getElementById("infoBtn").setAttribute("aria-label", t.info); document.getElementById("clearQ").setAttribute("aria-label", t.clearSearch); document.getElementById("filterBtn").setAttribute("aria-label", t.filter); if(detailId && document.getElementById('detailSheet').classList.contains('open')) drawDetail();
 }
 
 /* ---------- bill ---------- */
@@ -127,17 +135,17 @@ function updateBill(){
   document.getElementById("sEach").textContent=money(Math.ceil(sum/people));
   document.getElementById("lines").innerHTML = ids.length ? ids.map(k=>`
     <div class="line"><div class="nm">${esc(ITEMS[k][lang])}<small class="num">${D(ITEMS[k].p)} ${t.unit}</small></div>
-      <div class="stepper"><button data-dec="${k}" aria-label="-">−</button><span class="num">${D(bill[k])}</span><button data-inc="${k}" aria-label="+">+</button></div>
+      <div class="stepper"><button type="button" data-dec="${k}" aria-label="-">−</button><span class="num">${D(bill[k])}</span><button type="button" data-inc="${k}" aria-label="+">+</button></div>
       <span class="s num">${D(bill[k]*ITEMS[k].p)}</span></div>`).join("") : `<p class="sub">${t.empty}</p>`;
-  if(!count) close("billSheet");
+  if(!count) closeSheet("billSheet");
 }
-function change(k,d){ if(d>0 && navigator.vibrate) try{ navigator.vibrate(8); }catch(e){} bill[k]=(bill[k]||0)+d; if(bill[k]<=0) delete bill[k]; updateBill(); refreshAdds(); }
+function change(k,d){ if(d>0 && navigator.vibrate) try{ navigator.vibrate(8); }catch { /* optional feature */ } bill[k]=(bill[k]||0)+d; if(bill[k]<=0) delete bill[k]; updateBill(); refreshAdds(); }
 function refreshAdds(){ document.querySelectorAll("[data-add]").forEach(b=>{ const q=bill[b.dataset.add]||0; b.classList.toggle("has",!!q); b.textContent=q?D(q):"+"; }); }
 
 /* ---------- events ---------- */
 document.getElementById("menu").addEventListener("click",e=>{
   const bean=e.target.closest("[data-bean]");
-  if(bean){ const it=MENU[0].items[0]; it.sel=+bean.dataset.bean; const sec=bean.closest(".it"); sec.outerHTML=itemHTML(it); return; }
+  if(bean){ const it=findItem("e"); it.sel=+bean.dataset.bean; const sec=bean.closest(".it"); sec.outerHTML=itemHTML(it); return; }
   const a=e.target.closest("[data-add]");
   if(a){ change(a.dataset.add,1); toast(`${ITEMS[a.dataset.add][lang]} ${T[lang].added}`); return; }
   const o=e.target.closest("[data-open]"); if(o) openDetail(o.dataset.open);
@@ -148,28 +156,28 @@ document.getElementById("chips").addEventListener("click",e=>{
 });
 const qEl=document.getElementById("q");
 qEl.addEventListener("input",()=>{ query=norm(qEl.value); document.getElementById("searchBox").classList.toggle("has",!!qEl.value); render(); });
-document.getElementById("clearQ").onclick=()=>{ qEl.value=""; query=""; document.getElementById("searchBox").classList.remove("has"); render(); qEl.focus(); };
-document.getElementById("langBtn").onclick=()=>{ lang = lang==="fa"?"en":"fa"; try{localStorage.setItem("ro-lang",lang)}catch(e){} applyLang(); };
+document.getElementById("clearQ").addEventListener("click",()=>{ qEl.value=""; query=""; document.getElementById("searchBox").classList.remove("has"); render(); qEl.focus(); });
+document.getElementById("langBtn").addEventListener("click",()=>{ lang = lang==="fa"?"en":"fa"; store.set("ro-lang", lang); applyLang(); });
 
 /* ---------- sheets: open/close with focus handling, Back button and swipe-down ---------- */
 const openStack = []; let lastFocus = null;
 const focusables = el => [...el.querySelectorAll('button,[href],input,[tabindex]:not([tabindex="-1"])')].filter(x => !x.disabled && x.offsetParent !== null);
-function open(id){
+function openSheet(id){
   const s = document.getElementById(id); if (s.classList.contains("open")) return;
   document.getElementById("toast").classList.remove("show");
   if (!openStack.length) lastFocus = document.activeElement;
   s.classList.add("open"); openStack.push(id); document.body.style.overflow = "hidden";
-  try { history.pushState({ sheet: id }, ""); } catch(e){}
+  try { history.pushState({ sheet: id }, ""); } catch { /* optional feature */ }
   const f = focusables(s.querySelector(".panel")); (s.querySelector(".btn-dark,.btn-brand") || f[0] || s).focus({ preventScroll: true });
 }
-function close(id, fromHistory){
+function closeSheet(id, fromHistory){
   const s = document.getElementById(id); if (!s.classList.contains("open")) return;
   s.classList.remove("open"); openStack.splice(openStack.indexOf(id), 1);
   const p = s.querySelector(".panel"); p.style.transform = ""; p.classList.remove("dragging");
   if (!openStack.length){ document.body.style.overflow = ""; if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true }); }
-  if (!fromHistory){ try { if (history.state && history.state.sheet === id) history.back(); } catch(e){} }
+  if (!fromHistory){ try { if (history.state && history.state.sheet === id) history.back(); } catch { /* optional feature */ } }
 }
-addEventListener("popstate", () => { const id = openStack[openStack.length - 1]; if (id) close(id, true); });
+addEventListener("popstate", () => { const id = openStack[openStack.length - 1]; if (id) closeSheet(id, true); });
 document.addEventListener("keydown", e => {
   if (e.key !== "Tab" || !openStack.length) return;
   const f = focusables(document.getElementById(openStack[openStack.length - 1]).querySelector(".panel")); if (!f.length) return;
@@ -182,23 +190,23 @@ document.querySelectorAll(".sheet .panel").forEach(p => {
   p.addEventListener("touchstart", e => { if (innerWidth >= 700 || p.scrollTop > 0) return; y0 = e.touches[0].clientY; dy = 0; }, { passive: true });
   p.addEventListener("touchmove", e => { if (y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0); if (dy > 0){ p.classList.add("dragging"); p.style.transform = `translateY(${dy}px)`; } }, { passive: true });
   p.addEventListener("touchend", () => { if (y0 == null) return; const id = p.closest(".sheet").id; p.classList.remove("dragging");
-    if (dy > 110) close(id); else p.style.transform = ""; y0 = null; });
+    if (dy > 110) closeSheet(id); else p.style.transform = ""; y0 = null; });
 });
-document.getElementById("openBill").onclick=()=>open("billSheet");
-document.getElementById("infoBtn").onclick=()=>open("infoSheet");
+document.getElementById("openBill").addEventListener("click",()=>openSheet("billSheet"));
+document.getElementById("infoBtn").addEventListener("click",()=>openSheet("infoSheet"));
 document.querySelectorAll(".sheet").forEach(s=>s.addEventListener("click",e=>{
-  if(e.target.closest("[data-close]")) return close(s.id);
+  if(e.target.closest("[data-close]")) return closeSheet(s.id);
   const i=e.target.closest("[data-inc]"), d=e.target.closest("[data-dec]");
   if(i) change(i.dataset.inc,1); if(d) change(d.dataset.dec,-1);
 }));
 document.getElementById("menu").addEventListener("keydown",e=>{ if((e.key==="Enter"||e.key===" ")&&e.target.matches(".it")){ e.preventDefault(); openDetail(e.target.dataset.open); } });
-addEventListener("keydown",e=>{ if(e.key==="Escape" && openStack.length && filterPop.hidden) close(openStack[openStack.length-1]); });
-document.getElementById("pMinus").onclick=()=>{ people=Math.max(1,people-1); updateBill(); };
-document.getElementById("pPlus").onclick=()=>{ people=Math.min(20,people+1); updateBill(); };
-document.getElementById("clearBill").onclick=()=>{ for(const k in bill) delete bill[k]; people=1; updateBill(); refreshAdds(); };
+addEventListener("keydown",e=>{ if(e.key==="Escape" && openStack.length && filterPop.hidden) closeSheet(openStack[openStack.length-1]); });
+document.getElementById("pMinus").addEventListener("click",()=>{ people=Math.max(1,people-1); updateBill(); });
+document.getElementById("pPlus").addEventListener("click",()=>{ people=Math.min(20,people+1); updateBill(); });
+document.getElementById("clearBill").addEventListener("click",()=>{ for(const k in bill) delete bill[k]; people=1; updateBill(); refreshAdds(); });
 document.addEventListener("click",async e=>{
   const c=e.target.closest("[data-copy]"); if(!c) return;
-  try{ await navigator.clipboard.writeText(c.dataset.copy); toast(T[lang].copied); }catch(err){ toast(CONFIG.phoneDisplay); }
+  try{ await navigator.clipboard.writeText(c.dataset.copy); toast(T[lang].copied); }catch { toast(CONFIG.phoneDisplay); }
 });
 
 let tt; function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove("show"),1500); }
@@ -257,7 +265,7 @@ for (const ev of ["wheel","touchstart","keydown"]) addEventListener(ev, () => { 
 /* ---------- filters ---------- */
 function renderFilters(){
   const t=T[lang];
-  document.getElementById("filters").innerHTML=["cf","pm"].map(f=>`<button class="fbtn" data-f="${f}" aria-pressed="${filt.has(f)}">${t['tag_'+f]}</button>`).join("");
+  document.getElementById("filters").innerHTML=["cf","pm"].map(f=>`<button type="button" class="fbtn" data-f="${f}" aria-pressed="${filt.has(f)}">${t['tag_'+f]}</button>`).join("");
   document.getElementById("fdot").hidden = filt.size === 0;
 }
 document.getElementById("filters").addEventListener("click",e=>{
@@ -268,7 +276,7 @@ document.getElementById("filters").addEventListener("click",e=>{
 /* ---------- detail card ---------- */
 let detailId=null;
 function findItem(id){ for(const c of MENU) for(const it of c.items) if(it.id===id) return it; }
-function openDetail(id){ detailId=id; drawDetail(); open("detailSheet"); }
+function openDetail(id){ detailId=id; drawDetail(); openSheet("detailSheet"); }
 function drawDetail(){
   const it=findItem(detailId); if(!it) return;
   const t=T[lang], other = lang==="fa"?"en":"fa";
@@ -280,17 +288,17 @@ function drawDetail(){
   const price = it.espresso ? it.beans[it.sel][2] : it.p;
   const q = bill[key]||0;
   document.getElementById("dPanel").innerHTML = `
-    <div class="grab" aria-hidden="true"></div><div class="dimg">${f?`<img src="img/lg/${f}.webp" alt="${esc(name)}">`:""}<button class="dclose" data-close aria-label="${t.close}">✕</button>${navHTML(t)}</div>
+    <div class="grab" aria-hidden="true"></div><div class="dimg">${f?`<img src="img/lg/${encodeURIComponent(f)}.webp" alt="${esc(name)}">`:""}<button type="button" class="dclose" data-close aria-label="${t.close}">✕</button>${navHTML(t)}</div>
     <div class="dbody">
       <h2 id="dName">${esc(name)}</h2><div class="alt">${esc(alt)}</div>
       ${tagsHTML(it)}
       ${desc?`<p class="desc">${esc(desc)}</p>`:""}
       ${ingr && it.cat.id==="infusion"?`<p class="ingr">${t.ingr}: ${esc(ingr)}</p>`:(ingr&&!desc?`<p class="desc">${esc(ingr)}</p>`:"")}
-      ${it.espresso?`<div class="beans">${it.beans.map((bb,i)=>`<button class="bean${i===it.sel?" on":""}" data-dbean="${i}">${lang==="fa"?bb[0]:bb[1]}</button>`).join("")}</div>`:""}
+      ${it.espresso?`<div class="beans">${it.beans.map((bb,i)=>`<button type="button" class="bean${i===it.sel?" on":""}" data-dbean="${i}">${esc(lang==="fa"?bb[0]:bb[1])}</button>`).join("")}</div>`:""}
       <div class="dbuy">
         <span class="pr num">${D(price)} <small>${t.unit}</small></span>
-        ${q?`<div class="stepper lg"><button data-dec="${key}" aria-label="−">−</button><span class="num" aria-live="polite">${D(q)}</span><button data-inc="${key}" aria-label="+">+</button></div>`
-           :`<button class="btn btn-brand" data-dadd="${key}">${t.add}</button>`}
+        ${q?`<div class="stepper lg"><button type="button" data-dec="${key}" aria-label="−">−</button><span class="num" aria-live="polite">${D(q)}</span><button type="button" data-inc="${key}" aria-label="+">+</button></div>`
+           :`<button type="button" class="btn btn-brand" data-dadd="${key}">${t.add}</button>`}
       </div>
       <p class="ask">${t.ask}</p>
     </div>`;
@@ -302,7 +310,7 @@ const CHEV = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 function navHTML(t){
   const prev = neighbour(-1), next = neighbour(1);
   // physical sides follow reading direction: in Persian "next" sits on the left
-  return `<div class="dnav">${prev?`<button class="dprev" data-step="-1" aria-label="${t.prevItem}">${CHEV(lang==="fa"?"M9 6l6 6-6 6":"M15 6l-6 6 6 6")}</button>`:""}${next?`<button class="dnext" data-step="1" aria-label="${t.nextItem}">${CHEV(lang==="fa"?"M15 6l-6 6 6 6":"M9 6l6 6-6 6")}</button>`:""}</div>`;
+  return `<div class="dnav">${prev?`<button type="button" class="dprev" data-step="-1" aria-label="${t.prevItem}">${CHEV(lang==="fa"?"M9 6l6 6-6 6":"M15 6l-6 6 6 6")}</button>`:""}${next?`<button type="button" class="dnext" data-step="1" aria-label="${t.nextItem}">${CHEV(lang==="fa"?"M15 6l-6 6 6 6":"M9 6l6 6-6 6")}</button>`:""}</div>`;
 }
 function stepDetail(step){
   const id = neighbour(step); if (!id) return;
@@ -335,11 +343,11 @@ function setTheme(t,save){
   document.getElementById("themeColor").setAttribute("content", t==="dark"?"#121214":"#ffffff");
   themeBtn.setAttribute("aria-label", lang==="fa" ? (t==="dark"?"حالت روز":"حالت شب") : (t==="dark"?"Light mode":"Dark mode"));
   themeBtn.setAttribute("aria-pressed", t==="dark");
-  if(save){ try{localStorage.setItem("ro-theme",t)}catch(e){} }
+  if(save) store.set("ro-theme", t);
 }
-themeBtn.onclick=()=>setTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark",true);
+themeBtn.addEventListener("click",()=>setTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark",true));
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change",e=>{
-  let saved=null; try{saved=localStorage.getItem("ro-theme")}catch(err){}
+  const saved = store.get("ro-theme");
   if(saved!=="light"&&saved!=="dark") setTheme(e.matches?"dark":"light",false);
 });
 
@@ -351,15 +359,13 @@ filterBtn.addEventListener("click", e => { e.stopPropagation(); setFilterPop(fil
 document.addEventListener("click", e => { if (!filterPop.hidden && !e.target.closest("#filterPop") && !e.target.closest("#filterBtn")){ e.stopPropagation(); e.preventDefault(); setFilterPop(false); } }, true);
 addEventListener("keydown", e => { if (e.key === "Escape" && !filterPop.hidden){ setFilterPop(false); filterBtn.focus(); } });
 
-/* ---------- opening hours (CONFIG.hours) + open/closed now, in Iran time ---------- */
+/* ---------- opening hours (CONFIG.hours); today is worked out in Iran time ---------- */
 const DAY_KEYS = ["sat","sun","mon","tue","wed","thu","fri"];
-const toMin = t => { const [h,m] = t.split(":").map(Number); return h*60 + m; };
 function tehranNow(){
   const p = Object.fromEntries(new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Tehran",weekday:"short",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date()).map(x=>[x.type,x.value]));
   const idx = {Sat:0,Sun:1,Mon:2,Tue:3,Wed:4,Thu:5,Fri:6}[p.weekday];
   return { day: idx, min: (+p.hour % 24)*60 + (+p.minute) };
 }
-const hhmm = m => { if (m === 1440) return D("24:00"); m = ((m % 1440) + 1440) % 1440; return D(String(Math.floor(m/60)).padStart(2,"0") + ":" + String(m%60).padStart(2,"0")); };
 function renderHours(){
   for (const id of ["hours","hours2"]) renderHoursInto(document.getElementById(id));
 }

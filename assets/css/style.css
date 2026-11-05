@@ -58,6 +58,9 @@ img{max-width:100%;display:block}
 :focus-visible{outline:2.5px solid var(--ink);outline-offset:2px;border-radius:var(--r-xs)}
 .num{font-variant-numeric:tabular-nums}
 .ltr{direction:ltr;unicode-bidi:isolate}
+.defs{position:absolute}
+/* each section colours its photo placeholders (set from data-tint, no inline styles) */
+.sec[data-tint="coffee"]{--tint:var(--t-coffee)}.sec[data-tint="brew"]{--tint:var(--t-brew)}.sec[data-tint="tea"]{--tint:var(--t-tea)}.sec[data-tint="warm"]{--tint:var(--t-warm)}.sec[data-tint="cold"]{--tint:var(--t-cold)}.sec[data-tint="iced"]{--tint:var(--t-iced)}.sec[data-tint="shake"]{--tint:var(--t-shake)}.sec[data-tint="cake"]{--tint:var(--t-cake)}.sec[data-tint="food"]{--tint:var(--t-food)}.sec[data-tint="extra"]{--tint:var(--t-extra)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .wrap{max-width:var(--maxw);margin-inline:auto;padding-inline:var(--gut)}
 
@@ -117,7 +120,7 @@ main.wrap{padding-top:.25rem;min-height:60vh}
 .it{display:grid;grid-template-columns:var(--thumb) minmax(0,1fr) auto;gap:.9rem;align-items:center;padding:.75rem .5rem;margin-inline:-.5rem;border-bottom:1px solid var(--line);border-radius:var(--r-m);cursor:pointer;transition:background .15s,transform .12s}
 .it:active{background:var(--soft);transform:scale(.985)}
 @media(hover:hover){.it:hover{background:var(--soft)}.it:hover .pic img{transform:scale(1.06)}}
-.pic{position:relative;width:var(--thumb);height:var(--thumb);border-radius:var(--r-m);overflow:hidden;display:grid;place-items:center}
+.pic{background:var(--tint,var(--soft));position:relative;width:var(--thumb);height:var(--thumb);border-radius:var(--r-m);overflow:hidden;display:grid;place-items:center}
 .pic img{width:100%;height:100%;object-fit:cover;transition:transform .35s ease}
 .pic svg{width:50%;height:50%;stroke:var(--ink);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .pic::after{content:"";position:absolute;inset-inline-end:6px;bottom:6px;width:22px;height:22px;border-radius:50%;pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,.18);
