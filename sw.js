@@ -3,9 +3,9 @@
    - Styles, scripts, fonts, photos: saved copy first (fast), refreshed in the background.
    Only good same-site answers are saved, so an error page can never replace a working file.
    VERSION and the ?v= numbers are raised by tools/release.mjs. */
-const VERSION = "ro-v9";
-const CORE = ["./", "index.html", "assets/css/fonts.css?v=9", "assets/css/style.css?v=9", "data/config.js?v=9",
-  "data/strings.js?v=9", "data/menu.js?v=9", "assets/js/app.js?v=9", "assets/icon.svg", "manifest.webmanifest"];
+const VERSION = "ro-v10";
+const CORE = ["./", "index.html", "assets/css/fonts.css?v=10", "assets/css/style.css?v=10", "data/config.js?v=10",
+  "data/strings.js?v=10", "data/menu.js?v=10", "assets/js/app.js?v=10", "assets/icon.svg", "manifest.webmanifest"];
 
 const cacheable = res => res && res.ok && res.type === "basic";
 const save = (req, res) => { if (cacheable(res)) { const copy = res.clone(); caches.open(VERSION).then(c => c.put(req, copy)); } return res; };
