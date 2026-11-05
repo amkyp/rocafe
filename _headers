@@ -1,0 +1,12 @@
+# Ro Cafe menu: settings for Netlify and Cloudflare Pages (they compress automatically).
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+/index.html
+  Cache-Control: no-cache
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+/data/*
+  Cache-Control: public, max-age=300
+/img/*
+  Cache-Control: public, max-age=31536000, immutable

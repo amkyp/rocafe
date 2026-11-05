@@ -1,0 +1,30 @@
+# Ro Cafe menu: settings for Apache hosts (cPanel / DirectAdmin, most Iranian shared hosts).
+# Upload this file next to index.html.
+
+# Send text files compressed (about 60 KB less per visit)
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript text/javascript image/svg+xml application/json
+</IfModule>
+
+AddType image/webp .webp
+AddType font/woff2 .woff2
+
+# Caching: the page itself is always checked for updates; CSS/JS/images are kept for a year.
+# Safe because index.html loads them with ?v=N, and N goes up after every change.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <FilesMatch "\.(css|js|webp|png|svg|woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Always use HTTPS once the host's SSL certificate is on
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} off
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
