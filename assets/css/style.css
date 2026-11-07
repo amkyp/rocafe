@@ -97,7 +97,7 @@ html[data-theme="dark"] .pill .sun{display:none}
 html[data-theme="dark"] .pill .moon{display:block}
 
 /* ---------- app bar: brand row, search, categories (sticky) ---------- */
-.appbar{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 92%,transparent);border-bottom:1px solid transparent;transition:border-color .2s,box-shadow .2s}
+.appbar{position:sticky;top:0;z-index:30;background:var(--bg);border-bottom:1px solid transparent;transition:border-color .2s,box-shadow .2s}
 .appbar.stuck{border-color:var(--line);box-shadow:0 6px 18px -14px rgba(0,0,0,.35)}
 .bar-row{position:relative;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.6rem;min-height:var(--bar-row);margin-top:.25rem}
 /* the name never gets squeezed: with very large text the buttons move to a second row instead */
