@@ -119,7 +119,7 @@ function setBean(i){
   const it = findItem("e"); it.sel = i;
   const row = document.querySelector('#menu [data-open="e"]'); if (!row) return;
   const key = "e"+i, add = row.querySelector("[data-add]");
-  row.querySelector(".price").innerHTML = `${D(it.beans[i][2])} <small>${T[lang].unit}</small>`;
+  row.querySelector(".price").textContent = D(it.beans[i][2]);
   add.dataset.add = key; add.setAttribute("aria-label", ITEMS[key][lang]);
   row.querySelectorAll("[data-bean]").forEach(b => { const on = +b.dataset.bean === i; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
   refreshAdds();

@@ -126,7 +126,8 @@ html[data-theme="dark"] .pill .moon{display:block}
 /* ---------- menu ---------- */
 main.wrap{padding-top:.25rem;min-height:60vh}
 .sec{padding-top:2rem}
-.sec:first-child{padding-top:.75rem}
+.sec:first-of-type{padding-top:.75rem}
+.unit-note{padding-top:.9rem;font-size:var(--fs-xs);color:var(--mute)}
 .sec-h{margin-bottom:.5rem}
 .sec-h h2,.site-foot h2,.sheet-title{font-size:var(--fs-lg);font-weight:700;line-height:1.35}
 .grid{display:grid;grid-template-columns:1fr;column-gap:2rem}

@@ -60,19 +60,19 @@ export const RO = {
     if(it.espresso){
       const b=it.beans[it.sel], key="e"+it.sel, q=bill[key]||0;
       return `<div class="it has-beans" data-open="${it.id}"><div class="pic">${RO.thumbHTML(it, ctx)}</div>
-      <div class="info"><h3><button type="button" class="it-name">${esc(name)}</button></h3><span class="price num">${D(b[2])} <small>${t.unit}</small></span></div>
+      <div class="info"><h3><button type="button" class="it-name">${esc(name)}</button></h3><span class="price num">${D(b[2])}</span></div>
       <button type="button" class="add${q?" has":""} num" data-add="${key}" aria-label="${esc(ITEMS[key][lang])}">${q?D(q):"+"}</button>
       <div class="beans" role="group" aria-label="${t.bean}">${it.beans.map((bb,i)=>`<button type="button" class="bean${i===it.sel?" on":""}" aria-pressed="${i===it.sel}" data-bean="${i}">${esc(lang==="fa"?bb[0]:bb[1])}</button>`).join("")}</div></div>`;
     }
     const q=bill[it.id]||0;
     return `<div class="it" data-open="${it.id}"><div class="pic">${RO.thumbHTML(it, ctx)}</div>
-    <div class="info"><h3><button type="button" class="it-name">${esc(name)}</button></h3>${sub?`<p>${esc(sub)}</p>`:""}${RO.tagsHTML(it, lang)}<span class="price num">${D(it.p)} <small>${t.unit}</small></span></div>
+    <div class="info"><h3><button type="button" class="it-name">${esc(name)}</button></h3>${sub?`<p>${esc(sub)}</p>`:""}${RO.tagsHTML(it, lang)}<span class="price num">${D(it.p)}</span></div>
     <button type="button" class="add${q?" has":""} num" data-add="${it.id}" aria-label="${esc(name)}">${q?D(q):"+"}</button></div>`;
   },
   /* ctx: { lang, bill } */
   menuHTML(ctx){
     const c2 = { count: 0, ...ctx }, lang = ctx.lang;
-    return MENU.map(c => `<section class="sec" id="${esc(c.id)}" data-tint="${esc(c.tint.replace(/^--t-/,""))}"><div class="sec-h"><h2>${esc(lang==="fa"?c.fa:c.en)}</h2></div><div class="grid">${c.items.map(it => RO.itemHTML(it, c2)).join("")}</div></section>`).join("");
+    return `<p class="unit-note">${T[lang].unitNote}</p>` + MENU.map(c => `<section class="sec" id="${esc(c.id)}" data-tint="${esc(c.tint.replace(/^--t-/,""))}"><div class="sec-h"><h2>${esc(lang==="fa"?c.fa:c.en)}</h2></div><div class="grid">${c.items.map(it => RO.itemHTML(it, c2)).join("")}</div></section>`).join("");
   },
   chipsHTML(lang){
     return MENU.map(c=>`<button type="button" class="chip" data-go="${esc(c.id)}">${esc(lang==="fa"?c.fa:c.en)}</button>`).join("")+`<span class="chip-ind" aria-hidden="true"></span>`;
