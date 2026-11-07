@@ -1,5 +1,0 @@
-# Menu data changes often: let phones keep it only 5 minutes, so price edits show up quickly
-# even if the ?v= number in index.html was not raised.
-<IfModule mod_headers.c>
-  Header set Cache-Control "public, max-age=300"
-</IfModule>

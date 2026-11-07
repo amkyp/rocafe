@@ -1,10 +1,9 @@
-/* Ro Cafe menu: turns the data (data/menu.js, data/strings.js) into the menu's HTML.
-   Used in the browser by app.js, and by tools/release.mjs to write the ready-made Persian menu into
-   index.html, so the page shows the menu at once, even before (or without) its script. It never
-   touches the page itself, so both places get exactly the same markup. */
-'use strict';
+/* Ro Cafe menu: turns the menu data into HTML. No page access here; app.js puts it on the page. */
+import { MENU, TAGS, IMG } from "../../data/menu.js";
+import { T } from "../../data/strings.js";
+
 /* ---------- line illustrations ---------- */
-const ICONS = {
+export const ICONS = {
   espresso:'<path d="M14 26h22v6a11 11 0 0 1-22 0z"/><path d="M36 28h3a4 4 0 0 1 0 8h-4"/><path d="M10 46h30"/><path d="M20 20c0-2 2-3 2-5M27 20c0-2 2-3 2-5"/>',
   cup:'<path d="M10 22h28l-2 18a6 6 0 0 1-6 5H18a6 6 0 0 1-6-5z"/><path d="M38 26h3a5 5 0 0 1 0 10h-4"/><path d="M15 27c3-3 6 2 9-1s6 2 9-1" /><path d="M8 50h34"/>',
   glass:'<path d="M15 10h20l-2 38H17z"/><path d="M15.6 22h18.8"/><path d="M16.2 30h17.6"/><path d="M20 15c2 1 6 1 10 0"/>',
@@ -32,36 +31,31 @@ const ICONS = {
 };
 
 /* items get ids (i0, i1, … and "e" for espresso); ITEMS holds what the bill needs for each one */
-const ITEMS = {}; let n = 0;
+export const ITEMS = {}; let n = 0;
 for (const c of MENU) c.items = c.items.map(x=>{
-  if (x.espresso){ const it=Object.assign({},x,{id:"e",sel:0,cat:c}); it.beans.forEach((b,i)=>{ITEMS["e"+i]={fa:"اسپرسو "+b[0],en:"Espresso, "+b[1],p:b[2]};}); return it; }
+  if (x.espresso){ const it={...x,id:"e",sel:0,cat:c}; it.beans.forEach((b,i)=>{ITEMS["e"+i]={fa:"اسپرسو "+b[0],en:"Espresso, "+b[1],p:b[2]};}); return it; }
   const [fa,en,p,icon,dfa,den]=x, id="i"+(n++); const it={id,fa,en,p,icon,dfa,den,cat:c}; ITEMS[id]={fa,en,p}; return it;
 });
 
 
-const faDigits = s => String(s).replace(/\d/g,d=>"۰۱۲۳۴۵۶۷۸۹"[d]);
-const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+export const faDigits = s => String(s).replace(/\d/g,d=>"۰۱۲۳۴۵۶۷۸۹"[d]);
+export const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 /* an item's photos: IMG holds one file name or a list; the first one is shown in the menu list */
-const pics = it => { const v = IMG[it.en]; return v ? [].concat(v) : []; };
-/* a photo: modern browsers take the small .webp, older ones (iOS 12-13) the .jpg copy */
-const picHTML = (f, attrs, dir = "img") => `<picture><source srcset="${dir}/${encodeURIComponent(f)}.webp" type="image/webp"><img src="${dir}/jpg/${encodeURIComponent(f)}.jpg" ${attrs}></picture>`;
-const svg = k => `<svg viewBox="0 0 50 50" aria-hidden="true">${ICONS[k]||ICONS.cup}</svg>`;
+export const pics = it => { const v = IMG[it.en]; return v ? [v].flat() : []; };
+export const svg = k => `<svg viewBox="0 0 50 50" aria-hidden="true">${ICONS[k]||ICONS.cup}</svg>`;
 
-const RO = {
-  picHTML,
+export const RO = {
   digits: (s, lang) => lang === "fa" ? faDigits(s) : String(s),
   tagsHTML(it, lang){ const t = TAGS[it.en]; return t && t.length ? `<div class="tags">${t.map(x=>`<span class="tag ${esc(x)}">${esc(T[lang]["tag_"+x]||x)}</span>`).join("")}</div>` : ""; },
-  /* the menu photo: the first six load at once, the rest when scrolled near; a photo already shown
-     in this visit (ctx.seen) appears without fading in again */
+  /* the menu photo: the first six load at once, the rest when scrolled near */
   thumbHTML(it, ctx){
     const f = pics(it)[0]; if (!f) return svg(it.icon);
-    const eager = ctx.count++ < 6, seen = ctx.seen && ctx.seen.has(f);
-    return picHTML(f, `${seen?'class="ld" ':""}alt="" ${eager?'fetchpriority="high"':'loading="lazy"'} decoding="async" width="104" height="104"`);
+    return `<img src="img/${encodeURIComponent(f)}.webp" alt="" ${ctx.count++ < 6 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async" width="104" height="104">`;
   },
   /* one menu row: the item's name is a real button (opens the card; the whole row is its tap area),
      the + button and the bean choice are separate buttons on top of it */
   itemHTML(it, ctx){
-    const lang = ctx.lang, t = T[lang], D = s => RO.digits(s, lang), bill = ctx.bill || {};
+    const { lang, bill = {} } = ctx, t = T[lang], D = s => RO.digits(s, lang);
     const name = lang==="fa"?it.fa:it.en, sub = lang==="fa"?it.dfa:it.den;
     if(it.espresso){
       const b=it.beans[it.sel], key="e"+it.sel, q=bill[key]||0;
@@ -75,9 +69,9 @@ const RO = {
     <div class="info"><h3><button type="button" class="it-name">${esc(name)}</button></h3>${sub?`<p>${esc(sub)}</p>`:""}${RO.tagsHTML(it, lang)}<span class="price num">${D(it.p)} <small>${t.unit}</small></span></div>
     <button type="button" class="add${q?" has":""} num" data-add="${it.id}" aria-label="${esc(name)}">${q?D(q):"+"}</button></div>`;
   },
-  /* ctx: { lang, bill (optional), seen (optional set of photo names already shown) } */
+  /* ctx: { lang, bill } */
   menuHTML(ctx){
-    const c2 = Object.assign({ count: 0 }, ctx), lang = ctx.lang;
+    const c2 = { count: 0, ...ctx }, lang = ctx.lang;
     return MENU.map(c => `<section class="sec" id="${esc(c.id)}" data-tint="${esc(c.tint.replace(/^--t-/,""))}"><div class="sec-h"><h2>${esc(lang==="fa"?c.fa:c.en)}</h2></div><div class="grid">${c.items.map(it => RO.itemHTML(it, c2)).join("")}</div></section>`).join("");
   },
   chipsHTML(lang){

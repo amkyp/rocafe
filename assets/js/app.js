@@ -1,10 +1,14 @@
-/* Ro Cafe menu: app logic. Reads CONFIG (data/config.js), T (data/strings.js), MENU/DESC/TAGS/IMG (data/menu.js). */
-'use strict';
+/* Ro Cafe menu: how the page works (menu, search, filters, item card, bill, theme, language). */
+import { CONFIG } from "../../data/config.js";
+import { T } from "../../data/strings.js";
+import { MENU, DESC, TAGS, IMG } from "../../data/menu.js";
+import { RO, ITEMS, esc, faDigits, pics, svg } from "./render.js";
+
 /* ---------- state ---------- */
 /* localStorage can be missing (private mode) or hold anything: read through these and validate. */
 const store = {
-  get(k){ try { return localStorage.getItem(k); } catch (e) { return null; } },
-  set(k, v){ try { localStorage.setItem(k, v); } catch (e) { /* storage unavailable: setting just isn't remembered */ } }
+  get(k){ try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v){ try { localStorage.setItem(k, v); } catch { /* storage unavailable: setting just isn't remembered */ } }
 };
 const LANGS = ["fa", "en"];
 let lang = LANGS.includes(store.get("ro-lang")) ? store.get("ro-lang") : "fa";
@@ -15,10 +19,7 @@ const money = k => { const v=(k*1000).toLocaleString("en-US"); return lang==="fa
 const norm = s => (s||"").replace(/‌/g," ").replace(/ي/g,"ی").replace(/ك/g,"ک").replace(/\s+/g," ").trim().toLowerCase();
 const PIN = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12z" fill="currentColor"/><circle cx="12" cy="10" r="2.6" fill="var(--bg)"/></svg>`;
 /* only allow expected link types from the settings file (never javascript: etc.) */
-const safeUrl = (u, protocols = ["https:"]) => { try { const x = new URL(u, location.href); return protocols.includes(x.protocol) ? x.href : "#"; } catch (e) { return "#"; } };
-/* add or remove an attribute (Element.toggleAttribute is missing on older phones) */
-const setFlag = (el, name, on) => { if (on) el.setAttribute(name, "true"); else el.removeAttribute(name); };
-const seenPics = new Set(); // photo addresses already shown once in this visit
+const safeUrl = (u, protocols = ["https:"]) => { try { const x = new URL(u, location.href); return protocols.includes(x.protocol) ? x.href : "#"; } catch { return "#"; } };
 let filt = new Set();
 function hl(t){ if(!query) return esc(t); const s=norm(t), i=s.indexOf(query); if(i<0||s.length!==t.length) return esc(t); return esc(t.slice(0,i))+"<mark>"+esc(t.slice(i,i+query.length))+"</mark>"+esc(t.slice(i+query.length)); }
 
@@ -30,22 +31,13 @@ function matches(it,c){
 }
 
 const tagsHTML = it => RO.tagsHTML(it, lang);
-/* Build the whole menu (only when the language changes). The page already arrives with the Persian
-   menu written in by tools/release.mjs from the same code (assets/js/render.js), so on a normal
-   visit nothing is rebuilt at all: the ready-made menu is used as it is. */
+/* Build the whole menu (on start and when the language changes). */
 function render(){
-  const menu = document.getElementById("menu"), chips = document.getElementById("chips");
-  const ready = menu.getAttribute("data-lang") === lang && !Object.keys(bill).length;
-  if (!ready) {
-    menu.innerHTML = RO.menuHTML({ lang, bill, seen: seenPics });
-    chips.innerHTML = RO.chipsHTML(lang);
-    menu.setAttribute("data-lang", lang);
-  }
-  markLoaded();
-  document.getElementById("visit").hidden=false;
+  document.getElementById("menu").innerHTML = RO.menuHTML({ lang, bill });
+  document.getElementById("chips").innerHTML = RO.chipsHTML(lang);
+  document.getElementById("visit").hidden = false;
   applyFilter();
-}
-/* Search and filters: hide what doesn't match and mark the matching words. Nothing is rebuilt,
+}/* Search and filters: hide what doesn't match and mark the matching words. Nothing is rebuilt,
    so photos never reload or blink while typing. */
 function applyFilter(){
   let total = 0;
@@ -94,7 +86,7 @@ function applyLang(){
    <a class="vcard card" href="${esc(safeUrl("https://instagram.com/"+encodeURIComponent(CONFIG.instagram)+"/"))}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg><div><small>${t.insta}</small><b class="ltr">@${esc(CONFIG.instagram)}</b></div></a>`;
   document.getElementById("vgrid").innerHTML=v; document.getElementById("vgrid2").innerHTML=v;
   renderFilters(); render(); updateBill(); renderHours(); renderCopy(); syncBarH();
-  document.getElementById("infoBtn").setAttribute("aria-label", t.info); document.getElementById("clearQ").setAttribute("aria-label", t.clearSearch); document.getElementById("filterBtn").setAttribute("aria-label", t.filter); if(detailId && document.getElementById('detailSheet').classList.contains('open')) drawDetail();
+  document.getElementById("infoBtn").setAttribute("aria-label", t.info); document.getElementById("clearQ").setAttribute("aria-label", t.clearSearch); document.getElementById("filterBtn").setAttribute("aria-label", t.filter); filterPop.setAttribute("aria-label", t.filter); if(detailId && document.getElementById('detailSheet').classList.contains('open')) drawDetail();
 }
 
 /* ---------- bill ---------- */
@@ -114,7 +106,7 @@ function updateBill(){
       <span class="s num">${D(bill[k]*ITEMS[k].p)}</span></div>`).join("") : `<p class="sub">${t.empty}</p>`;
   if(!count) closeSheet("billSheet");
 }
-function change(k,d){ if(d>0 && navigator.vibrate) try{ navigator.vibrate(8); }catch (e) { /* optional feature */ } bill[k]=(bill[k]||0)+d; if(bill[k]<=0) delete bill[k]; updateBill(); refreshAdds(); }
+function change(k,d){ if(d>0 && navigator.vibrate) navigator.vibrate(8); bill[k]=(bill[k]||0)+d; if(bill[k]<=0) delete bill[k]; updateBill(); refreshAdds(); }
 /* switch the espresso bean: only its price, + button and choice buttons change */
 function setBean(i){
   const it = findItem("e"); it.sel = i;
@@ -144,65 +136,51 @@ qEl.addEventListener("input",()=>{ query=norm(qEl.value); document.getElementByI
 document.getElementById("clearQ").addEventListener("click",()=>{ qEl.value=""; query=""; document.getElementById("searchBox").classList.remove("has"); applyFilter(); qEl.focus(); });
 document.getElementById("langBtn").addEventListener("click",()=>{ lang = lang==="fa"?"en":"fa"; store.set("ro-lang", lang); applyLang(); });
 
-/* ---------- sheets: open/close with focus handling, Back button and swipe-down ---------- */
-const openStack = []; let lastFocus = null;
-const focusables = el => [...el.querySelectorAll('button,[href],input,[tabindex]:not([tabindex="-1"])')].filter(x => !x.disabled && x.offsetParent !== null);
+/* ---------- panels (bill, info, item card, filters): <dialog> elements ----------
+   The browser handles the dimmed background, focus, Escape and the page behind. Added here:
+   the phone's Back button closes the top panel, a tap outside closes it, and phones can
+   swipe a bottom panel down. */
+const openStack = [];
 function openSheet(id){
-  const s = document.getElementById(id); if (s.classList.contains("open")) return;
+  const d = document.getElementById(id); if (d.open) return;
   document.getElementById("toast").classList.remove("show");
-  if (!openStack.length) lastFocus = document.activeElement;
-  s.classList.add("open"); openStack.push(id); document.body.style.overflow = "hidden";
-  try { history.pushState({ sheet: id }, ""); } catch (e) { /* optional feature */ }
-  const f = focusables(s.querySelector(".panel")); (s.querySelector(".btn-dark,.btn-brand") || f[0] || s).focus({ preventScroll: true });
+  d.showModal(); openStack.push(id);
+  history.pushState({ sheet: id }, "");
+  d.querySelector(".btn-dark,.btn-brand")?.focus({ preventScroll: true });
 }
-function closeSheet(id, fromHistory){
-  const s = document.getElementById(id); if (!s.classList.contains("open")) return;
-  s.classList.remove("open"); openStack.splice(openStack.indexOf(id), 1);
-  const p = s.querySelector(".panel"); p.style.transform = ""; p.classList.remove("dragging");
-  if (!openStack.length){ document.body.style.overflow = ""; if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true }); }
-  if (!fromHistory){ try { if (history.state && history.state.sheet === id) history.back(); } catch (e) { /* optional feature */ } }
-}
-addEventListener("popstate", () => { const id = openStack[openStack.length - 1]; if (id) closeSheet(id, true); });
-document.addEventListener("keydown", e => {
-  if (e.key !== "Tab" || !openStack.length) return;
-  const f = focusables(document.getElementById(openStack[openStack.length - 1]).querySelector(".panel")); if (!f.length) return;
-  if (e.shiftKey && document.activeElement === f[0]){ e.preventDefault(); f[f.length-1].focus(); }
-  else if (!e.shiftKey && document.activeElement === f[f.length-1]){ e.preventDefault(); f[0].focus(); }
+function closeSheet(id){ document.getElementById(id).close(); }
+document.querySelectorAll("dialog").forEach(d => {
+  d.addEventListener("close", () => {           // closed by a button, Escape, Back or a tap outside
+    openStack.splice(openStack.indexOf(d.id), 1);
+    const p = d.querySelector(".panel"); if (p) { p.style.transform = ""; p.classList.remove("dragging"); }
+    if (d.id === "filterPop") filterBtn.setAttribute("aria-expanded", "false");
+    if (history.state?.sheet === d.id) history.back();
+  });
+  d.addEventListener("click", e => {
+    if (e.target === d || e.target.closest("[data-close]")) return d.close();   // the dialog itself = outside the card
+    const i = e.target.closest("[data-inc]"), m = e.target.closest("[data-dec]");
+    if (i) change(i.dataset.inc, 1); if (m) change(m.dataset.dec, -1);
+  });
 });
-// swipe a bottom sheet down to close it (phones only: sheets are centred from 700px up)
+addEventListener("popstate", () => { const id = openStack.at(-1); if (id) closeSheet(id); });
+// swipe a bottom panel down to close it (phones only: panels are centred from 700px up)
 document.querySelectorAll(".sheet .panel").forEach(p => {
   let y0 = null, dy = 0;
   p.addEventListener("touchstart", e => { if (innerWidth >= 700 || p.scrollTop > 0) return; y0 = e.touches[0].clientY; dy = 0; }, { passive: true });
   p.addEventListener("touchmove", e => { if (y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0); if (dy > 0){ p.classList.add("dragging"); p.style.transform = `translateY(${dy}px)`; } }, { passive: true });
-  p.addEventListener("touchend", () => { if (y0 == null) return; const id = p.closest(".sheet").id; p.classList.remove("dragging");
-    if (dy > 110) closeSheet(id); else p.style.transform = ""; y0 = null; });
+  p.addEventListener("touchend", () => { if (y0 == null) return; p.classList.remove("dragging");
+    if (dy > 110) p.closest("dialog").close(); else p.style.transform = ""; y0 = null; });
 });
 document.getElementById("openBill").addEventListener("click",()=>openSheet("billSheet"));
 document.getElementById("infoBtn").addEventListener("click",()=>openSheet("infoSheet"));
-document.querySelectorAll(".sheet").forEach(s=>s.addEventListener("click",e=>{
-  if(e.target.closest("[data-close]")) return closeSheet(s.id);
-  const i=e.target.closest("[data-inc]"), d=e.target.closest("[data-dec]");
-  if(i) change(i.dataset.inc,1); if(d) change(d.dataset.dec,-1);
-}));
-addEventListener("keydown",e=>{ if(e.key==="Escape" && openStack.length && filterPop.hidden) closeSheet(openStack[openStack.length-1]); });
 document.getElementById("pMinus").addEventListener("click",()=>{ people=Math.max(1,people-1); updateBill(); });
 document.getElementById("pPlus").addEventListener("click",()=>{ people=Math.min(20,people+1); updateBill(); });
 document.getElementById("clearBill").addEventListener("click",()=>{ for(const k in bill) delete bill[k]; people=1; updateBill(); refreshAdds(); });
 document.addEventListener("click",async e=>{
   const c=e.target.closest("[data-copy]"); if(!c) return;
-  try { await copyText(c.dataset.copy); toast(T[lang].copied); } catch (e) { toast(CONFIG.phoneDisplay); }
+  try { await navigator.clipboard.writeText(c.dataset.copy); toast(T[lang].copied); } catch { toast(CONFIG.phoneDisplay); }
 });
 
-/* copy to the clipboard; older phones without the clipboard API use a hidden text box */
-function copyText(s){
-  if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(s);
-  return new Promise((ok, fail) => {
-    const ta = document.createElement("textarea"); ta.value = s; ta.setAttribute("readonly", "");
-    ta.className = "sr"; document.body.appendChild(ta); ta.select();
-    const done = document.execCommand && document.execCommand("copy"); ta.remove();
-    if (done) ok(); else fail(new Error("copy"));
-  });
-}
 let tt; function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove("show"),1500); }
 
 /* scroll spy + sticky border */
@@ -243,7 +221,6 @@ function goTo(id){
   scrollTo({ top, behavior: reduceMotion() ? "auto" : "smooth" });
   clearTimeout(lockTimer); lockTimer = setTimeout(() => { lockTo = null; }, 1200);
 }
-addEventListener("scrollend", e => { if (e.target !== document && e.target !== window) return; if (lockTo) { clearTimeout(lockTimer); lockTimer = setTimeout(() => { lockTo = null; }, 80); } });
 function spy(){
   document.getElementById("chipsBar").classList.toggle("stuck", scrollY > 4);
   if (lockTo) return;
@@ -271,16 +248,13 @@ document.getElementById("filters").addEventListener("click",e=>{
 let detailId=null;
 function findItem(id){ for(const c of MENU) for(const it of c.items) if(it.id===id) return it; }
 /* Large photos: each is downloaded once and kept as a ready <img>, so reopening an item
-   (or tapping + / − inside it) shows the photo instantly instead of fading it in again. */
+   (or tapping + / − inside it) shows the photo instantly. */
 const bigPics = new Map();
-/* does this browser show .webp? The menu photos tell us: the browser picked one source for them */
-const webpOK = () => { const i = document.querySelector("#menu picture img"); return !i || !i.currentSrc || /\.webp(\?|$)/.test(i.currentSrc); };
 function bigPic(f, lazy = false){
   let im = bigPics.get(f);
   if (!im) {
     im = new Image(); im.decoding = "async"; im.className = "hi"; if (lazy) im.loading = "lazy";
-    im.addEventListener("load", () => im.classList.add("ld"), { once: true });
-    im.src = webpOK() ? `img/lg/${encodeURIComponent(f)}.webp` : `img/lg/jpg/${encodeURIComponent(f)}.jpg`;
+    im.src = `img/lg/${encodeURIComponent(f)}.webp`;
     bigPics.set(f, im);
   }
   return im;
@@ -295,7 +269,7 @@ function drawDetail(){
   const ingr = lang==="fa"?it.dfa:it.den;
   const ps = pics(it), many = ps.length > 1, own = Array.isArray(IMG[it.en]);
   document.getElementById("dPanel").innerHTML = `
-    <div class="grab" aria-hidden="true"></div><div class="dimg${own?" own":""}${many?" multi":""}">${ps.length?`<div class="gal"${many?` role="group" aria-label="${t.photos}"`:""}>${ps.map(f=>`<div class="sl">${RO.picHTML(f, 'class="lo ld" alt="" aria-hidden="true"')}</div>`).join("")}</div>`:""}${many?`<div class="gdots">${ps.map((_,i)=>`<button type="button" data-pic="${i}" aria-label="${t.photo} ${D(i+1)} / ${D(ps.length)}"${i?"":' aria-current="true"'}></button>`).join("")}</div>`:""}<button type="button" class="dclose" data-close aria-label="${t.close}">✕</button>${many?galNavHTML(t):""}</div>
+    <div class="grab" aria-hidden="true"></div><div class="dimg${own?" own":""}${many?" multi":""}">${ps.length?`<div class="gal"${many?` role="group" aria-label="${t.photos}"`:""}>${ps.map(f=>`<div class="sl"><img class="lo" src="img/${encodeURIComponent(f)}.webp" alt="" aria-hidden="true"></div>`).join("")}</div>`:""}${many?`<div class="gdots">${ps.map((_,i)=>`<button type="button" data-pic="${i}" aria-label="${t.photo} ${D(i+1)} / ${D(ps.length)}"${i?"":' aria-current="true"'}></button>`).join("")}</div>`:""}<button type="button" class="dclose" data-close aria-label="${t.close}">✕</button>${many?galNavHTML(t):""}</div>
     <div class="dbody"><div class="dbin">
       <h2 id="dName">${esc(name)}</h2><div class="alt">${esc(alt)}</div>
       ${tagsHTML(it)}
@@ -309,7 +283,6 @@ function drawDetail(){
   document.querySelectorAll("#dPanel .sl").forEach((sl, i) => {
     const hi = bigPic(ps[i], i > 0);
     hi.alt = many ? `${name} (${D(i+1)})` : name;
-    if (hi.complete && hi.naturalWidth) hi.classList.add("ld", "now"); else hi.classList.remove("now");
     sl.appendChild(hi);
   });
   const gal = document.querySelector("#dPanel .gal");
@@ -340,11 +313,10 @@ function sibHTML(t){
   const btn = (id, step) => {
     if (!id) return `<span></span>`;
     const it = findItem(id), f = pics(it)[0];
-    // "previous" reads arrow, photo, name; "next" mirrors it: name, photo, arrow
-    const parts = [`<span class="sib-ic">${step < 0 ? BACK() : FWD()}</span>`,
-      `<span class="sib-pic">${f ? RO.picHTML(f, 'alt="" class="ld"') : svg(it.icon)}</span>`,
-      `<span class="sib-t"><small>${step < 0 ? t.prev : t.next}</small><b>${esc(it[lang])}</b></span>`];
-    return `<button type="button" class="sib ${step < 0 ? "prev" : "next"}" data-step="${step}" aria-label="${step < 0 ? t.prevItem : t.nextItem}: ${esc(it[lang])}">${(step < 0 ? parts : parts.reverse()).join("")}</button>`;
+    return `<button type="button" class="sib ${step < 0 ? "prev" : "next"}" data-step="${step}" aria-label="${step < 0 ? t.prevItem : t.nextItem}: ${esc(it[lang])}">
+      <span class="sib-ic">${step < 0 ? BACK() : FWD()}</span>
+      <span class="sib-pic">${f ? `<img src="img/${encodeURIComponent(f)}.webp" alt="">` : svg(it.icon)}</span>
+      <span class="sib-t"><small>${step < 0 ? t.prev : t.next}</small><b>${esc(it[lang])}</b></span></button>`;
   };
   return `<nav class="dsib" aria-label="${t.moreItems}">${btn(neighbour(-1), -1)}${btn(neighbour(1), 1)}</nav>`;
 }
@@ -354,25 +326,13 @@ function galNavHTML(t){
 }
 function galTo(i){
   const g = document.querySelector("#dPanel .gal"); if (!g) return;
-  const n = g.children.length; i = Math.max(0, Math.min(n - 1, i));
-  // move by the on-screen distance to the wanted photo: correct in every browser's right-to-left scroll model
-  const delta = g.children[i].getBoundingClientRect().left - g.getBoundingClientRect().left;
-  // an absolute target (not scrollBy): a relative scroll would be stopped at every photo by scroll-snap-stop
-  const to = g.scrollLeft + delta;
-  if ("scrollBehavior" in document.documentElement.style && !reduceMotion()) g.scrollTo({ left: to, behavior: "smooth" });
-  else g.scrollLeft = to;
-}
-/* which photo is showing: the one whose left edge is nearest the strip's left edge */
-function galIndex(){
-  const g = document.querySelector("#dPanel .gal"); if (!g || !g.clientWidth) return 0;
-  const x = g.getBoundingClientRect().left; let best = 0, gap = Infinity;
-  [].forEach.call(g.children, (s, i) => { const d = Math.abs(s.getBoundingClientRect().left - x); if (d < gap) { gap = d; best = i; } });
-  return best;
-}
-function galSync(){
+  i = Math.max(0, Math.min(g.children.length - 1, i));
+  const rtl = getComputedStyle(g).direction === "rtl";
+  g.scrollTo({ left: (rtl ? -1 : 1) * i * g.clientWidth, behavior: reduceMotion() ? "auto" : "smooth" });
+}const galIndex = () => { const g = document.querySelector("#dPanel .gal"); return g?.clientWidth ? Math.round(Math.abs(g.scrollLeft) / g.clientWidth) : 0; };function galSync(){
   const g = document.querySelector("#dPanel .gal"); if (!g) return;
   const i = galIndex(), n = g.children.length;
-  document.querySelectorAll("#dPanel [data-pic]").forEach(d => setFlag(d, "aria-current", +d.dataset.pic === i));
+  document.querySelectorAll("#dPanel [data-pic]").forEach(d => d.toggleAttribute("aria-current", +d.dataset.pic === i));
   const pv = document.querySelector("#dPanel .gprev"), nx = document.querySelector("#dPanel .gnext");
   if (pv) pv.disabled = i === 0; if (nx) nx.disabled = i === n - 1;
 }
@@ -380,13 +340,13 @@ function stepDetail(step){
   const id = neighbour(step); if (!id) return;
   detailId = id; const panel = document.getElementById("dPanel");
   panel.classList.remove("slide-next","slide-prev"); void panel.offsetWidth;
-  const hadFocus = document.activeElement && document.activeElement.closest(".sib");
+  const hadFocus = document.activeElement?.closest(".sib");
   drawDetail(); panel.classList.add(step > 0 ? "slide-next" : "slide-prev");
   if (hadFocus) (panel.querySelector(step > 0 ? ".sib.next" : ".sib.prev") || panel.querySelector(".sib")).focus({ preventScroll: true });
   else panel.scrollTop = 0;
 }
 addEventListener("keydown", e => {
-  if (openStack[openStack.length-1] !== "detailSheet") return;
+  if (openStack.at(-1) !== "detailSheet") return;
   if (e.key === "ArrowLeft") stepDetail(lang === "fa" ? 1 : -1);
   if (e.key === "ArrowRight") stepDetail(lang === "fa" ? -1 : 1);
 });
@@ -409,34 +369,29 @@ function setTheme(t,save){
   if(save) store.set("ro-theme", t);
 }
 themeBtn.addEventListener("click",()=>setTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark",true));
-(() => { // follow the phone's dark/light setting unless the guest picked one (old Safari only has addListener)
-  const mq = matchMedia("(prefers-color-scheme: dark)");
-  const follow = e => { const saved = store.get("ro-theme"); if (saved !== "light" && saved !== "dark") setTheme(e.matches ? "dark" : "light", false); };
-  if (mq.addEventListener) mq.addEventListener("change", follow); else if (mq.addListener) mq.addListener(follow);
-})();
+// follow the phone's dark/light setting unless the guest picked one
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => {
+  if (!["light", "dark"].includes(store.get("ro-theme"))) setTheme(e.matches ? "dark" : "light", false);
+});
 
-/* ---------- filter popover ---------- */
+/* ---------- filters: a small dialog under its button (a tap outside closes it, nothing else) ---------- */
 const filterBtn = document.getElementById("filterBtn"), filterPop = document.getElementById("filterPop");
-function setFilterPop(open){ filterPop.hidden = !open; filterBtn.setAttribute("aria-expanded", open); }
-filterBtn.addEventListener("click", e => { e.stopPropagation(); setFilterPop(filterPop.hidden); });
-// a tap outside the open filter box only closes it (it does not also open an item underneath)
-document.addEventListener("click", e => { if (!filterPop.hidden && !e.target.closest("#filterPop") && !e.target.closest("#filterBtn")){ e.stopPropagation(); e.preventDefault(); setFilterPop(false); } }, true);
-addEventListener("keydown", e => { if (e.key === "Escape" && !filterPop.hidden){ setFilterPop(false); filterBtn.focus(); } });
+filterBtn.addEventListener("click", () => {
+  // just below the header row, lined up with its end (where the button sits)
+  const row = filterBtn.closest(".bar-row").getBoundingClientRect();
+  filterPop.style.top = `${row.bottom + 6}px`;
+  filterPop.style.insetInlineEnd = `${lang === "fa" ? row.left : innerWidth - row.right}px`;
+  filterPop.showModal(); openStack.push("filterPop"); history.pushState({ sheet: "filterPop" }, "");
+  filterBtn.setAttribute("aria-expanded", "true");
+});
 
 /* ---------- opening hours (CONFIG.hours); today is worked out in Iran time ---------- */
 const DAY_KEYS = ["sat","sun","mon","tue","wed","thu","fri"];
 function tehranNow(){
-  try {
-    const p = {};
-    new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Tehran",weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false})
-      .formatToParts(new Date()).forEach(x => { p[x.type] = x.value; });
-    const idx = {Sat:0,Sun:1,Mon:2,Tue:3,Wed:4,Thu:5,Fri:6}[p.weekday];
-    if (idx !== undefined) return { day: idx, min: (+p.hour % 24)*60 + (+p.minute) };
-  } catch (e) { /* older phones without time zone data: work it out below */ }
-  const d = new Date(Date.now() + 3.5 * 3600e3);   // Iran is UTC+3:30 all year (no daylight saving since 2022)
-  return { day: (d.getUTCDay() + 1) % 7, min: d.getUTCHours() * 60 + d.getUTCMinutes() };
-}
-function renderHours(){
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Tehran", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+    .formatToParts(new Date()).map(x => [x.type, x.value]));
+  return { day: ["Sat","Sun","Mon","Tue","Wed","Thu","Fri"].indexOf(p.weekday), min: +p.hour * 60 + +p.minute };
+}function renderHours(){
   for (const id of ["hours","hours2"]) renderHoursInto(document.getElementById(id));
 }
 function renderHoursInto(box){
@@ -454,35 +409,19 @@ function hoursRows(H, today, t){
   if (all.every(x => x === all[0])) return `<tr class="today"><td>${t.everyDay}</td><td>${fmt(H[DAY_KEYS[0]])}</td></tr>`;
   return DAY_KEYS.map((k,i) => `<tr${i===today?' class="today"':''}><td>${t.days[i]}</td><td>${fmt(H[k])}</td></tr>`).join("");
 }
-/* Persian (solar) year, also on phones whose browser has no Persian calendar */
-function persianYear(){
-  try {
-    const s = new Intl.DateTimeFormat("fa-IR-u-ca-persian",{year:"numeric"}).format(new Date()).replace(/\s*ه\.ش\.?/,"");
-    const n = +s.replace(/[۰-۹]/g, c => "۰۱۲۳۴۵۶۷۸۹".indexOf(c));
-    if (n > 1300 && n < 1600) return D(n);
-  } catch (e) { /* fall through */ }
-  const now = new Date(), g = now.getFullYear();
-  const nowruz = new Date(g, 2, 21);              // the solar year starts on about 21 March
-  return D(now >= nowruz ? g - 621 : g - 622);
-}
 function renderCopy(){
-  const y = lang==="fa" ? persianYear() : new Date().getFullYear();
+  const y = lang==="fa" ? new Intl.DateTimeFormat("fa-IR-u-ca-persian", { year: "numeric" }).format(new Date()).replace(/\s*ه\.ش\.?/, "") : new Date().getFullYear();
   document.getElementById("copy").textContent = `© ${y} ${T[lang].brandCopy}`;
 }
 
-/* ---------- offline + home screen (service worker on real hosts only) ---------- */
-if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
-  addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
-}
+/* ---------- offline + home screen ---------- */
+navigator.serviceWorker?.register("sw.js");
 addEventListener("offline", () => toast(T[lang].offline));
 
-/* photos fade in when loaded (no layout change: their boxes already have a size) */
-const picName = i => { const m = /([^/]+)\.(?:webp|jpg)$/.exec(i.currentSrc || i.getAttribute("src") || ""); return m ? decodeURIComponent(m[1]) : ""; };
-document.addEventListener("load", e => { if (e.target.tagName === "IMG") { e.target.classList.add("ld"); seenPics.add(picName(e.target)); } }, true);
+/* start downloading an item's large photo as soon as a finger or mouse is on it */
 ["pointerdown", "mouseover"].forEach(ev => document.getElementById("menu").addEventListener(ev, e => {
   const card = e.target.closest("[data-open]"); if (card) warm(card.dataset.open);
 }, { passive: true }));
-function markLoaded(){ document.querySelectorAll("img").forEach(i => { if (i.complete && i.naturalWidth) { i.classList.add("ld"); seenPics.add(picName(i)); } }); }
 
 /* small comforts: Enter closes the phone keyboard; tapping the logo returns to the top */
 qEl.addEventListener("keydown", e => { if (e.key === "Enter") qEl.blur(); });

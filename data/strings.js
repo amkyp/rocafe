@@ -1,5 +1,5 @@
 /* Interface text in Persian (fa) and English (en). Edit wording here. */
-const T = {
+export const T = {
  fa:{name:"کافه رو",place:"رامسر، بلوار امام",info:"اطلاعات",title:"منو",slogan:"ما به قهوه حساسیم، به رفاقت بیشتر.",search:"جستجو در منو",ph:"جستجو: لاته، شیک، دمنوش…",
      noneT:"چیزی پیدا نشد",noneD:"یک کلمه‌ی کوتاه‌تر امتحان کنید، مثلاً «شیک».",visit:"آدرس و تماس",slogan2:"یه میز، چند فنجون، کلی حرف…",
      bill:"حساب میز",billSub:"سفارشتان را اینجا جمع بزنید و اگر خواستید بین دوستان تقسیم کنید.",people:"تقسیم بین",total:"جمع کل",each:"سهم هر نفر",clear:"خالی کردن",close:"بستن",

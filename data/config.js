@@ -1,8 +1,8 @@
 /* ============================================================
-   RO CAFE SETTINGS  (the only place with cafe-specific links)
-   Change these when moving to a new address or domain; nothing else needs editing.
+   RO CAFE SETTINGS: phone, Instagram, opening hours, directions.
+   (The site's own address, for link previews, is in index.html.)
    ============================================================ */
-const CONFIG = {
+export const CONFIG = {
   phone: "+981155226936",            // used for the call link
   phoneDisplay: "011 5522 6936",     // shown on the page
   phoneCopy: "01155226936",          // copied by the Copy button
