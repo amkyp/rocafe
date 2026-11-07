@@ -1,6 +1,7 @@
 // Ro Cafe menu: prepare a new version for publishing. Run `node tools/release.mjs` from the site folder
-// after editing anything. It raises the ?v= number (so phones load the new files instead of old saved
-// copies), keeps the security policy in step with the page, then runs tools/check.mjs.
+// after editing anything. Each file gets ?v=<fingerprint of its contents>, so phones download only the
+// files that really changed and keep the rest. It also raises the offline-copy version, keeps the
+// security policy in step with the page, then runs tools/check.mjs.
 import { readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
@@ -13,11 +14,12 @@ const read = f => readFileSync(file(f), "utf8");
 const write = (f, s) => writeFileSync(file(f), s);
 
 let html = read("index.html"), sw = read("sw.js");
-const now = Math.max(...[...html.matchAll(/\?v=(\d+)/g)].map(m => +m[1]));
-const next = now + 1;
-
-html = html.replace(/\?v=\d+/g, `?v=${next}`);
-sw = sw.replace(/\?v=\d+/g, `?v=${next}`).replace(/VERSION = "ro-v\d+"/, `VERSION = "ro-v${next}"`);
+const fingerprint = f => createHash("sha256").update(readFileSync(file(f))).digest("hex").slice(0, 8);
+const stamp = s => s.replace(/([\w./-]+\.(?:css|js))\?v=[\w]+/g, (m, f) => `${f}?v=${fingerprint(f)}`);
+html = stamp(html);
+sw = stamp(sw);
+const now = +(sw.match(/VERSION = "ro-v(\d+)"/) || [0, 0])[1], next = now + 1;
+sw = sw.replace(/VERSION = "ro-v\d+"/, `VERSION = "ro-v${next}"`);
 
 // the one small inline script is allowed by its fingerprint; refresh it in case the script was edited
 const hashes = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
@@ -30,5 +32,5 @@ write("index.html", html);
 write("sw.js", sw);
 for (const f of ["_headers", ".htaccess"]) write(f, read(f).split(oldCsp).join(csp));
 
-console.log(`Version ${now} → ${next}`);
+console.log(`Release ${now} → ${next}`);
 execFileSync(process.execPath, [file("tools/check.mjs")], { stdio: "inherit" });

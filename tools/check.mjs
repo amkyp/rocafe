@@ -66,11 +66,14 @@ if (CONFIG.hours) for (const [d, slots] of Object.entries(CONFIG.hours))
 
 /* ---------- 4. release consistency ---------- */
 const html = read("index.html"), sw = read("sw.js");
-const vers = new Set([...html.matchAll(/\?v=(\d+)/g)].map(m => m[1]));
-const swVers = new Set([...sw.matchAll(/\?v=(\d+)/g)].map(m => m[1]));
-const swName = (sw.match(/VERSION = "ro-v(\d+)"/) || [])[1];
-if (vers.size !== 1) bad(`index.html mixes versions: ?v=${[...vers].join(", ?v=")}`);
-else if (swVers.size !== 1 || !swVers.has([...vers][0]) || swName !== [...vers][0]) bad(`sw.js version does not match index.html (run node tools/release.mjs)`);
+const fingerprint = f => createHash("sha256").update(readFileSync(path.join(ROOT, f))).digest("hex").slice(0, 8);
+const refs = s => [...s.matchAll(/([\w./-]+\.(?:css|js))\?v=(\w+)/g)];
+for (const [, f, v] of [...refs(html), ...refs(sw)])
+  if (existsSync(path.join(ROOT, f)) && v !== fingerprint(f)) bad(`${f} changed since the last release (run node tools/release.mjs)`);
+const pageRefs = new Set(refs(html).map(m => m[0])), swRefs = new Set(refs(sw).map(m => m[0]));
+for (const r of pageRefs) if (!swRefs.has(r)) bad(`sw.js does not save ${r} for offline use`);
+const release = (sw.match(/VERSION = "ro-v(\d+)"/) || [])[1];
+if (!release) bad("sw.js: VERSION is missing");
 for (const m of sw.matchAll(/"([^"]+\?v=\d+|[^"]+\.(?:svg|webmanifest))"/g)) {
   const f = m[1].split("?")[0]; if (!existsSync(path.join(ROOT, f))) bad(`sw.js saves "${f}" for offline use, but that file does not exist`);
 }
@@ -93,4 +96,4 @@ if (problems.length) {
   process.exit(1);
 }
 const count = MENU.reduce((a, c) => a + c.items.length, 0);
-console.log(`✓ All good: ${MENU.length} categories, ${count} items, ${Object.keys(IMG).length} photos, version ${[...vers][0]}.`);
+console.log(`✓ All good: ${MENU.length} categories, ${count} items, ${Object.keys(IMG).length} photos, release ${release}.`);

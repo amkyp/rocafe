@@ -123,6 +123,7 @@ main.wrap{padding-top:.25rem;min-height:60vh}
 .sec-h h2,.site-foot h2,.sheet-title{font-size:var(--fs-lg);font-weight:700;line-height:1.35}
 .grid{display:grid;grid-template-columns:1fr;column-gap:2rem}
 .it{display:grid;grid-template-columns:var(--thumb) minmax(0,1fr) auto;gap:.9rem;align-items:center;padding:.75rem .5rem;margin-inline:-.5rem;position:relative;border-radius:var(--r-m);cursor:pointer;transition:background .15s,transform .12s}
+.it[hidden],.sec[hidden],.chips .chip[hidden]{display:none}
 .it::after{content:"";position:absolute;inset-inline:.5rem;bottom:0;height:1px;background:var(--line);pointer-events:none}
 .it:active{background:var(--soft);transform:scale(.985)}
 @media(hover:hover){.it:hover{background:var(--soft)}.it:hover .pic img{transform:scale(1.06)}}

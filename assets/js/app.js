@@ -54,7 +54,8 @@ const PIN = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6.1 7
 const safeUrl = (u, protocols = ["https:"]) => { try { const x = new URL(u, location.href); return protocols.includes(x.protocol) ? x.href : "#"; } catch { return "#"; } };
 const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let thumbN = 0;
-const thumb = it => { const f = IMG[it.en]; const eager = thumbN++ < 6; return f ? `<img src="img/${encodeURIComponent(f)}.webp" alt="" ${eager?'fetchpriority="high"':'loading="lazy"'} decoding="async" width="104" height="104">` : svg(it.icon); };
+const seenPics = new Set(); // photo addresses already shown once in this visit
+const thumb = it => { const f = IMG[it.en]; const eager = thumbN++ < 6; const src = `img/${encodeURIComponent(f)}.webp`; return f ? `<img src="${src}"${seenPics.has(src)?' class="ld"':""} alt="" ${eager?'fetchpriority="high"':'loading="lazy"'} decoding="async" width="104" height="104">` : svg(it.icon); };
 const tagsHTML = it => { const t=TAGS[it.en]; return t&&t.length ? `<div class="tags">${t.map(x=>`<span class="tag ${esc(x)}">${esc(T[lang]['tag_'+x]||x)}</span>`).join('')}</div>` : ''; };
 let filt = new Set();
 const svg = k => `<svg viewBox="0 0 50 50" aria-hidden="true">${ICONS[k]||ICONS.cup}</svg>`;
@@ -82,18 +83,36 @@ function itemHTML(it){
     <button type="button" class="add${q?" has":""} num" data-add="${it.id}" aria-label="${esc(name)}">${q?D(q):"+"}</button></div>`;
 }
 
+/* Build the whole menu once (and again only when the language changes). */
 function render(){
   thumbN = 0;
-  let html="", total=0;
-  for(const c of MENU){
-    const list=c.items.filter(it=>matches(it,c)); if(!list.length) continue; total+=list.length;
-    html+=`<section class="sec" id="${esc(c.id)}" data-tint="${esc(c.tint.replace(/^--t-/,""))}"><div class="sec-h"><h2>${esc(lang==="fa"?c.fa:c.en)}</h2></div><div class="grid">${list.map(itemHTML).join("")}</div></section>`;
-  }
-  document.getElementById("menu").innerHTML=html; markLoaded();
+  document.getElementById("menu").innerHTML = MENU.map(c =>
+    `<section class="sec" id="${esc(c.id)}" data-tint="${esc(c.tint.replace(/^--t-/,""))}"><div class="sec-h"><h2>${esc(lang==="fa"?c.fa:c.en)}</h2></div><div class="grid">${c.items.map(itemHTML).join("")}</div></section>`).join("");
+  markLoaded();
   document.getElementById("visit").hidden=false;
-  document.getElementById("empty").style.display=total?"none":"block";
-  document.getElementById("chips").innerHTML=MENU.filter(c=>c.items.some(it=>matches(it,c))).map(c=>`<button type="button" class="chip" data-go="${esc(c.id)}">${esc(lang==="fa"?c.fa:c.en)}</button>`).join("")+`<span class="chip-ind" aria-hidden="true"></span>`;
-  spy();
+  document.getElementById("chips").innerHTML=MENU.map(c=>`<button type="button" class="chip" data-go="${esc(c.id)}">${esc(lang==="fa"?c.fa:c.en)}</button>`).join("")+`<span class="chip-ind" aria-hidden="true"></span>`;
+  applyFilter();
+}
+/* Search and filters: hide what doesn't match and mark the matching words. Nothing is rebuilt,
+   so photos never reload or blink while typing. */
+function applyFilter(){
+  let total = 0;
+  for (const c of MENU) {
+    let shown = 0;
+    for (const it of c.items) {
+      const node = document.querySelector(`#menu [data-open="${it.id}"]`); if (!node) continue;
+      const ok = matches(it, c); node.hidden = !ok; if (!ok) continue;
+      shown++;
+      const h = node.querySelector("h3"), sub = node.querySelector(".info p");
+      h.innerHTML = hl(lang==="fa"?it.fa:it.en);
+      if (sub) sub.innerHTML = hl(lang==="fa"?it.dfa:it.den);
+    }
+    total += shown;
+    document.getElementById(c.id).hidden = !shown;
+    const chip = document.querySelector(`#chips [data-go="${c.id}"]`); if (chip) chip.hidden = !shown;
+  }
+  document.getElementById("empty").style.display = total ? "none" : "block";
+  spy(); moveIndicator();
 }
 
 function applyLang(){
@@ -144,12 +163,22 @@ function updateBill(){
   if(!count) closeSheet("billSheet");
 }
 function change(k,d){ if(d>0 && navigator.vibrate) try{ navigator.vibrate(8); }catch { /* optional feature */ } bill[k]=(bill[k]||0)+d; if(bill[k]<=0) delete bill[k]; updateBill(); refreshAdds(); }
+/* switch the espresso bean: only its price, + button and choice buttons change */
+function setBean(i){
+  const it = findItem("e"); it.sel = i;
+  const row = document.querySelector('#menu [data-open="e"]'); if (!row) return;
+  const key = "e"+i, add = row.querySelector("[data-add]");
+  row.querySelector(".price").innerHTML = `${D(it.beans[i][2])} <small>${T[lang].unit}</small>`;
+  add.dataset.add = key; add.setAttribute("aria-label", ITEMS[key][lang]);
+  row.querySelectorAll("[data-bean]").forEach(b => { const on = +b.dataset.bean === i; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
+  refreshAdds();
+}
 function refreshAdds(){ document.querySelectorAll("[data-add]").forEach(b=>{ const q=bill[b.dataset.add]||0; b.classList.toggle("has",!!q); b.textContent=q?D(q):"+"; }); }
 
 /* ---------- events ---------- */
 document.getElementById("menu").addEventListener("click",e=>{
   const bean=e.target.closest("[data-bean]");
-  if(bean){ const it=findItem("e"); it.sel=+bean.dataset.bean; const sec=bean.closest(".it"); sec.outerHTML=itemHTML(it); return; }
+  if(bean){ setBean(+bean.dataset.bean); return; }
   const a=e.target.closest("[data-add]");
   if(a){ change(a.dataset.add,1); toast(`${ITEMS[a.dataset.add][lang]} ${T[lang].added}`); return; }
   const o=e.target.closest("[data-open]"); if(o) openDetail(o.dataset.open);
@@ -159,8 +188,8 @@ document.getElementById("chips").addEventListener("click",e=>{
   goTo(c.dataset.go);
 });
 const qEl=document.getElementById("q");
-qEl.addEventListener("input",()=>{ query=norm(qEl.value); document.getElementById("searchBox").classList.toggle("has",!!qEl.value); render(); });
-document.getElementById("clearQ").addEventListener("click",()=>{ qEl.value=""; query=""; document.getElementById("searchBox").classList.remove("has"); render(); qEl.focus(); });
+qEl.addEventListener("input",()=>{ query=norm(qEl.value); document.getElementById("searchBox").classList.toggle("has",!!qEl.value); applyFilter(); });
+document.getElementById("clearQ").addEventListener("click",()=>{ qEl.value=""; query=""; document.getElementById("searchBox").classList.remove("has"); applyFilter(); qEl.focus(); });
 document.getElementById("langBtn").addEventListener("click",()=>{ lang = lang==="fa"?"en":"fa"; store.set("ro-lang", lang); applyLang(); });
 
 /* ---------- sheets: open/close with focus handling, Back button and swipe-down ---------- */
@@ -258,9 +287,9 @@ function spy(){
   document.getElementById("chipsBar").classList.toggle("stuck", scrollY > 4);
   if (lockTo) return;
   const line = barH() + 24; let cur = null;
-  for (const s of document.querySelectorAll(".sec")) if (s.getBoundingClientRect().top <= line) cur = s.id;
-  if (!cur){ const f = document.querySelector(".sec"); cur = f && f.id; }
-  if (innerHeight + scrollY >= document.documentElement.scrollHeight - 2){ const all = document.querySelectorAll(".sec"); cur = all.length ? all[all.length-1].id : cur; }
+  for (const s of document.querySelectorAll(".sec:not([hidden])")) if (s.getBoundingClientRect().top <= line) cur = s.id;
+  if (!cur){ const f = document.querySelector(".sec:not([hidden])"); cur = f && f.id; }
+  if (innerHeight + scrollY >= document.documentElement.scrollHeight - 2){ const all = document.querySelectorAll(".sec:not([hidden])"); cur = all.length ? all[all.length-1].id : cur; }
   setActiveChip(cur);
 }
 addEventListener("scroll",spy,{passive:true});
@@ -274,7 +303,7 @@ function renderFilters(){
 }
 document.getElementById("filters").addEventListener("click",e=>{
   const b=e.target.closest("[data-f]"); if(!b) return;
-  const f=b.dataset.f; filt.has(f)?filt.delete(f):filt.add(f); renderFilters(); render();
+  const f=b.dataset.f; filt.has(f)?filt.delete(f):filt.add(f); renderFilters(); applyFilter();
 });
 
 /* ---------- detail card ---------- */
@@ -335,7 +364,7 @@ function refreshBuy(){
   document.querySelectorAll("#dPanel [data-dbean]").forEach(b => b.classList.toggle("on", +b.dataset.dbean === it.sel));
 }
 /* move between items inside the open card: in the order shown on the page (current filters/search) */
-const orderIds = () => [...document.querySelectorAll("#menu [data-open]")].map(e => e.dataset.open);
+const orderIds = () => [...document.querySelectorAll("#menu .sec:not([hidden]) .it:not([hidden])")].map(e => e.dataset.open);
 function neighbour(step){ const ids = orderIds(), i = ids.indexOf(detailId); return i < 0 ? null : ids[i + step] || null; }
 const CHEV = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
 function navHTML(t){
@@ -363,7 +392,7 @@ addEventListener("keydown", e => {
 document.getElementById("dPanel").addEventListener("click",e=>{
   const sb=e.target.closest("[data-step]"); if(sb){ stepDetail(+sb.dataset.step); return; }
   const a=e.target.closest("[data-dadd]"); if(a){ change(a.dataset.dadd,1); refreshBuy(); return; }
-  const b=e.target.closest("[data-dbean]"); if(b){ const it=findItem(detailId); it.sel=+b.dataset.dbean; refreshBuy(); render(); return; }
+  const b=e.target.closest("[data-dbean]"); if(b){ setBean(+b.dataset.dbean); refreshBuy(); return; }
   if(e.target.closest("[data-inc]")||e.target.closest("[data-dec]")) setTimeout(refreshBuy,0);
 });
 
@@ -427,11 +456,11 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
 addEventListener("offline", () => toast(T[lang].offline));
 
 /* photos fade in when loaded (no layout change: their boxes already have a size) */
-document.addEventListener("load", e => { if (e.target.tagName === "IMG") e.target.classList.add("ld"); }, true);
+document.addEventListener("load", e => { if (e.target.tagName === "IMG") { e.target.classList.add("ld"); seenPics.add(e.target.getAttribute("src")); } }, true);
 ["pointerdown", "mouseover"].forEach(ev => document.getElementById("menu").addEventListener(ev, e => {
   const card = e.target.closest("[data-open]"); if (card) warm(card.dataset.open);
 }, { passive: true }));
-function markLoaded(){ document.querySelectorAll("img:not(.ld)").forEach(i => { if (i.complete && i.naturalWidth) i.classList.add("ld"); }); }
+function markLoaded(){ document.querySelectorAll("img").forEach(i => { if (i.complete && i.naturalWidth) { i.classList.add("ld"); seenPics.add(i.getAttribute("src")); } }); }
 
 /* small comforts: Enter closes the phone keyboard; tapping the logo returns to the top */
 qEl.addEventListener("keydown", e => { if (e.key === "Enter") qEl.blur(); });

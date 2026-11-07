@@ -46,8 +46,8 @@ After editing, run this in the site folder (needs [Node.js](https://nodejs.org),
 node tools/release.mjs
 ```
 
-It raises the version number everywhere it appears, so phones load the new files straight away,
-and then checks the menu: prices are numbers, every photo exists, no name is used twice, Persian
+It gives each changed file a new version (unchanged files keep theirs, so phones download only
+what changed), and then checks the menu: prices are numbers, every photo exists, no name is used twice, Persian
 and English texts match, links are valid. If something is wrong it says what and where, and you
 fix it before publishing. `node tools/check.mjs` runs only the check. Menu data is kept on phones
 for 5 minutes at most anyway, so a forgotten release fixes itself quickly.
