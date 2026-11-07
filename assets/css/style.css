@@ -226,7 +226,11 @@ html[data-theme="dark"] .mapart{background:#26292e}
 .panel.dpanel{padding:0 0 calc(1.25rem + env(safe-area-inset-bottom))}
 .dpanel .grab{position:absolute;top:.4rem;left:50%;transform:translateX(-50%);z-index:2;margin:0;background:rgba(255,255,255,.75)}
 .dimg{position:relative;width:100%;aspect-ratio:4/3;max-height:min(46vh,46dvh);background:var(--soft)}
-.dimg img{width:100%;height:100%;object-fit:cover}
+.dimg{overflow:hidden}
+.dimg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+/* small menu photo shows at once, softened; the large one fades in over it only the first time */
+.dimg img.lo{filter:blur(10px);transform:scale(1.08)}
+.dimg img.hi.now{transition:none}
 .dclose{position:absolute;top:.75rem;inset-inline-end:.75rem;width:var(--h-s);height:var(--h-s);border-radius:50%;background:rgba(255,255,255,.92);color:#141416;font-size:1rem;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.15)}
 .dbody{padding:1.1rem 1.25rem 0}
 .dbody h2{font-size:var(--fs-xl);font-weight:700;line-height:1.35}

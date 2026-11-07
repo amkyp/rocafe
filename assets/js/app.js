@@ -280,6 +280,20 @@ document.getElementById("filters").addEventListener("click",e=>{
 /* ---------- detail card ---------- */
 let detailId=null;
 function findItem(id){ for(const c of MENU) for(const it of c.items) if(it.id===id) return it; }
+/* Large photos: each is downloaded once and kept as a ready <img>, so reopening an item
+   (or tapping + / − inside it) shows the photo instantly instead of fading it in again. */
+const bigPics = new Map();
+function bigPic(f){
+  let im = bigPics.get(f);
+  if (!im) {
+    im = new Image(); im.decoding = "async"; im.className = "hi";
+    im.addEventListener("load", () => im.classList.add("ld"), { once: true });
+    im.src = `img/lg/${encodeURIComponent(f)}.webp`;
+    bigPics.set(f, im);
+  }
+  return im;
+}
+const warm = id => { const it = id && findItem(id), f = it && IMG[it.en]; if (f) bigPic(f); };
 function openDetail(id){ detailId=id; drawDetail(); openSheet("detailSheet"); }
 function drawDetail(){
   const it=findItem(detailId); if(!it) return;
@@ -288,24 +302,37 @@ function drawDetail(){
   const d = DESC[it.en], desc = d ? d[lang==="fa"?0:1] : "";
   const ingr = lang==="fa"?it.dfa:it.den;
   const f = IMG[it.en];
-  const key = it.espresso ? "e"+it.sel : it.id;
-  const price = it.espresso ? it.beans[it.sel][2] : it.p;
-  const q = bill[key]||0;
   document.getElementById("dPanel").innerHTML = `
-    <div class="grab" aria-hidden="true"></div><div class="dimg">${f?`<img src="img/lg/${encodeURIComponent(f)}.webp" alt="${esc(name)}">`:""}<button type="button" class="dclose" data-close aria-label="${t.close}">✕</button>${navHTML(t)}</div>
+    <div class="grab" aria-hidden="true"></div><div class="dimg">${f?`<img class="lo ld" src="img/${encodeURIComponent(f)}.webp" alt="" aria-hidden="true">`:""}<button type="button" class="dclose" data-close aria-label="${t.close}">✕</button>${navHTML(t)}</div>
     <div class="dbody">
       <h2 id="dName">${esc(name)}</h2><div class="alt">${esc(alt)}</div>
       ${tagsHTML(it)}
       ${desc?`<p class="desc">${esc(desc)}</p>`:""}
       ${ingr && it.cat.id==="infusion"?`<p class="ingr">${t.ingr}: ${esc(ingr)}</p>`:(ingr&&!desc?`<p class="desc">${esc(ingr)}</p>`:"")}
       ${it.espresso?`<div class="beans">${it.beans.map((bb,i)=>`<button type="button" class="bean${i===it.sel?" on":""}" data-dbean="${i}">${esc(lang==="fa"?bb[0]:bb[1])}</button>`).join("")}</div>`:""}
-      <div class="dbuy">
-        <span class="pr num">${D(price)} <small>${t.unit}</small></span>
-        ${q?`<div class="stepper lg"><button type="button" data-dec="${key}" aria-label="−">−</button><span class="num" aria-live="polite">${D(q)}</span><button type="button" data-inc="${key}" aria-label="+">+</button></div>`
-           :`<button type="button" class="btn btn-brand" data-dadd="${key}">${t.add}</button>`}
-      </div>
+      <div class="dbuy">${buyHTML(it)}</div>
       <p class="ask">${t.ask}</p>
     </div>`;
+  if (f) {
+    const hi = bigPic(f), box = document.querySelector("#dPanel .dimg");
+    hi.alt = name;
+    if (hi.complete && hi.naturalWidth) hi.classList.add("ld", "now"); else hi.classList.remove("now");
+    box.insertBefore(hi, box.querySelector(".dclose"));
+  }
+  [-1, 1].forEach(s => warm(neighbour(s)));
+}
+function buyHTML(it){
+  const t = T[lang], key = it.espresso ? "e"+it.sel : it.id;
+  const price = it.espresso ? it.beans[it.sel][2] : it.p, q = bill[key]||0;
+  return `<span class="pr num">${D(price)} <small>${t.unit}</small></span>
+        ${q?`<div class="stepper lg"><button type="button" data-dec="${key}" aria-label="−">−</button><span class="num" aria-live="polite">${D(q)}</span><button type="button" data-inc="${key}" aria-label="+">+</button></div>`
+           :`<button type="button" class="btn btn-brand" data-dadd="${key}">${t.add}</button>`}`;
+}
+/* quantity or bean changed inside the open card: update only the price/quantity area */
+function refreshBuy(){
+  const it = findItem(detailId), box = document.querySelector("#dPanel .dbuy"); if (!it || !box) return;
+  box.innerHTML = buyHTML(it);
+  document.querySelectorAll("#dPanel [data-dbean]").forEach(b => b.classList.toggle("on", +b.dataset.dbean === it.sel));
 }
 /* move between items inside the open card: in the order shown on the page (current filters/search) */
 const orderIds = () => [...document.querySelectorAll("#menu [data-open]")].map(e => e.dataset.open);
@@ -335,9 +362,9 @@ addEventListener("keydown", e => {
 })();
 document.getElementById("dPanel").addEventListener("click",e=>{
   const sb=e.target.closest("[data-step]"); if(sb){ stepDetail(+sb.dataset.step); return; }
-  const a=e.target.closest("[data-dadd]"); if(a){ change(a.dataset.dadd,1); drawDetail(); return; }
-  const b=e.target.closest("[data-dbean]"); if(b){ const it=findItem(detailId); it.sel=+b.dataset.dbean; drawDetail(); render(); return; }
-  if(e.target.closest("[data-inc]")||e.target.closest("[data-dec]")) setTimeout(drawDetail,0);
+  const a=e.target.closest("[data-dadd]"); if(a){ change(a.dataset.dadd,1); refreshBuy(); return; }
+  const b=e.target.closest("[data-dbean]"); if(b){ const it=findItem(detailId); it.sel=+b.dataset.dbean; refreshBuy(); render(); return; }
+  if(e.target.closest("[data-inc]")||e.target.closest("[data-dec]")) setTimeout(refreshBuy,0);
 });
 
 /* ---------- theme ---------- */
@@ -401,6 +428,9 @@ addEventListener("offline", () => toast(T[lang].offline));
 
 /* photos fade in when loaded (no layout change: their boxes already have a size) */
 document.addEventListener("load", e => { if (e.target.tagName === "IMG") e.target.classList.add("ld"); }, true);
+["pointerdown", "mouseover"].forEach(ev => document.getElementById("menu").addEventListener(ev, e => {
+  const card = e.target.closest("[data-open]"); if (card) warm(card.dataset.open);
+}, { passive: true }));
 function markLoaded(){ document.querySelectorAll("img:not(.ld)").forEach(i => { if (i.complete && i.naturalWidth) i.classList.add("ld"); }); }
 
 /* small comforts: Enter closes the phone keyboard; tapping the logo returns to the top */
