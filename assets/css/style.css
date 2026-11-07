@@ -179,7 +179,7 @@ main.wrap{padding-top:.25rem;min-height:60vh}
 .vrow{display:flex;flex-wrap:wrap;align-items:flex-start;gap:.9rem;padding:.95rem 0;text-decoration:none;color:inherit}
 .vrow + .vrow{border-top:1px solid var(--line)}
 .vic{flex:none;width:22px;height:22px;margin-top:.15rem;color:var(--mute)}
-.vtx{flex:1;min-width:0;display:flex;flex-direction:column;gap:.1rem}
+.vtx{flex:1;min-width:0;display:flex;flex-direction:column;gap:.1rem;overflow-wrap:anywhere}
 .vtx small{color:var(--mute);font-size:var(--fs-xs)}
 .vtx b{align-self:flex-start;font-weight:600;font-size:var(--fs-md);overflow-wrap:anywhere}  /* values line up under their labels, also numbers in Persian */
 .vgo{flex:none;align-self:center;width:18px;height:18px;color:var(--mute)}
@@ -188,7 +188,7 @@ a.vrow{transition:opacity .15s}
 a.vrow:active{opacity:.6}
 a.vrow:focus-visible{outline:2px solid var(--ink);outline-offset:-2px;border-radius:var(--r-s)}
 /* directions: equal buttons in one row */
-.vdir{flex-basis:100%;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:.4rem;margin-top:-.1rem}
+.vdir{flex-basis:100%;min-width:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,6.5rem),1fr));gap:.4rem;margin-top:-.1rem}
 .mapgo{display:grid;place-items:center;min-height:var(--h-s);padding:.3rem .5rem;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface);font-weight:600;font-size:var(--fs-sm);text-align:center;text-decoration:none;color:var(--ink);transition:background-color .15s,transform .12s var(--ease)}
 .mapgo:active{transform:scale(.96)}
 @media(hover:hover){.mapgo:hover{background:var(--soft)}}
