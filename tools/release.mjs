@@ -5,6 +5,8 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
+import { buildCss } from "./build-css.mjs";
+import { prerender } from "./prerender.mjs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -13,7 +15,12 @@ const file = f => path.join(ROOT, f);
 const read = f => readFileSync(file(f), "utf8");
 const write = (f, s) => writeFileSync(file(f), s);
 
-let html = read("index.html"), sw = read("sw.js");
+// 1. stylesheet: src/style.css -> assets/css/style.css (adds what older phones need)
+const css = await buildCss();
+css.warnings.forEach(w => console.warn("! " + w));
+
+// 2. the ready-made menu inside the page
+let html = prerender(read("index.html")), sw = read("sw.js");
 const fingerprint = f => createHash("sha256").update(readFileSync(file(f))).digest("hex").slice(0, 8);
 const stamp = s => s.replace(/([\w./-]+\.(?:css|js))\?v=[\w]+/g, (m, f) => `${f}?v=${fingerprint(f)}`);
 html = stamp(html);

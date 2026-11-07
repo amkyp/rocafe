@@ -1,98 +1,48 @@
 /* Ro Cafe menu: app logic. Reads CONFIG (data/config.js), T (data/strings.js), MENU/DESC/TAGS/IMG (data/menu.js). */
 'use strict';
-/* ---------- line illustrations ---------- */
-const ICONS = {
-  espresso:'<path d="M14 26h22v6a11 11 0 0 1-22 0z"/><path d="M36 28h3a4 4 0 0 1 0 8h-4"/><path d="M10 46h30"/><path d="M20 20c0-2 2-3 2-5M27 20c0-2 2-3 2-5"/>',
-  cup:'<path d="M10 22h28l-2 18a6 6 0 0 1-6 5H18a6 6 0 0 1-6-5z"/><path d="M38 26h3a5 5 0 0 1 0 10h-4"/><path d="M15 27c3-3 6 2 9-1s6 2 9-1" /><path d="M8 50h34"/>',
-  glass:'<path d="M15 10h20l-2 38H17z"/><path d="M15.6 22h18.8"/><path d="M16.2 30h17.6"/><path d="M20 15c2 1 6 1 10 0"/>',
-  dripper:'<path d="M10 12h30l-9 16H19z"/><path d="M19 28h12v3H19z"/><path d="M14 36h22v10a2 2 0 0 1-2 2H16a2 2 0 0 1-2-2z"/><path d="M36 39h3a3 3 0 0 1 0 6h-3"/><path d="M25 31v4"/>',
-  cezve:'<path d="M14 18h16l-2 26a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3z"/><path d="M30 22l14-6"/><path d="M12 18h20"/><path d="M19 12c0-2 2-2 2-4M24 12c0-2 2-2 2-4"/>',
-  coldbrew:'<path d="M16 8h18v6l3 4v28a3 3 0 0 1-3 3H16a3 3 0 0 1-3-3V18l3-4z"/><path d="M13 26h24"/><path d="M19 32h4v4h-4zM26 36h4v4h-4z"/>',
-  mug:'<path d="M10 18h26v22a6 6 0 0 1-6 6H16a6 6 0 0 1-6-6z"/><path d="M36 22h4a5 5 0 0 1 0 10h-4"/><path d="M15 12c0-2 2-3 2-5M23 12c0-2 2-3 2-5M31 12c0-2 2-3 2-5"/>',
-  istikan:'<path d="M17 14h16c0 6-3 8-3 13s4 7 4 13H16c0-6 4-8 4-13s-3-7-3-13z"/><path d="M12 44h26"/><path d="M20 33h10"/>',
-  teapot:'<path d="M13 22h22v14a8 8 0 0 1-8 8h-6a8 8 0 0 1-8-8z"/><path d="M35 26h4a4 4 0 0 1 0 8h-4"/><path d="M13 27l-6-5v-3"/><path d="M19 22v-3h10v3"/><path d="M24 19v-3"/><path d="M28 30c-3 0-4 4-7 4"/>',
-  shake:'<path d="M14 18h22l-3 30H17z"/><path d="M13 18c0-5 5-8 12-8s12 3 12 8"/><path d="M29 10l5-7"/><circle cx="25" cy="8" r="2"/><path d="M15 28h20"/>',
-  iced:'<path d="M13 14h24l-3 34H16z"/><path d="M19 22h6v6h-6zM26 27h6v6h-6zM20 33h6v6h-6z"/><path d="M30 14l4-10"/>',
-  lemon:'<path d="M14 14h22l-3 34H17z"/><circle cx="35" cy="14" r="6"/><path d="M35 8v12M29 14h12"/><path d="M20 24c1 6 0 12 2 18"/><path d="M28 26c-1 5 0 10-1 16"/>',
-  matcha:'<path d="M8 22h34a17 15 0 0 1-34 0z"/><path d="M12 22c4-3 8 1 13-1s9 2 13-1"/><path d="M18 48h14"/><path d="M38 6l-8 14"/>',
-  bottle:'<path d="M20 6h10v6l3 4v28a4 4 0 0 1-4 4h-8a4 4 0 0 1-4-4V16l3-4z"/><path d="M17 24h16v12H17z"/><path d="M20 6h10"/>',
-  bomb:'<path d="M14 16h22l-3 32H17z"/><path d="M14 16c3-4 19-4 22 0"/><path d="M17 28h16M18 36h14"/><path d="M27 8l2-4 2 4"/>',
-  affogato:'<path d="M10 26h30a15 13 0 0 1-30 0z"/><circle cx="25" cy="20" r="7"/><path d="M14 30c4 2 8 0 11 2s7 0 11-2"/>',
-  cake:'<path d="M8 38l34-14v20H8z"/><path d="M8 38v6"/><path d="M8 38l34-14"/><path d="M8 32l20-8 14 0"/><path d="M8 32v6"/><path d="M28 24c0-4 4-5 4-9"/>',
-  cookie:'<circle cx="25" cy="27" r="16"/><circle cx="19" cy="21" r="1.6"/><circle cx="29" cy="20" r="1.6"/><circle cx="31" cy="31" r="1.6"/><circle cx="20" cy="32" r="1.6"/><circle cx="25" cy="27" r="1"/>',
-  croissant:'<path d="M5 34c2-12 12-20 20-20s18 8 20 20c-4 0-6-2-8-4-2 4-6 6-12 6s-10-2-12-6c-2 2-4 4-8 4z"/><path d="M17 18l3 12M25 14v16M33 18l-3 12"/>',
-  baguette:'<path d="M5 30c0-6 8-12 20-12s20 6 20 12-8 6-20 6-20 0-20-6z"/><path d="M8 32c4-2 10-1 17-1s13-1 17 1"/><path d="M14 26c2 1 4 1 6 0M24 26c2 1 4 1 6 0M34 26c2 1 3 1 5 0"/>',
-  plus:'<circle cx="25" cy="25" r="16"/><path d="M25 18v14M18 25h14"/>',
-  shot:'<path d="M17 14h16l-2 30H19z"/><path d="M18 24h14"/><path d="M25 6v4"/>',
-  milk:'<path d="M17 10h16v6l4 6v24a2 2 0 0 1-2 2H15a2 2 0 0 1-2-2V22l4-6z"/><path d="M13 30h24"/>',
-  syrup:'<path d="M20 4h10v6h-10z"/><path d="M18 10h14l2 6v28a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4V16z"/><path d="M16 26h18"/>'
-};
-
-/* normalize items + ids */
-const ITEMS = {}; let n = 0;
-for (const c of MENU) c.items = c.items.map(x=>{
-  if (x.espresso){ const it={...x,id:"e",sel:0,cat:c}; it.beans.forEach((b,i)=>{ITEMS["e"+i]={fa:"اسپرسو "+b[0],en:"Espresso, "+b[1],p:b[2]};}); return it; }
-  const [fa,en,p,icon,dfa,den]=x, id="i"+(n++); const it={id,fa,en,p,icon,dfa,den,cat:c}; ITEMS[id]={fa,en,p}; return it;
-});
-
 /* ---------- state ---------- */
 /* localStorage can be missing (private mode) or hold anything: read through these and validate. */
 const store = {
-  get(k){ try { return localStorage.getItem(k); } catch { return null; } },
-  set(k, v){ try { localStorage.setItem(k, v); } catch { /* storage unavailable: setting just isn't remembered */ } }
+  get(k){ try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v){ try { localStorage.setItem(k, v); } catch (e) { /* storage unavailable: setting just isn't remembered */ } }
 };
 const LANGS = ["fa", "en"];
 let lang = LANGS.includes(store.get("ro-lang")) ? store.get("ro-lang") : "fa";
 let query = ""; const bill = {}; let people = 1;
 
-const faDigits = s => String(s).replace(/\d/g,d=>"۰۱۲۳۴۵۶۷۸۹"[d]);
 const D = s => lang==="fa" ? faDigits(s) : String(s);
 const money = k => { const v=(k*1000).toLocaleString("en-US"); return lang==="fa" ? faDigits(v).replace(/,/g,"٬")+" تومان" : v+" Toman"; };
 const norm = s => (s||"").replace(/‌/g," ").replace(/ي/g,"ی").replace(/ك/g,"ک").replace(/\s+/g," ").trim().toLowerCase();
 const PIN = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12z" fill="currentColor"/><circle cx="12" cy="10" r="2.6" fill="var(--bg)"/></svg>`;
 /* only allow expected link types from the settings file (never javascript: etc.) */
-const safeUrl = (u, protocols = ["https:"]) => { try { const x = new URL(u, location.href); return protocols.includes(x.protocol) ? x.href : "#"; } catch { return "#"; } };
-const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-/* an item's photos: IMG holds one file name or a list; the first one is shown in the menu list */
-const pics = it => { const v = IMG[it.en]; return v ? [].concat(v) : []; };
-let thumbN = 0;
+const safeUrl = (u, protocols = ["https:"]) => { try { const x = new URL(u, location.href); return protocols.includes(x.protocol) ? x.href : "#"; } catch (e) { return "#"; } };
+/* add or remove an attribute (Element.toggleAttribute is missing on older phones) */
+const setFlag = (el, name, on) => { if (on) el.setAttribute(name, "true"); else el.removeAttribute(name); };
 const seenPics = new Set(); // photo addresses already shown once in this visit
-const thumb = it => { const f = pics(it)[0]; const eager = thumbN++ < 6; const src = `img/${encodeURIComponent(f)}.webp`; return f ? `<img src="${src}"${seenPics.has(src)?' class="ld"':""} alt="" ${eager?'fetchpriority="high"':'loading="lazy"'} decoding="async" width="104" height="104">` : svg(it.icon); };
-const tagsHTML = it => { const t=TAGS[it.en]; return t&&t.length ? `<div class="tags">${t.map(x=>`<span class="tag ${esc(x)}">${esc(T[lang]['tag_'+x]||x)}</span>`).join('')}</div>` : ''; };
 let filt = new Set();
-const svg = k => `<svg viewBox="0 0 50 50" aria-hidden="true">${ICONS[k]||ICONS.cup}</svg>`;
 function hl(t){ if(!query) return esc(t); const s=norm(t), i=s.indexOf(query); if(i<0||s.length!==t.length) return esc(t); return esc(t.slice(0,i))+"<mark>"+esc(t.slice(i,i+query.length))+"</mark>"+esc(t.slice(i+query.length)); }
 
 function matches(it,c){
   for(const f of filt){ if(!(TAGS[it.en]||[]).includes(f)) return false; }
   if(!query) return true;
-  const hay=[it.fa,it.en,it.dfa,it.den,c.fa,c.en].concat(it.beans?it.beans.flatMap(b=>[b[0],b[1]]):[]).map(norm).join(" | ");
+  const hay=[it.fa,it.en,it.dfa,it.den,c.fa,c.en].concat(it.beans?it.beans.reduce((all,b)=>all.concat([b[0],b[1]]),[]):[]).map(norm).join(" | ");
   return hay.includes(query);
 }
 
-function itemHTML(it){
-  const t=T[lang], name = lang==="fa"?it.fa:it.en, sub = lang==="fa"?it.dfa:it.den;
-  if(it.espresso){
-    const b=it.beans[it.sel], key="e"+it.sel, q=bill[key]||0;
-    return `<div class="it has-beans" data-open="${it.id}" role="button" tabindex="0"><div class="pic">${thumb(it)}</div>
-      <div class="info"><h3>${hl(name)}</h3><span class="price num">${D(b[2])} <small>${t.unit}</small></span></div>
-      <button type="button" class="add${q?" has":""} num" data-add="${key}" aria-label="${esc(ITEMS[key][lang])}">${q?D(q):"+"}</button>
-      <div class="beans" role="radiogroup" aria-label="${t.bean}">${it.beans.map((bb,i)=>`<button type="button" class="bean${i===it.sel?" on":""}" role="radio" aria-checked="${i===it.sel}" data-bean="${i}">${esc(lang==="fa"?bb[0]:bb[1])}</button>`).join("")}</div></div>`;
-  }
-  const q=bill[it.id]||0;
-  return `<div class="it" data-open="${it.id}" role="button" tabindex="0"><div class="pic">${thumb(it)}</div>
-    <div class="info"><h3>${hl(name)}</h3>${sub?`<p>${hl(sub)}</p>`:""}${tagsHTML(it)}<span class="price num">${D(it.p)} <small>${t.unit}</small></span></div>
-    <button type="button" class="add${q?" has":""} num" data-add="${it.id}" aria-label="${esc(name)}">${q?D(q):"+"}</button></div>`;
-}
-
-/* Build the whole menu once (and again only when the language changes). */
+const tagsHTML = it => RO.tagsHTML(it, lang);
+/* Build the whole menu (only when the language changes). The page already arrives with the Persian
+   menu written in by tools/release.mjs from the same code (assets/js/render.js), so on a normal
+   visit nothing is rebuilt at all: the ready-made menu is used as it is. */
 function render(){
-  thumbN = 0;
-  document.getElementById("menu").innerHTML = MENU.map(c =>
-    `<section class="sec" id="${esc(c.id)}" data-tint="${esc(c.tint.replace(/^--t-/,""))}"><div class="sec-h"><h2>${esc(lang==="fa"?c.fa:c.en)}</h2></div><div class="grid">${c.items.map(itemHTML).join("")}</div></section>`).join("");
+  const menu = document.getElementById("menu"), chips = document.getElementById("chips");
+  const ready = menu.getAttribute("data-lang") === lang && !Object.keys(bill).length;
+  if (!ready) {
+    menu.innerHTML = RO.menuHTML({ lang, bill, seen: seenPics });
+    chips.innerHTML = RO.chipsHTML(lang);
+    menu.setAttribute("data-lang", lang);
+  }
   markLoaded();
   document.getElementById("visit").hidden=false;
-  document.getElementById("chips").innerHTML=MENU.map(c=>`<button type="button" class="chip" data-go="${esc(c.id)}">${esc(lang==="fa"?c.fa:c.en)}</button>`).join("")+`<span class="chip-ind" aria-hidden="true"></span>`;
   applyFilter();
 }
 /* Search and filters: hide what doesn't match and mark the matching words. Nothing is rebuilt,
@@ -105,7 +55,7 @@ function applyFilter(){
       const node = document.querySelector(`#menu [data-open="${it.id}"]`); if (!node) continue;
       const ok = matches(it, c); node.hidden = !ok; if (!ok) continue;
       shown++;
-      const h = node.querySelector("h3"), sub = node.querySelector(".info p");
+      const h = node.querySelector(".it-name"), sub = node.querySelector(".info p");
       h.innerHTML = hl(lang==="fa"?it.fa:it.en);
       if (sub) sub.innerHTML = hl(lang==="fa"?it.dfa:it.den);
     }
@@ -164,7 +114,7 @@ function updateBill(){
       <span class="s num">${D(bill[k]*ITEMS[k].p)}</span></div>`).join("") : `<p class="sub">${t.empty}</p>`;
   if(!count) closeSheet("billSheet");
 }
-function change(k,d){ if(d>0 && navigator.vibrate) try{ navigator.vibrate(8); }catch { /* optional feature */ } bill[k]=(bill[k]||0)+d; if(bill[k]<=0) delete bill[k]; updateBill(); refreshAdds(); }
+function change(k,d){ if(d>0 && navigator.vibrate) try{ navigator.vibrate(8); }catch (e) { /* optional feature */ } bill[k]=(bill[k]||0)+d; if(bill[k]<=0) delete bill[k]; updateBill(); refreshAdds(); }
 /* switch the espresso bean: only its price, + button and choice buttons change */
 function setBean(i){
   const it = findItem("e"); it.sel = i;
@@ -172,7 +122,7 @@ function setBean(i){
   const key = "e"+i, add = row.querySelector("[data-add]");
   row.querySelector(".price").innerHTML = `${D(it.beans[i][2])} <small>${T[lang].unit}</small>`;
   add.dataset.add = key; add.setAttribute("aria-label", ITEMS[key][lang]);
-  row.querySelectorAll("[data-bean]").forEach(b => { const on = +b.dataset.bean === i; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
+  row.querySelectorAll("[data-bean]").forEach(b => { const on = +b.dataset.bean === i; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
   refreshAdds();
 }
 function refreshAdds(){ document.querySelectorAll("[data-add]").forEach(b=>{ const q=bill[b.dataset.add]||0; b.classList.toggle("has",!!q); b.textContent=q?D(q):"+"; }); }
@@ -202,7 +152,7 @@ function openSheet(id){
   document.getElementById("toast").classList.remove("show");
   if (!openStack.length) lastFocus = document.activeElement;
   s.classList.add("open"); openStack.push(id); document.body.style.overflow = "hidden";
-  try { history.pushState({ sheet: id }, ""); } catch { /* optional feature */ }
+  try { history.pushState({ sheet: id }, ""); } catch (e) { /* optional feature */ }
   const f = focusables(s.querySelector(".panel")); (s.querySelector(".btn-dark,.btn-brand") || f[0] || s).focus({ preventScroll: true });
 }
 function closeSheet(id, fromHistory){
@@ -210,7 +160,7 @@ function closeSheet(id, fromHistory){
   s.classList.remove("open"); openStack.splice(openStack.indexOf(id), 1);
   const p = s.querySelector(".panel"); p.style.transform = ""; p.classList.remove("dragging");
   if (!openStack.length){ document.body.style.overflow = ""; if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true }); }
-  if (!fromHistory){ try { if (history.state && history.state.sheet === id) history.back(); } catch { /* optional feature */ } }
+  if (!fromHistory){ try { if (history.state && history.state.sheet === id) history.back(); } catch (e) { /* optional feature */ } }
 }
 addEventListener("popstate", () => { const id = openStack[openStack.length - 1]; if (id) closeSheet(id, true); });
 document.addEventListener("keydown", e => {
@@ -234,16 +184,25 @@ document.querySelectorAll(".sheet").forEach(s=>s.addEventListener("click",e=>{
   const i=e.target.closest("[data-inc]"), d=e.target.closest("[data-dec]");
   if(i) change(i.dataset.inc,1); if(d) change(d.dataset.dec,-1);
 }));
-document.getElementById("menu").addEventListener("keydown",e=>{ if((e.key==="Enter"||e.key===" ")&&e.target.matches(".it")){ e.preventDefault(); openDetail(e.target.dataset.open); } });
 addEventListener("keydown",e=>{ if(e.key==="Escape" && openStack.length && filterPop.hidden) closeSheet(openStack[openStack.length-1]); });
 document.getElementById("pMinus").addEventListener("click",()=>{ people=Math.max(1,people-1); updateBill(); });
 document.getElementById("pPlus").addEventListener("click",()=>{ people=Math.min(20,people+1); updateBill(); });
 document.getElementById("clearBill").addEventListener("click",()=>{ for(const k in bill) delete bill[k]; people=1; updateBill(); refreshAdds(); });
 document.addEventListener("click",async e=>{
   const c=e.target.closest("[data-copy]"); if(!c) return;
-  try{ await navigator.clipboard.writeText(c.dataset.copy); toast(T[lang].copied); }catch { toast(CONFIG.phoneDisplay); }
+  try { await copyText(c.dataset.copy); toast(T[lang].copied); } catch (e) { toast(CONFIG.phoneDisplay); }
 });
 
+/* copy to the clipboard; older phones without the clipboard API use a hidden text box */
+function copyText(s){
+  if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(s);
+  return new Promise((ok, fail) => {
+    const ta = document.createElement("textarea"); ta.value = s; ta.setAttribute("readonly", "");
+    ta.className = "sr"; document.body.appendChild(ta); ta.select();
+    const done = document.execCommand && document.execCommand("copy"); ta.remove();
+    if (done) ok(); else fail(new Error("copy"));
+  });
+}
 let tt; function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove("show"),1500); }
 
 /* scroll spy + sticky border */
@@ -314,12 +273,14 @@ function findItem(id){ for(const c of MENU) for(const it of c.items) if(it.id===
 /* Large photos: each is downloaded once and kept as a ready <img>, so reopening an item
    (or tapping + / − inside it) shows the photo instantly instead of fading it in again. */
 const bigPics = new Map();
+/* does this browser show .webp? The menu photos tell us: the browser picked one source for them */
+const webpOK = () => { const i = document.querySelector("#menu picture img"); return !i || !i.currentSrc || /\.webp(\?|$)/.test(i.currentSrc); };
 function bigPic(f, lazy = false){
   let im = bigPics.get(f);
   if (!im) {
     im = new Image(); im.decoding = "async"; im.className = "hi"; if (lazy) im.loading = "lazy";
     im.addEventListener("load", () => im.classList.add("ld"), { once: true });
-    im.src = `img/lg/${encodeURIComponent(f)}.webp`;
+    im.src = webpOK() ? `img/lg/${encodeURIComponent(f)}.webp` : `img/lg/jpg/${encodeURIComponent(f)}.jpg`;
     bigPics.set(f, im);
   }
   return im;
@@ -334,17 +295,17 @@ function drawDetail(){
   const ingr = lang==="fa"?it.dfa:it.den;
   const ps = pics(it), many = ps.length > 1, own = Array.isArray(IMG[it.en]);
   document.getElementById("dPanel").innerHTML = `
-    <div class="grab" aria-hidden="true"></div><div class="dimg${own?" own":""}${many?" multi":""}">${ps.length?`<div class="gal"${many?` role="group" aria-label="${t.photos}"`:""}>${ps.map(f=>`<div class="sl"><img class="lo ld" src="img/${encodeURIComponent(f)}.webp" alt="" aria-hidden="true"></div>`).join("")}</div>`:""}${many?`<div class="gdots">${ps.map((_,i)=>`<button type="button" data-pic="${i}" aria-label="${t.photo} ${D(i+1)} / ${D(ps.length)}"${i?"":' aria-current="true"'}></button>`).join("")}</div>`:""}<button type="button" class="dclose" data-close aria-label="${t.close}">✕</button>${many?galNavHTML(t):""}</div>
-    <div class="dbody">
+    <div class="grab" aria-hidden="true"></div><div class="dimg${own?" own":""}${many?" multi":""}">${ps.length?`<div class="gal"${many?` role="group" aria-label="${t.photos}"`:""}>${ps.map(f=>`<div class="sl">${RO.picHTML(f, 'class="lo ld" alt="" aria-hidden="true"')}</div>`).join("")}</div>`:""}${many?`<div class="gdots">${ps.map((_,i)=>`<button type="button" data-pic="${i}" aria-label="${t.photo} ${D(i+1)} / ${D(ps.length)}"${i?"":' aria-current="true"'}></button>`).join("")}</div>`:""}<button type="button" class="dclose" data-close aria-label="${t.close}">✕</button>${many?galNavHTML(t):""}</div>
+    <div class="dbody"><div class="dbin">
       <h2 id="dName">${esc(name)}</h2><div class="alt">${esc(alt)}</div>
       ${tagsHTML(it)}
       ${desc?`<p class="desc">${esc(desc)}</p>`:""}
       ${ingr && it.cat.id==="infusion"?`<p class="ingr">${t.ingr}: ${esc(ingr)}</p>`:(ingr&&!desc?`<p class="desc">${esc(ingr)}</p>`:"")}
-      ${it.espresso?`<div class="beans">${it.beans.map((bb,i)=>`<button type="button" class="bean${i===it.sel?" on":""}" data-dbean="${i}">${esc(lang==="fa"?bb[0]:bb[1])}</button>`).join("")}</div>`:""}
+      ${it.espresso?`<div class="beans">${it.beans.map((bb,i)=>`<button type="button" class="bean${i===it.sel?" on":""}" aria-pressed="${i===it.sel}" data-dbean="${i}">${esc(lang==="fa"?bb[0]:bb[1])}</button>`).join("")}</div>`:""}
       <div class="dbuy">${buyHTML(it)}</div>
       <p class="ask">${t.ask}</p>
       ${sibHTML(t)}
-    </div>`;
+    </div></div>`;
   document.querySelectorAll("#dPanel .sl").forEach((sl, i) => {
     const hi = bigPic(ps[i], i > 0);
     hi.alt = many ? `${name} (${D(i+1)})` : name;
@@ -366,7 +327,7 @@ function buyHTML(it){
 function refreshBuy(){
   const it = findItem(detailId), box = document.querySelector("#dPanel .dbuy"); if (!it || !box) return;
   box.innerHTML = buyHTML(it);
-  document.querySelectorAll("#dPanel [data-dbean]").forEach(b => b.classList.toggle("on", +b.dataset.dbean === it.sel));
+  document.querySelectorAll("#dPanel [data-dbean]").forEach(b => { const on = +b.dataset.dbean === it.sel; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
 }
 /* move between items inside the open card: in the order shown on the page (current filters/search) */
 const orderIds = () => [...document.querySelectorAll("#menu .sec:not([hidden]) .it:not([hidden])")].map(e => e.dataset.open);
@@ -379,10 +340,11 @@ function sibHTML(t){
   const btn = (id, step) => {
     if (!id) return `<span></span>`;
     const it = findItem(id), f = pics(it)[0];
-    return `<button type="button" class="sib ${step < 0 ? "prev" : "next"}" data-step="${step}" aria-label="${step < 0 ? t.prevItem : t.nextItem}: ${esc(it[lang])}">
-      <span class="sib-ic">${step < 0 ? BACK() : FWD()}</span>
-      <span class="sib-pic">${f ? `<img src="img/${encodeURIComponent(f)}.webp" alt="" class="ld">` : svg(it.icon)}</span>
-      <span class="sib-t"><small>${step < 0 ? t.prev : t.next}</small><b>${esc(it[lang])}</b></span></button>`;
+    // "previous" reads arrow, photo, name; "next" mirrors it: name, photo, arrow
+    const parts = [`<span class="sib-ic">${step < 0 ? BACK() : FWD()}</span>`,
+      `<span class="sib-pic">${f ? RO.picHTML(f, 'alt="" class="ld"') : svg(it.icon)}</span>`,
+      `<span class="sib-t"><small>${step < 0 ? t.prev : t.next}</small><b>${esc(it[lang])}</b></span>`];
+    return `<button type="button" class="sib ${step < 0 ? "prev" : "next"}" data-step="${step}" aria-label="${step < 0 ? t.prevItem : t.nextItem}: ${esc(it[lang])}">${(step < 0 ? parts : parts.reverse()).join("")}</button>`;
   };
   return `<nav class="dsib" aria-label="${t.moreItems}">${btn(neighbour(-1), -1)}${btn(neighbour(1), 1)}</nav>`;
 }
@@ -393,14 +355,24 @@ function galNavHTML(t){
 function galTo(i){
   const g = document.querySelector("#dPanel .gal"); if (!g) return;
   const n = g.children.length; i = Math.max(0, Math.min(n - 1, i));
-  const rtl = getComputedStyle(g).direction === "rtl";
-  g.scrollTo({ left: (rtl ? -1 : 1) * i * g.clientWidth, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  // move by the on-screen distance to the wanted photo: correct in every browser's right-to-left scroll model
+  const delta = g.children[i].getBoundingClientRect().left - g.getBoundingClientRect().left;
+  // an absolute target (not scrollBy): a relative scroll would be stopped at every photo by scroll-snap-stop
+  const to = g.scrollLeft + delta;
+  if ("scrollBehavior" in document.documentElement.style && !reduceMotion()) g.scrollTo({ left: to, behavior: "smooth" });
+  else g.scrollLeft = to;
 }
-const galIndex = () => { const g = document.querySelector("#dPanel .gal"); return g && g.clientWidth ? Math.round(Math.abs(g.scrollLeft) / g.clientWidth) : 0; };
+/* which photo is showing: the one whose left edge is nearest the strip's left edge */
+function galIndex(){
+  const g = document.querySelector("#dPanel .gal"); if (!g || !g.clientWidth) return 0;
+  const x = g.getBoundingClientRect().left; let best = 0, gap = Infinity;
+  [].forEach.call(g.children, (s, i) => { const d = Math.abs(s.getBoundingClientRect().left - x); if (d < gap) { gap = d; best = i; } });
+  return best;
+}
 function galSync(){
   const g = document.querySelector("#dPanel .gal"); if (!g) return;
   const i = galIndex(), n = g.children.length;
-  document.querySelectorAll("#dPanel [data-pic]").forEach(d => d.toggleAttribute("aria-current", +d.dataset.pic === i));
+  document.querySelectorAll("#dPanel [data-pic]").forEach(d => setFlag(d, "aria-current", +d.dataset.pic === i));
   const pv = document.querySelector("#dPanel .gprev"), nx = document.querySelector("#dPanel .gnext");
   if (pv) pv.disabled = i === 0; if (nx) nx.disabled = i === n - 1;
 }
@@ -437,10 +409,11 @@ function setTheme(t,save){
   if(save) store.set("ro-theme", t);
 }
 themeBtn.addEventListener("click",()=>setTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark",true));
-matchMedia("(prefers-color-scheme: dark)").addEventListener("change",e=>{
-  const saved = store.get("ro-theme");
-  if(saved!=="light"&&saved!=="dark") setTheme(e.matches?"dark":"light",false);
-});
+(() => { // follow the phone's dark/light setting unless the guest picked one (old Safari only has addListener)
+  const mq = matchMedia("(prefers-color-scheme: dark)");
+  const follow = e => { const saved = store.get("ro-theme"); if (saved !== "light" && saved !== "dark") setTheme(e.matches ? "dark" : "light", false); };
+  if (mq.addEventListener) mq.addEventListener("change", follow); else if (mq.addListener) mq.addListener(follow);
+})();
 
 /* ---------- filter popover ---------- */
 const filterBtn = document.getElementById("filterBtn"), filterPop = document.getElementById("filterPop");
@@ -453,9 +426,15 @@ addEventListener("keydown", e => { if (e.key === "Escape" && !filterPop.hidden){
 /* ---------- opening hours (CONFIG.hours); today is worked out in Iran time ---------- */
 const DAY_KEYS = ["sat","sun","mon","tue","wed","thu","fri"];
 function tehranNow(){
-  const p = Object.fromEntries(new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Tehran",weekday:"short",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date()).map(x=>[x.type,x.value]));
-  const idx = {Sat:0,Sun:1,Mon:2,Tue:3,Wed:4,Thu:5,Fri:6}[p.weekday];
-  return { day: idx, min: (+p.hour % 24)*60 + (+p.minute) };
+  try {
+    const p = {};
+    new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Tehran",weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false})
+      .formatToParts(new Date()).forEach(x => { p[x.type] = x.value; });
+    const idx = {Sat:0,Sun:1,Mon:2,Tue:3,Wed:4,Thu:5,Fri:6}[p.weekday];
+    if (idx !== undefined) return { day: idx, min: (+p.hour % 24)*60 + (+p.minute) };
+  } catch (e) { /* older phones without time zone data: work it out below */ }
+  const d = new Date(Date.now() + 3.5 * 3600e3);   // Iran is UTC+3:30 all year (no daylight saving since 2022)
+  return { day: (d.getUTCDay() + 1) % 7, min: d.getUTCHours() * 60 + d.getUTCMinutes() };
 }
 function renderHours(){
   for (const id of ["hours","hours2"]) renderHoursInto(document.getElementById(id));
@@ -475,8 +454,19 @@ function hoursRows(H, today, t){
   if (all.every(x => x === all[0])) return `<tr class="today"><td>${t.everyDay}</td><td>${fmt(H[DAY_KEYS[0]])}</td></tr>`;
   return DAY_KEYS.map((k,i) => `<tr${i===today?' class="today"':''}><td>${t.days[i]}</td><td>${fmt(H[k])}</td></tr>`).join("");
 }
+/* Persian (solar) year, also on phones whose browser has no Persian calendar */
+function persianYear(){
+  try {
+    const s = new Intl.DateTimeFormat("fa-IR-u-ca-persian",{year:"numeric"}).format(new Date()).replace(/\s*ه\.ش\.?/,"");
+    const n = +s.replace(/[۰-۹]/g, c => "۰۱۲۳۴۵۶۷۸۹".indexOf(c));
+    if (n > 1300 && n < 1600) return D(n);
+  } catch (e) { /* fall through */ }
+  const now = new Date(), g = now.getFullYear();
+  const nowruz = new Date(g, 2, 21);              // the solar year starts on about 21 March
+  return D(now >= nowruz ? g - 621 : g - 622);
+}
 function renderCopy(){
-  const y = lang==="fa" ? new Intl.DateTimeFormat("fa-IR-u-ca-persian",{year:"numeric"}).format(new Date()).replace(/\s*ه\.ش\.?/,"") : new Date().getFullYear();
+  const y = lang==="fa" ? persianYear() : new Date().getFullYear();
   document.getElementById("copy").textContent = `© ${y} ${T[lang].brandCopy}`;
 }
 
@@ -487,11 +477,12 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
 addEventListener("offline", () => toast(T[lang].offline));
 
 /* photos fade in when loaded (no layout change: their boxes already have a size) */
-document.addEventListener("load", e => { if (e.target.tagName === "IMG") { e.target.classList.add("ld"); seenPics.add(e.target.getAttribute("src")); } }, true);
+const picName = i => { const m = /([^/]+)\.(?:webp|jpg)$/.exec(i.currentSrc || i.getAttribute("src") || ""); return m ? decodeURIComponent(m[1]) : ""; };
+document.addEventListener("load", e => { if (e.target.tagName === "IMG") { e.target.classList.add("ld"); seenPics.add(picName(e.target)); } }, true);
 ["pointerdown", "mouseover"].forEach(ev => document.getElementById("menu").addEventListener(ev, e => {
   const card = e.target.closest("[data-open]"); if (card) warm(card.dataset.open);
 }, { passive: true }));
-function markLoaded(){ document.querySelectorAll("img").forEach(i => { if (i.complete && i.naturalWidth) { i.classList.add("ld"); seenPics.add(i.getAttribute("src")); } }); }
+function markLoaded(){ document.querySelectorAll("img").forEach(i => { if (i.complete && i.naturalWidth) { i.classList.add("ld"); seenPics.add(picName(i)); } }); }
 
 /* small comforts: Enter closes the phone keyboard; tapping the logo returns to the top */
 qEl.addEventListener("keydown", e => { if (e.key === "Enter") qEl.blur(); });

@@ -1,25 +1,32 @@
 # Ro Cafe menu (کافه رو)
 
 The QR menu for Ro Cafe, Ramsar. It is a plain static website: HTML, CSS and JavaScript only,
-with no server code, database or build step. Any host that can serve files can run it,
-from a free static host to your own domain.
+with no server code or database. Any host that can serve files can run it, from a free static
+host to your own domain. The folder is always ready to upload as it is; the small release step
+below only prepares it after you edit something.
 
 ## What's in the folder
 
 ```
-index.html            the page
-assets/css/style.css  design (colors, layout, dark mode)
+index.html            the page (the Persian menu is written into it by the release step)
+src/style.css         design: colors, layout, dark mode                <- edit this one
+assets/css/style.css  the design as browsers get it (built from src/style.css, don't edit)
 assets/css/fonts.css  the Persian/English font, embedded
+assets/js/render.js   turns the menu data into the menu (used by the page and the release)
 assets/js/app.js      how the menu works (search, filters, item card, bill)
 assets/icon.svg       browser tab icon
 data/config.js        cafe settings: phone, Instagram, map link   <- edit
 data/menu.js          items, prices, descriptions, tags, photos   <- edit
 data/strings.js       interface wording in Persian and English    <- edit
-img/                  item photos (small, used in the list)
-img/lg/               item photos (large, used on the item card)
+img/                  item photos (small, used in the list), .webp
+img/lg/               item photos (large, used on the item card), .webp
+img/jpg/, img/lg/jpg/ the same photos as .jpg, for older iPhones (iOS 12-13)
 tools/qr-card.html    makes the printable QR card for any address
+tools/release.mjs     prepares a new version (see below), then runs the check
 tools/check.mjs       checks the menu data and the release before publishing
-tools/release.mjs     raises the version number, then runs the check
+tools/build-css.mjs   builds the design for all supported phones (run by the release)
+tools/prerender.mjs   writes the menu into index.html (run by the release)
+package.json          the supported browsers, and the developer tools (not needed to host)
 ```
 
 All links inside the site are relative, so the same folder works at
@@ -35,19 +42,22 @@ Open `data/menu.js` in any text editor.
   ["لاته","Latte",265,"glass"],
   ```
 - **Add an item:** copy a line in the same category and change the names and price.
-  To give it a photo, add a line to `IMG` with its English name and a photo file name
-  (put `NAME.webp` in both `img/` and `img/lg/`).
+  To give it a photo, add its English name and the photo's file name to `IMG`; for several
+  photos give a list, `["name-1", "name-2"]` (the first is the one in the list). Each photo needs
+  `NAME.webp` in `img/` and `img/lg/`, and `NAME.jpg` in `img/jpg/` and `img/lg/jpg/`.
 - **Remove an item:** delete its line (keep the commas tidy).
 - **Tags:** add the English name to `TAGS` with `pm` (plant milk), `cf` (caffeine-free) or `n` (contains nuts).
 
-After editing, run this in the site folder (needs [Node.js](https://nodejs.org), nothing to install):
+After editing, run this in the site folder (needs [Node.js](https://nodejs.org); the first time,
+run `npm install` once to get the tools):
 
 ```
 node tools/release.mjs
 ```
 
-It gives each changed file a new version (unchanged files keep theirs, so phones download only
-what changed), and then checks the menu: prices are numbers, every photo exists, no name is used twice, Persian
+It builds the design from `src/style.css`, writes the menu into `index.html`, gives each changed
+file a new version (unchanged files keep theirs, so phones download only what changed), and then
+checks the menu: prices are numbers, every photo exists, no name is used twice, Persian
 and English texts match, links are valid. If something is wrong it says what and where, and you
 fix it before publishing. `node tools/check.mjs` runs only the check. Menu data is kept on phones
 for 5 minutes at most anyway, so a forgotten release fixes itself quickly.
@@ -60,10 +70,20 @@ you paste the real place link: open the cafe in that app, press Share, copy the 
 
 ## Photos
 
-The current photos are free stock photos from Unsplash (Unsplash License: free to use,
-including commercially). To use your own: save each photo as WebP (or JPG renamed to the
-same name), about 200×200 px for `img/` and 900×675 px for `img/lg/`, with the same file
-name as the photo it replaces.
+Items marked with a list in `IMG` show the cafe's own photos (file names starting `ro-`), with
+a gallery when there are several. The rest are free stock photos from Unsplash (Unsplash License:
+free to use, including commercially) until they are replaced. Sizes: `img/` 200×200 px, `img/lg/`
+up to 1200 px on the long side; any shape works on the item card. The checker warns if a photo
+or its .jpg copy is missing, or if a photo file is no longer used.
+
+## Phones and browsers
+
+The design is the same on every supported browser: iPhone and iPad from iOS 12, Android Chrome
+and in-app browsers from version 64 (2018), Samsung Internet 8 and Firefox 68 (the list is in
+`package.json`). Write `src/style.css` the modern way; the release adds what older phones need
+(left/right versions of right-to-left rules, spacing fallbacks, browser prefixes). `npm run lint`
+checks the scripts against the same list, so a feature an older phone lacks is caught before
+publishing. Even where the script cannot run at all, the page still shows the whole menu.
 
 ## Putting it online
 

@@ -7,9 +7,9 @@
   Cross-Origin-Opener-Policy: same-origin
   Strict-Transport-Security: max-age=31536000
 /
-  Content-Security-Policy: default-src 'none'; script-src 'self' 'sha256-HQtwz+k05BNv7DrTcBE6Cra5pbjbLotoWzxfuLiLl8E='; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'none'; script-src 'self' 'sha256-DMiQ31qwbLfzXvwSyySZgb2+2ChaBzycoIhkRreMgpQ='; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
 /index.html
-  Content-Security-Policy: default-src 'none'; script-src 'self' 'sha256-HQtwz+k05BNv7DrTcBE6Cra5pbjbLotoWzxfuLiLl8E='; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'none'; script-src 'self' 'sha256-DMiQ31qwbLfzXvwSyySZgb2+2ChaBzycoIhkRreMgpQ='; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
   Cache-Control: no-cache
 /sw.js
   Cache-Control: no-cache

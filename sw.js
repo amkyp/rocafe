@@ -7,9 +7,9 @@
    Only good same-site answers are saved, so an error page can never replace a working file.
    tools/release.mjs sets each ?v= to a fingerprint of the file and raises VERSION. */
 const PICS = "ro-photos-1"; // photos keep their names, so they survive new releases
-const VERSION = "ro-v18";
-const CORE = ["./", "index.html", "assets/css/fonts.css?v=5642df5a", "assets/css/style.css?v=9af2802c", "data/config.js?v=baba6e62",
-  "data/strings.js?v=697d084a", "data/menu.js?v=68247d84", "assets/js/app.js?v=9642672e", "assets/icon.svg", "manifest.webmanifest"];
+const VERSION = "ro-v34";
+const CORE = ["./", "index.html", "assets/css/fonts.css?v=5642df5a", "assets/css/style.css?v=6f03bfb9", "data/config.js?v=baba6e62",
+  "data/strings.js?v=2012f0d9", "data/menu.js?v=68247d84", "assets/js/render.js?v=c57d6e60", "assets/js/app.js?v=3d45dd23", "assets/icon.svg", "manifest.webmanifest"];
 
 const cacheable = res => res && res.ok && res.type === "basic";
 const save = (req, res, name = VERSION) => { if (cacheable(res)) { const copy = res.clone(); caches.open(name).then(c => c.put(req, copy)); } return res; };

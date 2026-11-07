@@ -3,6 +3,7 @@
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import vm from "node:vm";
+import { isCurrent } from "./prerender.mjs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -51,11 +52,14 @@ for (const [en, v] of Object.entries(IMG)) for (const file of [].concat(v)) {
   used.add(file);
   if (!names.has(en)) bad(`IMG mentions "${en}", which is not on the menu`);
   if (!/^[\w-]+$/.test(file)) bad(`IMG file name "${file}" should use only letters, digits, - and _`);
-  for (const dir of ["img", "img/lg"]) if (!existsSync(path.join(ROOT, dir, file + ".webp"))) bad(`photo missing: ${dir}/${file}.webp`);
+  for (const dir of ["img", "img/lg"]) {
+    if (!existsSync(path.join(ROOT, dir, file + ".webp"))) bad(`photo missing: ${dir}/${file}.webp`);
+    if (!existsSync(path.join(ROOT, dir, "jpg", file + ".jpg"))) bad(`older-iPhone copy missing: ${dir}/jpg/${file}.jpg`);
+  }
 }
 
-for (const dir of ["img", "img/lg"]) for (const f of readdirSync(path.join(ROOT, dir)))
-  if (f.endsWith(".webp") && !used.has(f.slice(0, -5))) bad(`${dir}/${f} is not used by any item (delete it, it only makes the site bigger)`);
+for (const dir of ["img", "img/lg", "img/jpg", "img/lg/jpg"]) for (const f of readdirSync(path.join(ROOT, dir)))
+  if (/\.(webp|jpg)$/.test(f) && !used.has(f.replace(/\.(webp|jpg)$/, ""))) bad(`${dir}/${f} is not used by any item (delete it, it only makes the site bigger)`);
 for (const it of names) if (!(it in IMG)) bad(`"${it}" has no photo in IMG`);
 
 /* ---------- 3. texts and settings ---------- */
@@ -83,6 +87,16 @@ if (!release) bad("sw.js: VERSION is missing");
 for (const m of sw.matchAll(/"([^"]+\?v=\d+|[^"]+\.(?:svg|webmanifest))"/g)) {
   const f = m[1].split("?")[0]; if (!existsSync(path.join(ROOT, f))) bad(`sw.js saves "${f}" for offline use, but that file does not exist`);
 }
+
+/* ---------- 4b. the stylesheet was built from the current source ---------- */
+{
+  const src = readFileSync(path.join(ROOT, "src/style.css"));
+  const want = createHash("sha256").update(src).digest("hex").slice(0, 12);
+  const built = (read("assets/css/style.css").match(/^\/\* Built from src\/style\.css \((\w+)\)/) || [])[1];
+  if (built !== want) bad("assets/css/style.css is older than src/style.css (run node tools/release.mjs)");
+}
+
+if (!isCurrent(read("index.html"))) bad("the menu written into index.html is out of date (run node tools/release.mjs)");
 
 /* ---------- 5. security rules ---------- */
 const inline = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
