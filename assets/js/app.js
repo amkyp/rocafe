@@ -334,7 +334,7 @@ function drawDetail(){
   const ingr = lang==="fa"?it.dfa:it.den;
   const ps = pics(it), many = ps.length > 1, own = Array.isArray(IMG[it.en]);
   document.getElementById("dPanel").innerHTML = `
-    <div class="grab" aria-hidden="true"></div><div class="dimg${own?" own":""}${many?" multi":""}">${ps.length?`<div class="gal"${many?` role="group" aria-label="${t.photos}"`:""}>${ps.map(f=>`<div class="sl"><img class="lo ld" src="img/${encodeURIComponent(f)}.webp" alt="" aria-hidden="true"></div>`).join("")}</div>`:""}${many?`<div class="gdots">${ps.map((_,i)=>`<button type="button" data-pic="${i}" aria-label="${t.photo} ${D(i+1)} / ${D(ps.length)}"${i?"":' aria-current="true"'}></button>`).join("")}</div>`:""}<button type="button" class="dclose" data-close aria-label="${t.close}">✕</button>${navHTML(t)}</div>
+    <div class="grab" aria-hidden="true"></div><div class="dimg${own?" own":""}${many?" multi":""}">${ps.length?`<div class="gal"${many?` role="group" aria-label="${t.photos}"`:""}>${ps.map(f=>`<div class="sl"><img class="lo ld" src="img/${encodeURIComponent(f)}.webp" alt="" aria-hidden="true"></div>`).join("")}</div>`:""}${many?`<div class="gdots">${ps.map((_,i)=>`<button type="button" data-pic="${i}" aria-label="${t.photo} ${D(i+1)} / ${D(ps.length)}"${i?"":' aria-current="true"'}></button>`).join("")}</div>`:""}<button type="button" class="dclose" data-close aria-label="${t.close}">✕</button>${many?galNavHTML(t):""}</div>
     <div class="dbody">
       <h2 id="dName">${esc(name)}</h2><div class="alt">${esc(alt)}</div>
       ${tagsHTML(it)}
@@ -343,6 +343,7 @@ function drawDetail(){
       ${it.espresso?`<div class="beans">${it.beans.map((bb,i)=>`<button type="button" class="bean${i===it.sel?" on":""}" data-dbean="${i}">${esc(lang==="fa"?bb[0]:bb[1])}</button>`).join("")}</div>`:""}
       <div class="dbuy">${buyHTML(it)}</div>
       <p class="ask">${t.ask}</p>
+      ${sibHTML(t)}
     </div>`;
   document.querySelectorAll("#dPanel .sl").forEach((sl, i) => {
     const hi = bigPic(ps[i], i > 0);
@@ -351,10 +352,7 @@ function drawDetail(){
     sl.appendChild(hi);
   });
   const gal = document.querySelector("#dPanel .gal");
-  if (many) gal.addEventListener("scroll", () => {
-    const i = Math.round(Math.abs(gal.scrollLeft) / gal.clientWidth);
-    document.querySelectorAll("#dPanel [data-pic]").forEach(d => d.toggleAttribute("aria-current", +d.dataset.pic === i));
-  }, { passive: true });
+  if (many) { gal.addEventListener("scroll", galSync, { passive: true }); galSync(); }
   [-1, 1].forEach(s => warm(neighbour(s)));
 }
 function buyHTML(it){
@@ -374,32 +372,56 @@ function refreshBuy(){
 const orderIds = () => [...document.querySelectorAll("#menu .sec:not([hidden]) .it:not([hidden])")].map(e => e.dataset.open);
 function neighbour(step){ const ids = orderIds(), i = ids.indexOf(detailId); return i < 0 ? null : ids[i + step] || null; }
 const CHEV = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
-function navHTML(t){
-  const prev = neighbour(-1), next = neighbour(1);
-  // physical sides follow reading direction: in Persian "next" sits on the left
-  return `<div class="dnav">${prev?`<button type="button" class="dprev" data-step="-1" aria-label="${t.prevItem}">${CHEV(lang==="fa"?"M9 6l6 6-6 6":"M15 6l-6 6 6 6")}</button>`:""}${next?`<button type="button" class="dnext" data-step="1" aria-label="${t.nextItem}">${CHEV(lang==="fa"?"M15 6l-6 6 6 6":"M9 6l6 6-6 6")}</button>`:""}</div>`;
+const BACK = () => CHEV(lang==="fa" ? "M9 6l6 6-6 6" : "M15 6l-6 6 6 6");   // points to the reading start
+const FWD  = () => CHEV(lang==="fa" ? "M15 6l-6 6 6 6" : "M9 6l6 6-6 6");   // points to the reading end
+/* previous / next item: named buttons under the card, so it is clear where each one goes */
+function sibHTML(t){
+  const btn = (id, step) => {
+    if (!id) return `<span></span>`;
+    const it = findItem(id), f = pics(it)[0];
+    return `<button type="button" class="sib ${step < 0 ? "prev" : "next"}" data-step="${step}" aria-label="${step < 0 ? t.prevItem : t.nextItem}: ${esc(it[lang])}">
+      <span class="sib-ic">${step < 0 ? BACK() : FWD()}</span>
+      <span class="sib-pic">${f ? `<img src="img/${encodeURIComponent(f)}.webp" alt="" class="ld">` : svg(it.icon)}</span>
+      <span class="sib-t"><small>${step < 0 ? t.prev : t.next}</small><b>${esc(it[lang])}</b></span></button>`;
+  };
+  return `<nav class="dsib" aria-label="${t.moreItems}">${btn(neighbour(-1), -1)}${btn(neighbour(1), 1)}</nav>`;
+}
+/* photo arrows for galleries: only on computers (on phones the photos are swiped) */
+function galNavHTML(t){
+  return `<button type="button" class="gnav gprev" data-gal="-1" aria-label="${t.prevPhoto}">${BACK()}</button><button type="button" class="gnav gnext" data-gal="1" aria-label="${t.nextPhoto}">${FWD()}</button>`;
+}
+function galTo(i){
+  const g = document.querySelector("#dPanel .gal"); if (!g) return;
+  const n = g.children.length; i = Math.max(0, Math.min(n - 1, i));
+  const rtl = getComputedStyle(g).direction === "rtl";
+  g.scrollTo({ left: (rtl ? -1 : 1) * i * g.clientWidth, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
+const galIndex = () => { const g = document.querySelector("#dPanel .gal"); return g && g.clientWidth ? Math.round(Math.abs(g.scrollLeft) / g.clientWidth) : 0; };
+function galSync(){
+  const g = document.querySelector("#dPanel .gal"); if (!g) return;
+  const i = galIndex(), n = g.children.length;
+  document.querySelectorAll("#dPanel [data-pic]").forEach(d => d.toggleAttribute("aria-current", +d.dataset.pic === i));
+  const pv = document.querySelector("#dPanel .gprev"), nx = document.querySelector("#dPanel .gnext");
+  if (pv) pv.disabled = i === 0; if (nx) nx.disabled = i === n - 1;
 }
 function stepDetail(step){
   const id = neighbour(step); if (!id) return;
   detailId = id; const panel = document.getElementById("dPanel");
   panel.classList.remove("slide-next","slide-prev"); void panel.offsetWidth;
-  drawDetail(); panel.classList.add(step > 0 ? "slide-next" : "slide-prev"); panel.scrollTop = 0;
+  const hadFocus = document.activeElement && document.activeElement.closest(".sib");
+  drawDetail(); panel.classList.add(step > 0 ? "slide-next" : "slide-prev");
+  if (hadFocus) (panel.querySelector(step > 0 ? ".sib.next" : ".sib.prev") || panel.querySelector(".sib")).focus({ preventScroll: true });
+  else panel.scrollTop = 0;
 }
 addEventListener("keydown", e => {
   if (openStack[openStack.length-1] !== "detailSheet") return;
   if (e.key === "ArrowLeft") stepDetail(lang === "fa" ? 1 : -1);
   if (e.key === "ArrowRight") stepDetail(lang === "fa" ? -1 : 1);
 });
-(() => { // horizontal swipe on the photo
-  const p = document.getElementById("dPanel"); let x0 = null, y0 = 0;
-  p.addEventListener("touchstart", e => { if (!e.target.closest(".dimg") || e.target.closest(".dimg.multi")) return; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
-  p.addEventListener("touchend", e => { if (x0 == null) return; const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0; x0 = null;
-    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5){ const forward = lang === "fa" ? dx > 0 : dx < 0; stepDetail(forward ? 1 : -1); } }, { passive: true });
-})();
 document.getElementById("dPanel").addEventListener("click",e=>{
   const sb=e.target.closest("[data-step]"); if(sb){ stepDetail(+sb.dataset.step); return; }
-  const dot=e.target.closest("[data-pic]"); if(dot){ const g=document.querySelector("#dPanel .gal"), rtl=getComputedStyle(g).direction==="rtl";
-    g.scrollTo({ left: (rtl ? -1 : 1) * +dot.dataset.pic * g.clientWidth, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); return; }
+  const dot=e.target.closest("[data-pic]"); if(dot){ galTo(+dot.dataset.pic); return; }
+  const ga=e.target.closest("[data-gal]"); if(ga){ galTo(galIndex() + +ga.dataset.gal); return; }
   const a=e.target.closest("[data-dadd]"); if(a){ change(a.dataset.dadd,1); refreshBuy(); return; }
   const b=e.target.closest("[data-dbean]"); if(b){ setBean(+b.dataset.dbean); refreshBuy(); return; }
   if(e.target.closest("[data-inc]")||e.target.closest("[data-dec]")) setTimeout(refreshBuy,0);
