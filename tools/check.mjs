@@ -1,6 +1,6 @@
 // Ro Cafe menu: checks the site before publishing. No installs needed: run `node tools/check.mjs`
 // from the site folder. It stops with a clear message if something would break the live menu.
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import vm from "node:vm";
 import path from "node:path";
@@ -46,11 +46,17 @@ for (const [en, tags] of Object.entries(TAGS)) {
   for (const t of tags) if (!TAG_CODES.has(t)) bad(`TAGS for "${en}": unknown tag "${t}"`);
 }
 for (const en of Object.keys(DESC)) if (!names.has(en)) bad(`DESC mentions "${en}", which is not on the menu`);
-for (const [en, file] of Object.entries(IMG)) {
+const used = new Set();
+for (const [en, v] of Object.entries(IMG)) for (const file of [].concat(v)) {
+  used.add(file);
   if (!names.has(en)) bad(`IMG mentions "${en}", which is not on the menu`);
   if (!/^[\w-]+$/.test(file)) bad(`IMG file name "${file}" should use only letters, digits, - and _`);
   for (const dir of ["img", "img/lg"]) if (!existsSync(path.join(ROOT, dir, file + ".webp"))) bad(`photo missing: ${dir}/${file}.webp`);
 }
+
+for (const dir of ["img", "img/lg"]) for (const f of readdirSync(path.join(ROOT, dir)))
+  if (f.endsWith(".webp") && !used.has(f.slice(0, -5))) bad(`${dir}/${f} is not used by any item (delete it, it only makes the site bigger)`);
+for (const it of names) if (!(it in IMG)) bad(`"${it}" has no photo in IMG`);
 
 /* ---------- 3. texts and settings ---------- */
 for (const k of Object.keys(T.fa)) if (!(k in T.en)) bad(`strings.js: "${k}" has Persian text but no English`);
@@ -96,4 +102,4 @@ if (problems.length) {
   process.exit(1);
 }
 const count = MENU.reduce((a, c) => a + c.items.length, 0);
-console.log(`✓ All good: ${MENU.length} categories, ${count} items, ${Object.keys(IMG).length} photos, release ${release}.`);
+console.log(`✓ All good: ${MENU.length} categories, ${count} items, ${used.size} photos, release ${release}.`);

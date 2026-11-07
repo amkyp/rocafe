@@ -232,6 +232,18 @@ html[data-theme="dark"] .mapart{background:#26292e}
 /* small menu photo shows at once, softened; the large one fades in over it only the first time */
 .dimg img.lo{filter:blur(10px);transform:scale(1.08)}
 .dimg img.hi.now{transition:none}
+/* photo strip: one or more photos, swiped sideways and snapping into place */
+.gal{position:absolute;inset:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
+.gal::-webkit-scrollbar{display:none}
+.sl{position:relative;flex:0 0 100%;overflow:hidden;scroll-snap-align:center;scroll-snap-stop:always}
+/* the cafe's own photos come in any shape: square frame, whole photo shown over a soft blurred copy */
+.dimg.own{aspect-ratio:1/1}
+.dimg.own img.hi{object-fit:contain}
+.dimg.own img.lo{filter:blur(22px) brightness(.92);transform:scale(1.25)}
+.gdots{position:absolute;bottom:.55rem;left:50%;transform:translateX(-50%);display:flex;padding:0 4px;border-radius:var(--r-pill);background:rgba(0,0,0,.32);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.gdots button{width:22px;height:22px;display:grid;place-items:center}
+.gdots button::after{content:"";width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.6);transition:width .2s var(--ease),background-color .2s}
+.gdots button[aria-current]::after{width:16px;background:#fff}
 .dclose{position:absolute;top:.75rem;inset-inline-end:.75rem;width:var(--h-s);height:var(--h-s);border-radius:50%;background:rgba(255,255,255,.92);color:#141416;font-size:1rem;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.15)}
 .dbody{padding:1.1rem 1.25rem 0}
 .dbody h2{font-size:var(--fs-xl);font-weight:700;line-height:1.35}
@@ -274,10 +286,10 @@ html[data-theme="dark"] .mapart{background:#26292e}
 }
 @media(orientation:landscape) and (min-width:560px) and (max-height:620px){
   .panel.dpanel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);max-width:min(880px,94vw);padding-bottom:0}
-  .dimg{aspect-ratio:auto;height:100%;min-height:240px;max-height:none}
+  .dimg,.dimg.own{aspect-ratio:auto;height:100%;min-height:240px;max-height:none}
   .dbody{padding:1rem 1.2rem;overflow:auto}
 }
-@media(orientation:portrait) and (max-height:620px){.dimg{aspect-ratio:16/9}}
+@media(orientation:portrait) and (max-height:620px){.dimg,.dimg.own{aspect-ratio:16/9}}
 
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
 #visit[hidden]{display:none}

@@ -53,9 +53,11 @@ const PIN = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6.1 7
 /* only allow expected link types from the settings file (never javascript: etc.) */
 const safeUrl = (u, protocols = ["https:"]) => { try { const x = new URL(u, location.href); return protocols.includes(x.protocol) ? x.href : "#"; } catch { return "#"; } };
 const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+/* an item's photos: IMG holds one file name or a list; the first one is shown in the menu list */
+const pics = it => { const v = IMG[it.en]; return v ? [].concat(v) : []; };
 let thumbN = 0;
 const seenPics = new Set(); // photo addresses already shown once in this visit
-const thumb = it => { const f = IMG[it.en]; const eager = thumbN++ < 6; const src = `img/${encodeURIComponent(f)}.webp`; return f ? `<img src="${src}"${seenPics.has(src)?' class="ld"':""} alt="" ${eager?'fetchpriority="high"':'loading="lazy"'} decoding="async" width="104" height="104">` : svg(it.icon); };
+const thumb = it => { const f = pics(it)[0]; const eager = thumbN++ < 6; const src = `img/${encodeURIComponent(f)}.webp`; return f ? `<img src="${src}"${seenPics.has(src)?' class="ld"':""} alt="" ${eager?'fetchpriority="high"':'loading="lazy"'} decoding="async" width="104" height="104">` : svg(it.icon); };
 const tagsHTML = it => { const t=TAGS[it.en]; return t&&t.length ? `<div class="tags">${t.map(x=>`<span class="tag ${esc(x)}">${esc(T[lang]['tag_'+x]||x)}</span>`).join('')}</div>` : ''; };
 let filt = new Set();
 const svg = k => `<svg viewBox="0 0 50 50" aria-hidden="true">${ICONS[k]||ICONS.cup}</svg>`;
@@ -312,17 +314,17 @@ function findItem(id){ for(const c of MENU) for(const it of c.items) if(it.id===
 /* Large photos: each is downloaded once and kept as a ready <img>, so reopening an item
    (or tapping + / − inside it) shows the photo instantly instead of fading it in again. */
 const bigPics = new Map();
-function bigPic(f){
+function bigPic(f, lazy = false){
   let im = bigPics.get(f);
   if (!im) {
-    im = new Image(); im.decoding = "async"; im.className = "hi";
+    im = new Image(); im.decoding = "async"; im.className = "hi"; if (lazy) im.loading = "lazy";
     im.addEventListener("load", () => im.classList.add("ld"), { once: true });
     im.src = `img/lg/${encodeURIComponent(f)}.webp`;
     bigPics.set(f, im);
   }
   return im;
 }
-const warm = id => { const it = id && findItem(id), f = it && IMG[it.en]; if (f) bigPic(f); };
+const warm = id => { const it = id && findItem(id), f = it && pics(it)[0]; if (f) bigPic(f); };
 function openDetail(id){ detailId=id; drawDetail(); openSheet("detailSheet"); }
 function drawDetail(){
   const it=findItem(detailId); if(!it) return;
@@ -330,9 +332,9 @@ function drawDetail(){
   const name = it[lang], alt = it[other];
   const d = DESC[it.en], desc = d ? d[lang==="fa"?0:1] : "";
   const ingr = lang==="fa"?it.dfa:it.den;
-  const f = IMG[it.en];
+  const ps = pics(it), many = ps.length > 1, own = Array.isArray(IMG[it.en]);
   document.getElementById("dPanel").innerHTML = `
-    <div class="grab" aria-hidden="true"></div><div class="dimg">${f?`<img class="lo ld" src="img/${encodeURIComponent(f)}.webp" alt="" aria-hidden="true">`:""}<button type="button" class="dclose" data-close aria-label="${t.close}">✕</button>${navHTML(t)}</div>
+    <div class="grab" aria-hidden="true"></div><div class="dimg${own?" own":""}${many?" multi":""}">${ps.length?`<div class="gal"${many?` role="group" aria-label="${t.photos}"`:""}>${ps.map(f=>`<div class="sl"><img class="lo ld" src="img/${encodeURIComponent(f)}.webp" alt="" aria-hidden="true"></div>`).join("")}</div>`:""}${many?`<div class="gdots">${ps.map((_,i)=>`<button type="button" data-pic="${i}" aria-label="${t.photo} ${D(i+1)} / ${D(ps.length)}"${i?"":' aria-current="true"'}></button>`).join("")}</div>`:""}<button type="button" class="dclose" data-close aria-label="${t.close}">✕</button>${navHTML(t)}</div>
     <div class="dbody">
       <h2 id="dName">${esc(name)}</h2><div class="alt">${esc(alt)}</div>
       ${tagsHTML(it)}
@@ -342,12 +344,17 @@ function drawDetail(){
       <div class="dbuy">${buyHTML(it)}</div>
       <p class="ask">${t.ask}</p>
     </div>`;
-  if (f) {
-    const hi = bigPic(f), box = document.querySelector("#dPanel .dimg");
-    hi.alt = name;
+  document.querySelectorAll("#dPanel .sl").forEach((sl, i) => {
+    const hi = bigPic(ps[i], i > 0);
+    hi.alt = many ? `${name} (${D(i+1)})` : name;
     if (hi.complete && hi.naturalWidth) hi.classList.add("ld", "now"); else hi.classList.remove("now");
-    box.insertBefore(hi, box.querySelector(".dclose"));
-  }
+    sl.appendChild(hi);
+  });
+  const gal = document.querySelector("#dPanel .gal");
+  if (many) gal.addEventListener("scroll", () => {
+    const i = Math.round(Math.abs(gal.scrollLeft) / gal.clientWidth);
+    document.querySelectorAll("#dPanel [data-pic]").forEach(d => d.toggleAttribute("aria-current", +d.dataset.pic === i));
+  }, { passive: true });
   [-1, 1].forEach(s => warm(neighbour(s)));
 }
 function buyHTML(it){
@@ -385,12 +392,14 @@ addEventListener("keydown", e => {
 });
 (() => { // horizontal swipe on the photo
   const p = document.getElementById("dPanel"); let x0 = null, y0 = 0;
-  p.addEventListener("touchstart", e => { if (!e.target.closest(".dimg")) return; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+  p.addEventListener("touchstart", e => { if (!e.target.closest(".dimg") || e.target.closest(".dimg.multi")) return; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
   p.addEventListener("touchend", e => { if (x0 == null) return; const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0; x0 = null;
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5){ const forward = lang === "fa" ? dx > 0 : dx < 0; stepDetail(forward ? 1 : -1); } }, { passive: true });
 })();
 document.getElementById("dPanel").addEventListener("click",e=>{
   const sb=e.target.closest("[data-step]"); if(sb){ stepDetail(+sb.dataset.step); return; }
+  const dot=e.target.closest("[data-pic]"); if(dot){ const g=document.querySelector("#dPanel .gal"), rtl=getComputedStyle(g).direction==="rtl";
+    g.scrollTo({ left: (rtl ? -1 : 1) * +dot.dataset.pic * g.clientWidth, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); return; }
   const a=e.target.closest("[data-dadd]"); if(a){ change(a.dataset.dadd,1); refreshBuy(); return; }
   const b=e.target.closest("[data-dbean]"); if(b){ setBean(+b.dataset.dbean); refreshBuy(); return; }
   if(e.target.closest("[data-inc]")||e.target.closest("[data-dec]")) setTimeout(refreshBuy,0);
