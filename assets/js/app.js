@@ -15,7 +15,8 @@ let lang = LANGS.includes(store.get("ro-lang")) ? store.get("ro-lang") : "fa";
 let query = ""; const bill = {}; let people = 1;
 
 const D = s => lang==="fa" ? faDigits(s) : String(s);
-const money = k => { const v=(k*1000).toLocaleString("en-US"); return lang==="fa" ? faDigits(v).replace(/,/g,"٬")+" تومان" : v+" Toman"; };
+const thousands = new Intl.NumberFormat("en-US");   // made once, reused for every price
+const money = k => { const v=thousands.format(k*1000); return lang==="fa" ? faDigits(v).replace(/,/g,"٬")+" تومان" : v+" Toman"; };
 const norm = s => (s||"").replace(/‌/g," ").replace(/ي/g,"ی").replace(/ك/g,"ک").replace(/\s+/g," ").trim().toLowerCase();
 const PIN = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12z" fill="currentColor"/><circle cx="12" cy="10" r="2.6" fill="var(--bg)"/></svg>`;
 /* only allow expected link types from the settings file (never javascript: etc.) */
@@ -33,23 +34,29 @@ function matches(it,c){
 const tagsHTML = it => RO.tagsHTML(it, lang);
 /* Build the whole menu (on start and when the language changes). */
 function render(){
-  document.getElementById("menu").innerHTML = RO.menuHTML({ lang, bill });
+  const menu = document.getElementById("menu");
+  menu.innerHTML = RO.menuHTML({ lang, bill });
+  rows = new Map([...menu.querySelectorAll(".it")].map(n => [n.dataset.open, n]));
+  marked = "";   // freshly built names carry no marks
   document.getElementById("chips").innerHTML = RO.chipsHTML(lang);
   document.getElementById("visit").hidden = false;
   applyFilter();
 }/* Search and filters: hide what doesn't match and mark the matching words. Nothing is rebuilt,
    so photos never reload or blink while typing. */
+let rows = new Map(), marked = "";   // menu rows by item id; the search words currently marked
 function applyFilter(){
+  const remark = query !== marked; marked = query;   // rewrite names only when the search words changed
   let total = 0;
   for (const c of MENU) {
     let shown = 0;
     for (const it of c.items) {
-      const node = document.querySelector(`#menu [data-open="${it.id}"]`); if (!node) continue;
+      const node = rows.get(it.id); if (!node) continue;
       const ok = matches(it, c); node.hidden = !ok; if (!ok) continue;
       shown++;
-      const h = node.querySelector(".it-name"), sub = node.querySelector(".info p");
-      h.innerHTML = hl(lang==="fa"?it.fa:it.en);
-      if (sub) sub.innerHTML = hl(lang==="fa"?it.dfa:it.den);
+      if (remark) {
+        node.querySelector(".it-name").innerHTML = hl(lang==="fa"?it.fa:it.en);
+        const sub = node.querySelector(".info p"); if (sub) sub.innerHTML = hl(lang==="fa"?it.dfa:it.den);
+      }
     }
     total += shown;
     document.getElementById(c.id).hidden = !shown;
