@@ -73,10 +73,7 @@ img{max-width:100%;display:block}
 /* ---------- shared controls ---------- */
 .pill,.chip,.bean,.fbtn{height:var(--h-s);border-radius:var(--r-pill);display:inline-flex;align-items:center;justify-content:center;gap:.35rem;white-space:nowrap;font-size:var(--fs-sm);font-weight:500;transition:background .15s,color .15s,border-color .15s}
 .pill,.bean,.fbtn{border:1px solid var(--line);padding-inline:.85rem}
-.pill,.chip,.bean,.fbtn,.btn,.mapgo,.vcard{transition:transform .12s var(--ease),background-color .15s,color .15s,border-color .15s}
-.pill:active,.chip:active,.bean:active,.fbtn:active,.btn:active,.mapgo:active{transform:scale(.95)}
-a.vcard:active{transform:scale(.985)}
-.pill{min-width:var(--h-s);font-weight:600}
+.pill,.chip,.bean,.fbtn,.btn,.pill:active,.chip:active,.bean:active,.fbtn:active,.btn:active,.pill{min-width:var(--h-s);font-weight:600}
 .pill.icon{width:var(--h-s);padding:0}
 .pill svg{width:18px;height:18px}
 .chip{padding-inline:1rem;color:var(--mute)}
@@ -173,38 +170,33 @@ main.wrap{padding-top:.25rem;min-height:60vh}
 /* ---------- footer ---------- */
 .site-foot{margin-top:3rem;background:var(--soft);border-top:1px solid var(--line);padding:2rem 0 calc(6.5rem + env(safe-area-inset-bottom))}
 .site-foot h2{margin-bottom:1rem}
-.vgrid{display:grid;gap:.6rem}
 .card{background:var(--surface);border-radius:var(--r-m)}
 .sheet .card{background:var(--soft)}
-.vcard{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem;padding:1rem;text-decoration:none;min-height:72px}
-.vcard > svg{width:22px;height:22px;flex:none}
-.vcard small,.mapinfo small{display:block;color:var(--mute);font-size:var(--fs-xs)}
-.vcard b,.mapinfo b{font-weight:600;font-size:var(--fs-md);overflow-wrap:anywhere}
-.vcard .grow{flex:1 1 9rem;min-width:0}  /* the text keeps its room; the copy button wraps below if it must */
-.vcard .pill{height:34px;font-size:var(--fs-xs)}
-@media(hover:hover){a.vcard:hover,.mapgo:hover{box-shadow:0 0 0 1px var(--line) inset}}
-.mapcard{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);overflow:hidden;min-height:150px}
-.mapart{position:relative;background:#e9ecef;min-height:150px}
-html[data-theme="dark"] .mapart{background:#26292e}
-.mapart svg.streets{position:absolute;inset:0;width:100%;height:100%}
-.mapart .pinm{position:absolute;left:50%;top:46%;transform:translate(-50%,-100%);width:34px;height:34px}
-.mapinfo{padding:1rem 1.1rem;display:flex;flex-direction:column;justify-content:center;gap:.2rem}
-.mapinfo .maplbl{margin-top:.7rem}
-.mapinfo .maplinks{margin-top:.35rem}
-.maplinks{display:flex;flex-wrap:wrap;gap:.4rem}
-.mapgo{display:inline-flex;align-items:center;gap:.35rem;min-height:var(--h-s);max-width:100%;padding-inline:.8rem .95rem;border-radius:var(--r-s);border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:600;font-size:var(--fs-sm);text-decoration:none}
-.mapgo svg{width:16px;height:16px;flex:none}
-.mapgo span{min-width:0;overflow-wrap:anywhere}  /* the label wraps with very large text */
-.mapgo:first-child{background:var(--ink);border-color:var(--ink);color:var(--bg)}
-.mapgo:first-child svg circle{fill:var(--ink)}
-.mapgo:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
-.hours{margin-top:.6rem;padding:1rem 1.1rem}
-.hours-head{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.5rem}
-.hours-head b{font-weight:600}
-.hours table{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}
-.hours td{padding:.4rem 0;border-top:1px solid var(--line)}
-.hours td:last-child{text-align:end}
-.hours tr.today td{font-weight:600}
+
+/* visit card: one grouped list, every row the same shape */
+.site-foot .wrap{max-width:40rem}
+.visit{font-style:normal;padding:0 1rem}
+.vrow{display:flex;flex-wrap:wrap;align-items:flex-start;gap:.9rem;padding:.95rem 0;text-decoration:none;color:inherit}
+.vrow + .vrow{border-top:1px solid var(--line)}
+.vic{flex:none;width:22px;height:22px;margin-top:.15rem;color:var(--mute)}
+.vtx{flex:1;min-width:0;display:flex;flex-direction:column;gap:.1rem}
+.vtx small{color:var(--mute);font-size:var(--fs-xs)}
+.vtx b{align-self:flex-start;font-weight:600;font-size:var(--fs-md);overflow-wrap:anywhere}  /* values line up under their labels, also numbers in Persian */
+.vgo{flex:none;align-self:center;width:18px;height:18px;color:var(--mute)}
+[dir="rtl"] .vgo{transform:scaleX(-1)}
+a.vrow{transition:opacity .15s}
+a.vrow:active{opacity:.6}
+a.vrow:focus-visible{outline:2px solid var(--ink);outline-offset:-2px;border-radius:var(--r-s)}
+/* directions: equal buttons in one row */
+.vdir{flex-basis:100%;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:.4rem;margin-top:-.1rem}
+.mapgo{display:grid;place-items:center;min-height:var(--h-s);padding:.3rem .5rem;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface);font-weight:600;font-size:var(--fs-sm);text-align:center;text-decoration:none;color:var(--ink);transition:background-color .15s,transform .12s var(--ease)}
+.mapgo:active{transform:scale(.96)}
+@media(hover:hover){.mapgo:hover{background:var(--soft)}}
+.sheet .mapgo{background:var(--surface)}
+/* opening hours that differ by day */
+.vdays{display:grid;gap:.2rem;margin-top:.15rem;font-weight:400}
+.vdays > span{display:flex;justify-content:space-between;gap:1rem}
+.vdays .today{font-weight:700}
 .foot-end{margin-top:2rem;text-align:center}
 .slogan{font-size:var(--fs-md)}
 .copy{margin-top:.25rem;color:var(--mute);font-size:var(--fs-xs)}
@@ -290,15 +282,13 @@ html:has(dialog[open]){overflow:hidden}
 }
 @media(min-width:700px){
   .grid{grid-template-columns:1fr 1fr}
-  .vgrid{grid-template-columns:1fr 1fr}
   /* sheets open centred on tablets and desktops */
   .panel{bottom:50%;transform:translateY(50%);max-width:560px;border-radius:var(--r-l);animation:fade .2s}
   .panel .grab{display:none}
 }
 @media(min-width:860px){:root{--gut:2rem;--thumb:104px}}
 @media(min-width:1000px){.panel.dpanel{max-width:640px}}
-@media(min-width:1400px){:root{--maxw:1360px}.grid{grid-template-columns:repeat(3,1fr)}.vgrid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:480px){.mapcard{grid-template-columns:1fr}.mapart{min-height:120px}}
+@media(min-width:1400px){:root{--maxw:1360px}.grid{grid-template-columns:repeat(3,1fr)}}
 /* short screens (phones held sideways): the header scrolls away, only the category row stays */
 @media(max-height:520px){
   .appbar{top:calc(-1 * (var(--bar-row) + var(--h-m) + .75rem))}
@@ -313,8 +303,6 @@ html:has(dialog[open]){overflow:hidden}
 
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
 #visit[hidden]{display:none}
-.sheet .vgrid{grid-template-columns:1fr}
-.vcard .grow a{display:inline-flex;align-items:center;min-height:var(--h-s)}
 @media(hover:hover){.it:hover .beans{background:var(--bg)}}
 @media(max-width:380px){.bean{padding-inline:.4rem}}
 /* espresso row: the bean picker gets its own line under the name, across to the + button */

@@ -18,7 +18,6 @@ const D = s => lang==="fa" ? faDigits(s) : String(s);
 const thousands = new Intl.NumberFormat("en-US");   // made once, reused for every price
 const money = k => { const v=thousands.format(k*1000); return lang==="fa" ? faDigits(v).replace(/,/g,"٬")+" تومان" : v+" Toman"; };
 const norm = s => (s||"").replace(/‌/g," ").replace(/ي/g,"ی").replace(/ك/g,"ک").replace(/\s+/g," ").trim().toLowerCase();
-const PIN = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12z" fill="currentColor"/><circle cx="12" cy="10" r="2.6" fill="var(--bg)"/></svg>`;
 /* only allow expected link types from the settings file (never javascript: etc.) */
 const safeUrl = (u, protocols = ["https:"]) => { try { const x = new URL(u, location.href); return protocols.includes(x.protocol) ? x.href : "#"; } catch { return "#"; } };
 let filt = new Set();
@@ -73,27 +72,9 @@ function applyLang(){
   document.querySelectorAll("[data-t]").forEach(el=>el.textContent=t[el.dataset.t]);
   const lb=document.getElementById("langBtn"); lb.textContent=t.lang; lb.setAttribute("lang", lang==="fa"?"en":"fa"); lb.title = lang==="fa" ? "English" : "فارسی";
   document.getElementById("q").placeholder=t.ph;
-  const v = `
-   <div class="mapcard card">
-     <div class="mapart" aria-hidden="true">
-       <svg class="streets" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice" fill="none" stroke-linecap="round">
-         <path d="M-10 118 C60 104 120 96 190 70 S280 30 320 24" stroke="var(--bg)" stroke-width="14"/>
-         <path d="M-10 118 C60 104 120 96 190 70 S280 30 320 24" stroke="#f2c230" stroke-width="3" opacity=".9"/>
-         <path d="M40 -10 L80 170M150 -10 L130 170M230 -10 L250 170M-10 40 L320 60M-10 150 L320 140" stroke="var(--bg)" stroke-width="7" opacity=".9"/>
-         <path d="M0 0 L300 0" stroke="none"/>
-       </svg>
-       <svg class="pinm" viewBox="0 0 24 24"><path d="M12 23s8-7 8-13a8 8 0 1 0-16 0c0 6 8 13 8 13z" fill="#18181b"/><circle cx="12" cy="10" r="3.2" fill="#f2c230"/></svg>
-     </div>
-     <div class="mapinfo"><small>${t.addr}</small><b>${t.addrV}</b>
-       <small class="maplbl">${t.map}</small>
-       <div class="maplinks">${(CONFIG.maps||[]).map(m=>`<a class="mapgo" href="${esc(safeUrl(m.url))}" target="_blank" rel="noopener noreferrer">${PIN}<span>${esc(t["app_"+m.app]||m.app)}</span></a>`).join("")}</div>
-     </div>
-   </div>
-   <div class="vcard card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg><div class="grow"><small>${t.phone}</small><a href="${esc(safeUrl("tel:"+CONFIG.phone,["tel:"]))}"><b class="ltr">${esc(CONFIG.phoneDisplay)}</b></a></div><button type="button" class="pill" data-copy="${esc(CONFIG.phoneCopy)}">${lang==="fa"?"کپی":"Copy"}</button></div>
-   <a class="vcard card" href="${esc(safeUrl("https://instagram.com/"+encodeURIComponent(CONFIG.instagram)+"/"))}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg><div><small>${t.insta}</small><b class="ltr">@${esc(CONFIG.instagram)}</b></div></a>`;
-  document.getElementById("vgrid").innerHTML=v; document.getElementById("vgrid2").innerHTML=v;
-  renderFilters(); render(); updateBill(); renderHours(); renderCopy(); syncBarH();
-  document.getElementById("infoBtn").setAttribute("aria-label", t.info); document.getElementById("clearQ").setAttribute("aria-label", t.clearSearch); document.getElementById("filterBtn").setAttribute("aria-label", t.filter); filterPop.setAttribute("aria-label", t.filter); if(detailId && document.getElementById('detailSheet').classList.contains('open')) drawDetail();
+  for (const id of ["visitCard", "visitCard2"]) document.getElementById(id).innerHTML = visitHTML(t);
+  renderFilters(); render(); updateBill(); renderCopy(); syncBarH();
+  document.getElementById("infoBtn").setAttribute("aria-label", t.info); document.getElementById("clearQ").setAttribute("aria-label", t.clearSearch); document.getElementById("filterBtn").setAttribute("aria-label", t.filter); filterPop.setAttribute("aria-label", t.filter); if (detailId && document.getElementById("detailSheet").open) drawDetail();
 }
 
 /* ---------- bill ---------- */
@@ -183,10 +164,6 @@ document.getElementById("infoBtn").addEventListener("click",()=>openSheet("infoS
 document.getElementById("pMinus").addEventListener("click",()=>{ people=Math.max(1,people-1); updateBill(); });
 document.getElementById("pPlus").addEventListener("click",()=>{ people=Math.min(20,people+1); updateBill(); });
 document.getElementById("clearBill").addEventListener("click",()=>{ for(const k in bill) delete bill[k]; people=1; updateBill(); refreshAdds(); });
-document.addEventListener("click",async e=>{
-  const c=e.target.closest("[data-copy]"); if(!c) return;
-  try { await navigator.clipboard.writeText(c.dataset.copy); toast(T[lang].copied); } catch { toast(CONFIG.phoneDisplay); }
-});
 
 let tt; function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove("show"),1500); }
 
@@ -400,23 +377,43 @@ function tehranNow(){
   const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Tehran", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
     .formatToParts(new Date()).map(x => [x.type, x.value]));
   return { day: ["Sat","Sun","Mon","Tue","Wed","Thu","Fri"].indexOf(p.weekday), min: +p.hour * 60 + +p.minute };
-}function renderHours(){
-  for (const id of ["hours","hours2"]) renderHoursInto(document.getElementById(id));
+}/* "8:00" -> "۸ صبح" / "8 AM"; "24:00" -> "۱۲ شب" / "midnight" */
+function clock(hm){
+  const [h, m] = hm.split(":").map(Number), mm = m ? `:${String(m).padStart(2, "0")}` : "";
+  if (lang === "fa") {
+    const part = h >= 5 && h < 12 ? "صبح" : h === 12 ? "ظهر" : h > 12 && h < 17 ? "بعدازظهر" : h >= 17 && h < 20 ? "عصر" : h >= 1 && h < 5 ? "بامداد" : "شب";
+    return `${D((h % 12 || 12) + mm)} ${part}`;
+  }
+  if (h % 24 === 0 && !m) return "midnight";
+  if (h === 12 && !m) return "noon";
+  return `${(h % 12 || 12) + mm} ${h % 24 < 12 ? "AM" : "PM"}`;
 }
-function renderHoursInto(box){
-  const H = CONFIG.hours, t = T[lang];
-  if (!box) return;
-  if (!H){ box.hidden = true; return; }
-  const today = tehranNow().day;
-  box.innerHTML = `<div class="hours-head"><b>${t.hours}</b></div>
-    <table>${hoursRows(H, today, t)}</table>`;
-  box.hidden = false;
-}
-function hoursRows(H, today, t){
-  const fmt = d => (d && d.length) ? d.map(([o,c]) => lang==="fa" ? `${D(o)} تا ${D(c)}` : `${o}–${c}`).join(lang==="fa"?"، ":", ") : t.closedDay;
+/* opening hours as one line when every day is the same, otherwise one line per day (today in bold) */
+function hoursHTML(t){
+  const H = CONFIG.hours; if (!H) return "";
+  const span = d => d?.length ? d.map(([o, c]) => `${clock(o)} ${lang === "fa" ? "تا" : "–"} ${clock(c)}`).join(lang === "fa" ? "، " : ", ") : t.closedDay;
   const all = DAY_KEYS.map(k => JSON.stringify(H[k] || []));
-  if (all.every(x => x === all[0])) return `<tr class="today"><td>${t.everyDay}</td><td>${fmt(H[DAY_KEYS[0]])}</td></tr>`;
-  return DAY_KEYS.map((k,i) => `<tr${i===today?' class="today"':''}><td>${t.days[i]}</td><td>${fmt(H[k])}</td></tr>`).join("");
+  if (all.every(x => x === all[0])) return `${t.everyDay}${lang === "fa" ? "، " : ", "}${span(H[DAY_KEYS[0]])}`;
+  const today = tehranNow().day;
+  return `<span class="vdays">${DAY_KEYS.map((k, i) => `<span${i === today ? ' class="today"' : ""}><span>${t.days[i]}</span><span>${span(H[k])}</span></span>`).join("")}</span>`;
+}
+const IC = {
+  pin: '<path d="M12 21s7-6.1 7-11.5a7 7 0 1 0-14 0C5 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  phone: '<path d="M21 16.4v2.8a1.9 1.9 0 0 1-2.1 1.9A18.8 18.8 0 0 1 2.9 5.1 1.9 1.9 0 0 1 4.8 3h2.8a1.9 1.9 0 0 1 1.9 1.6c.1.9.4 1.8.7 2.6a1.9 1.9 0 0 1-.4 2L8.6 10.4a15.2 15.2 0 0 0 5 5l1.2-1.2a1.9 1.9 0 0 1 2-.4c.8.3 1.7.6 2.6.7a1.9 1.9 0 0 1 1.6 1.9z"/>',
+  at: '<circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.9 7.9"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  out: '<path d="M7 17 17 7M8 7h9v9"/>'
+};
+const icon = k => `<svg class="vic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k]}</svg>`;
+/* the visit card: one list inside <address>; rows that link are links over their whole width */
+function visitHTML(t){
+  const ig = safeUrl(`https://instagram.com/${encodeURIComponent(CONFIG.instagram)}/`);
+  return `
+    <div class="vrow">${icon("pin")}<span class="vtx"><small>${t.addr}</small><b>${t.addrV}</b></span>
+      <span class="vdir" role="group" aria-label="${t.map}">${(CONFIG.maps || []).map(m => `<a class="mapgo" href="${esc(safeUrl(m.url))}" target="_blank" rel="noopener noreferrer">${esc(t["app_" + m.app] || m.app)}</a>`).join("")}</span></div>
+    <a class="vrow" href="${esc(safeUrl("tel:" + CONFIG.phone, ["tel:"]))}">${icon("phone")}<span class="vtx"><small>${t.phone}</small><b class="ltr">${esc(CONFIG.phoneDisplay)}</b></span></a>
+    <a class="vrow" href="${esc(ig)}" target="_blank" rel="noopener noreferrer">${icon("at")}<span class="vtx"><small>${t.insta}</small><b class="ltr">@${esc(CONFIG.instagram)}</b></span>${icon("out").replace('class="vic"', 'class="vgo"')}</a>
+    ${CONFIG.hours ? `<div class="vrow">${icon("clock")}<span class="vtx"><small>${t.hours}</small><b>${hoursHTML(t)}</b></span></div>` : ""}`;
 }
 function renderCopy(){
   const y = lang==="fa" ? new Intl.DateTimeFormat("fa-IR-u-ca-persian", { year: "numeric" }).format(new Date()).replace(/\s*ه\.ش\.?/, "") : new Date().getFullYear();
