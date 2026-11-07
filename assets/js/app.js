@@ -224,6 +224,8 @@ const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matche
 function goTo(id){
   const sec = document.getElementById(id); if (!sec) return;
   const top = sec.getBoundingClientRect().top + scrollY - barH() + 1;
+  // load this category's photos now, so they are there when the scroll arrives
+  sec.querySelectorAll('img[loading="lazy"]').forEach(i => { i.loading = "eager"; });
   lockTo = id; setActiveChip(id);
   scrollTo({ top, behavior: reduceMotion() ? "auto" : "smooth" });
   clearTimeout(lockTimer); lockTimer = setTimeout(() => { lockTo = null; }, 1200);
