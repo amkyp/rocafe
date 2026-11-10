@@ -1,0 +1,418 @@
+/* =========================================================================
+   Ro Cafe menu: styles
+   One set of tokens (type, sizes, radii, spacing, colour) used everywhere.
+   Light theme in :root, dark theme in html[data-theme="dark"].
+   ========================================================================= */
+
+:root{
+  /* colour */
+  --bg:#ffffff; --surface:#ffffff; --soft:#f5f5f2; --line:#e8e8e3;
+  --ink:#141416; --mute:#66666d; --on-ink:#ffffff;
+  /* over photos and the map: the same in both themes */
+  --on-photo:#fff; --on-photo-dim:rgb(255 255 255/.6); --on-photo-bg:rgb(255 255 255/.92); --on-photo-ink:#141416;
+  --scrim:rgb(0 0 0/.32); --map-land:#f2efe9; --map-filter:none; --credit-bg:rgb(255 255 255/.85); --credit-ink:#333;
+  --brand:#f2c230; --brand-soft:#fdf3cf; --brand-ink:#18181b; --mark:#18181b;
+  --ok-bg:#e3f3e1; --ok:#25632a; --no-bg:#f6e3e1; --no:#8a2f25;
+  --pm-bg:#e7f2e4; --pm:#2f6a2a; --cf-bg:#eef0fb; --cf:#3a46a0; --n-bg:#fbf0de; --n:#8a5a10;
+  --scrim:rgba(20,20,22,.45);
+  --t-coffee:#f6eee4; --t-brew:#eef1ea; --t-warm:#f8ece9; --t-tea:#eaf3ea; --t-shake:#fbecef;
+  --t-iced:#e9f0f6; --t-cold:#f4f6e4; --t-cake:#f7efe2; --t-food:#f1ede8; --t-extra:#efefef;
+
+  /* type: five sizes */
+  --fs-xs:.75rem;   /* 12  labels, tags, notes */
+  --fs-sm:.875rem;  /* 14  secondary text, buttons */
+  --fs-md:1rem;     /* 16  body, item names */
+  --fs-lg:1.25rem;  /* 20  section and sheet titles */
+  --fs-xl:1.5rem;   /* 24  totals, item card title */
+
+  /* controls: three heights */
+  --h-xs:36px;
+--h-s:40px;  /* pills, chips, bean picker, filters, stepper */
+  --h-m:44px;  /* search, add button */
+  --h-l:52px;  /* primary buttons, bill bar */
+
+  /* radii: four steps + pill */
+  --r-xs:6px; --r-s:10px; --r-m:16px; --r-l:24px; --r-pill:999px;
+  /* icon sizes: small (inside small buttons and arrows), controls, list rows */
+  --ic-s:18px; --ic-m:20px; --ic-l:22px;
+
+  /* layout */
+  /* page edges: the gutter, or more where a phone's notch or rounded corner needs it */
+  --pad-l:max(var(--gut), env(safe-area-inset-left)); --pad-r:max(var(--gut), env(safe-area-inset-right));
+  --billbar-h:calc(var(--h-l) + 1.5rem);   /* the bill bar, without the home-bar area below it */
+  --gut:1.1rem; --maxw:1080px; --bar-row:52px; --thumb:92px;
+  --shadow-1:0 1px 3px rgba(0,0,0,.08),0 6px 16px -10px rgba(0,0,0,.25);
+  --shadow-2:0 18px 48px -16px rgba(0,0,0,.35);
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+html[data-theme="dark"]{
+  --map-filter:brightness(.8);   /* the light map, dimmed so it does not glare in the dark */
+  color-scheme:dark;
+  --bg:#121214; --surface:#1a1a1d; --soft:#222226; --line:#2d2d33;
+  --ink:#f1f1ee; --mute:#a1a1a9; --on-ink:#141416;
+  --brand-soft:#4a3d12; --mark:#000;
+  --ok-bg:#1d2e1b; --ok:#9fd394; --no-bg:#3a201d; --no:#f0a99f;
+  --pm-bg:#1d2e1b; --pm:#9fd394; --cf-bg:#1f2340; --cf:#aab3f2; --n-bg:#33280f; --n:#e9be6a;
+  --scrim:rgba(0,0,0,.6);
+  --t-coffee:#26211c; --t-brew:#20231e; --t-warm:#271f1d; --t-tea:#1d241d; --t-shake:#281e21;
+  --t-iced:#1d2127; --t-cold:#23251b; --t-cake:#27211a; --t-food:#24211d; --t-extra:#222224;
+}
+
+/* ---------- base ---------- */
+/* IBM Plex Sans Arabic (SIL Open Font License), subset to the characters this site uses */
+@font-face{font-family:'RoPlex';font-style:normal;font-weight:400 500;font-display:swap;src:url(../fonts/plex-arabic-400-500.woff2) format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200F,U+FB50-FDFF,U+FE70-FEFF}
+@font-face{font-family:'RoPlex';font-style:normal;font-weight:400 500;font-display:swap;src:url(../fonts/plex-latin-400-500.woff2) format('woff2');unicode-range:U+0000-00FF,U+2000-206F,U+20AC,U+2212,U+00D7,U+2715}
+@font-face{font-family:'RoPlex';font-style:normal;font-weight:600 800;font-display:swap;src:url(../fonts/plex-arabic-600-800.woff2) format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200F,U+FB50-FDFF,U+FE70-FEFF}
+@font-face{font-family:'RoPlex';font-style:normal;font-weight:600 800;font-display:swap;src:url(../fonts/plex-latin-600-800.woff2) format('woff2');unicode-range:U+0000-00FF,U+2000-206F,U+20AC,U+2212,U+00D7,U+2715}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:var(--bar-h,150px)}
+body{font-family:'RoPlex',Tahoma,system-ui,sans-serif;font-size:var(--fs-md);line-height:1.6;background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:inherit}
+img{max-width:100%;display:block}
+:focus-visible{outline:2.5px solid var(--ink);outline-offset:2px;border-radius:var(--r-xs)}
+.num{font-variant-numeric:tabular-nums}
+.ltr{direction:ltr;unicode-bidi:isolate}
+.defs{position:absolute}
+/* each section colours its photo placeholders (set from data-tint, no inline styles) */
+.sec[data-tint="coffee"]{--tint:var(--t-coffee)}.sec[data-tint="brew"]{--tint:var(--t-brew)}.sec[data-tint="tea"]{--tint:var(--t-tea)}.sec[data-tint="warm"]{--tint:var(--t-warm)}.sec[data-tint="cold"]{--tint:var(--t-cold)}.sec[data-tint="iced"]{--tint:var(--t-iced)}.sec[data-tint="shake"]{--tint:var(--t-shake)}.sec[data-tint="cake"]{--tint:var(--t-cake)}.sec[data-tint="food"]{--tint:var(--t-food)}.sec[data-tint="extra"]{--tint:var(--t-extra)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.wrap{max-width:var(--maxw);margin-inline:auto;padding-left:var(--pad-l);padding-right:var(--pad-r)}
+
+/* ---------- shared controls ---------- */
+.pill,.chip,.bean,.fbtn{height:var(--h-s);border-radius:var(--r-pill);display:inline-flex;align-items:center;justify-content:center;gap:.35rem;white-space:nowrap;font-size:var(--fs-sm);font-weight:500;transition:background .15s,color .15s,border-color .15s}
+.pill,.bean,.fbtn{border:1px solid var(--line);padding-inline:.85rem}
+.pill,.chip,.bean,.fbtn,.btn,.pill:active,.chip:active,.bean:active,.fbtn:active,.btn:active,.pill{min-width:var(--h-s);font-weight:600}
+.pill.icon{width:var(--h-s);padding:0}
+.pill svg{width:var(--ic-m);height:var(--ic-m)}
+.chip{padding-inline:1rem;color:var(--mute)}
+.chip.on,.bean.on,.fbtn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+#filterBtn.open{background:var(--ink);color:var(--bg)}
+@media(hover:hover){.pill:hover,.chip:not(.on):hover,.bean:not(.on):hover,.fbtn:not([aria-pressed="true"]):hover{background:var(--soft)}}
+.btn{flex:1;min-height:var(--h-l);max-width:100%;border-radius:var(--r-m);font-weight:600;font-size:var(--fs-md);text-align:center;display:inline-flex;align-items:center;justify-content:center;padding:0 1.2rem}
+.btn-dark{background:var(--ink);color:var(--bg)}
+.btn-brand{background:var(--brand);color:var(--brand-ink)}
+.btn-out{border:1px solid var(--line)}
+@media(hover:hover){.btn-out:hover{background:var(--soft)}}
+.stepper{display:inline-flex;align-items:center;height:var(--h-s);border:1px solid var(--line);border-radius:var(--r-s)}
+.stepper button{width:var(--h-s);height:100%;font-size:var(--fs-lg)}
+.stepper span{min-width:1.6rem;text-align:center;font-weight:600}
+.stepper.lg{height:var(--h-l)}
+.stepper.lg button{width:var(--h-l)}
+.pill .moon{display:none}
+html[data-theme="dark"] .pill .sun{display:none}
+html[data-theme="dark"] .pill .moon{display:block}
+
+/* ---------- app bar: brand row, search, categories (sticky) ---------- */
+.appbar{position:sticky;top:0;z-index:30;padding-top:env(safe-area-inset-top);background:var(--bg);border-bottom:1px solid transparent;transition:border-color .2s,box-shadow .2s}
+.appbar.stuck{border-color:var(--line);box-shadow:0 6px 18px -14px rgba(0,0,0,.35)}
+.bar-row{position:relative;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.6rem;min-height:var(--bar-row);margin-top:.25rem}
+/* the name never gets squeezed: with very large text the buttons move to a second row instead */
+.bar-row .brand{flex:0 0 auto;max-width:100%}
+.brand{display:flex;align-items:center;gap:.6rem;min-width:0;text-decoration:none}
+.brand b{font-size:var(--fs-md);font-weight:600;line-height:1.2;min-width:0;overflow-wrap:anywhere}
+.mark{width:var(--h-s);height:var(--h-s);border-radius:var(--r-s);background:var(--mark);display:grid;place-items:center;flex:none}
+.mark svg{width:26px}
+.top-actions{display:flex;gap:.35rem}
+.fdot{position:absolute;top:7px;inset-inline-end:7px;width:8px;height:8px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 2px var(--bg)}
+/* filters: a small non-modal <dialog> placed under the search field by app.js; the page stays usable */
+.filter-pop{position:fixed;inset:auto;margin:0;padding:0;max-width:calc(100vw - 2 * var(--gut));color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);box-shadow:var(--shadow-2);animation:fade .15s}
+.filters{display:flex;gap:.4rem;flex-wrap:wrap;padding:.6rem}
+.search{position:relative;display:block;margin-top:.5rem}
+.search input{width:100%;height:var(--h-m);border-radius:var(--r-m);border:1px solid var(--line);background:var(--soft);padding-inline:2.75rem calc(2 * var(--h-s) + .35rem);font:inherit;font-size:var(--fs-md);color:var(--ink)}
+.search input:focus{outline:none;background:var(--surface);border-color:var(--ink)}
+.search > svg{position:absolute;top:50%;transform:translateY(-50%);inset-inline-start:.95rem;width:var(--ic-m);height:var(--ic-m);color:var(--mute);pointer-events:none}
+.search .clear{position:absolute;top:50%;transform:translateY(-50%);inset-inline-end:calc(var(--h-s) + .15rem);width:var(--h-s);height:var(--h-s);border-radius:50%;display:none;place-items:center;color:var(--mute)}
+.search.has .clear{display:grid}
+.fbtn-in{position:absolute;top:50%;transform:translateY(-50%);inset-inline-end:.15rem;width:var(--h-s);height:var(--h-s);border-radius:var(--r-s);display:grid;place-items:center;color:var(--ink);transition:background-color .15s,color .15s}
+.fbtn-in svg{width:var(--ic-m);height:var(--ic-m)}
+@media(hover:hover){.fbtn-in:hover{background:var(--line)}}
+.fbtn-in:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
+/* filters in use: item count and one chip per filter (tap to remove) */
+.fstat{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;padding-top:.5rem;font-size:var(--fs-sm);color:var(--mute)}
+.fstat[hidden]{display:none}
+.fchip{height:var(--h-s);display:inline-flex;align-items:center;gap:.45rem;padding-inline:.85rem .7rem;border-radius:var(--r-pill);background:var(--ink);color:var(--bg);font-size:var(--fs-sm);font-weight:600;white-space:nowrap}
+.fchip span{font-size:var(--fs-xs);opacity:.75}
+.fchip:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.chips{display:flex;gap:.35rem;overflow-x:auto;scrollbar-width:none;max-width:var(--maxw);margin-inline:auto;padding:.5rem var(--pad-r) .5rem var(--pad-l);min-height:calc(var(--h-s) + 1rem);scroll-padding-inline:var(--gut)}
+.chips{mask-image:linear-gradient(to right,transparent,#000 var(--gut),#000 calc(100% - var(--gut)),transparent)}
+.chip{flex:none}
+
+/* ---------- menu ---------- */
+main.wrap{padding-top:.25rem;min-height:60vh}
+.sec{padding-top:2.5rem}
+.sec:first-of-type{padding-top:.75rem}
+.unit-note{padding-top:.9rem;font-size:var(--fs-xs);color:var(--mute)}
+.sec-h{margin-bottom:.35rem}
+.sec-h h2{font-size:var(--fs-xl);font-weight:800;line-height:1.3}
+.site-foot h2,.sheet-title{font-size:var(--fs-lg);font-weight:700;line-height:1.35}
+/* where a panel or menu opens, focus lands on its start (autofocus, so screen readers begin there); not a control, no ring */
+[autofocus][tabindex="-1"]:focus{outline:none}
+.grid{display:grid;grid-template-columns:1fr;column-gap:2rem}
+.it{display:grid;grid-template-columns:var(--thumb) minmax(0,1fr) auto;gap:.9rem;align-items:center;padding:.75rem .5rem;margin-inline:-.5rem;position:relative;border-radius:var(--r-m);cursor:pointer;transition:background .15s,transform .12s}
+.it[hidden],.sec[hidden],.chips .chip[hidden]{display:none}
+.it::after{content:"";position:absolute;inset-inline:.5rem;bottom:0;height:1px;background:var(--line);pointer-events:none}
+.it:active{background:var(--soft);transform:scale(.985)}
+@media(hover:hover){.it:hover{background:var(--soft)}.it:hover .pic img{transform:scale(1.06)}}
+.pic{background:var(--tint,var(--soft));position:relative;width:var(--thumb);height:var(--thumb);border-radius:var(--r-m);overflow:hidden;display:grid;place-items:center}
+.pic img{width:100%;height:100%;object-fit:cover;transition:transform .35s ease}
+.pic svg{width:50%;height:50%;stroke:var(--ink);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.pic::after{content:"";position:absolute;inset-inline-end:5px;bottom:5px;width:20px;height:20px;border-radius:50%;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.14);opacity:.9;
+  background:var(--on-photo-bg) url(../expand.svg) center/11px no-repeat}
+.info{min-width:0;overflow-wrap:anywhere}
+.info h3{font-size:var(--fs-md);font-weight:600;line-height:1.5;   /* 24px: the name is a tap target */overflow-wrap:anywhere}
+/* the name is the row's button; its invisible layer covers the whole row, so a tap anywhere opens the card */
+.it-name{display:inline;padding:0;font-weight:inherit;line-height:inherit;text-align:inherit;overflow-wrap:anywhere}
+.it-name::before{content:"";position:absolute;top:0;right:0;bottom:0;left:0;border-radius:var(--r-m)}
+.it-name:focus-visible{outline:none}
+.it-name:focus-visible::before{box-shadow:inset 0 0 0 2.5px var(--ink)}
+.it .add,.it .beans{position:relative;z-index:1}
+.info p{font-size:var(--fs-xs);color:var(--mute);line-height:1.55;margin-top:.1rem}
+.price{display:block;margin-top:.25rem;font-size:var(--fs-md);font-weight:600}
+.price small,.unit{font-size:var(--fs-xs);font-weight:400;color:var(--mute)}
+.add{width:var(--h-m);height:var(--h-m);border-radius:50%;background:var(--soft);color:var(--ink);display:grid;place-items:center;font-size:var(--fs-lg);font-weight:400;line-height:1;transition:background .15s,transform .1s,color .15s}
+.add:active{transform:scale(.92)}
+@media(hover:hover){.add:hover{background:var(--line)}.it:hover .add:not(.has){background:var(--bg)}}
+.add.has{background:var(--brand);color:var(--brand-ink);font-size:var(--fs-md);font-weight:700;animation:pop .25s var(--ease)}
+@keyframes pop{50%{transform:scale(1.15)}}
+.billbar .c{animation:pop .3s var(--ease) both}   /* replayed by app.js when the count changes ("both" keeps it replayable) */
+.it mark{background:var(--brand-soft);color:inherit;border-radius:3px}
+.tags{display:flex;gap:.25rem;flex-wrap:wrap;margin-top:.3rem}
+.tag{font-size:var(--fs-xs);font-weight:600;line-height:1.6;padding:0 .45rem;border-radius:var(--r-xs);max-width:100%}
+.tag.pm{background:var(--pm-bg);color:var(--pm)}.tag.cf{background:var(--cf-bg);color:var(--cf)}.tag.n{background:var(--n-bg);color:var(--n)}
+.beans{display:inline-grid;grid-auto-flow:column;grid-auto-columns:auto;gap:2px;padding:3px;margin-top:.45rem;background:var(--soft);border-radius:var(--r-pill);max-width:100%}
+.bean{height:var(--h-xs);border:0;padding-inline:.55rem;font-size:var(--fs-xs);min-width:0;overflow:hidden;text-overflow:ellipsis}
+.bean.on{background:var(--ink);color:var(--bg)}
+@media(hover:hover){.bean:not(.on):hover{background:var(--line)}}
+.empty{padding:3rem 0;text-align:center;color:var(--mute);display:none}
+.empty b{display:block;color:var(--ink);font-size:var(--fs-md);margin-bottom:.25rem}
+
+/* ---------- footer ---------- */
+.site-foot{margin-top:3rem;background:var(--soft);border-top:1px solid var(--line);padding:2rem 0 calc(2rem + env(safe-area-inset-bottom))}
+html:has(.billbar.up) .site-foot{padding-bottom:calc(var(--billbar-h) + 1.5rem + env(safe-area-inset-bottom))}
+.site-foot h2{margin-bottom:1rem}
+.card{background:var(--surface);border-radius:var(--r-m)}
+.sheet .card{background:var(--soft)}
+
+/* visit card: one grouped list, every row the same shape */
+.visit{font-style:normal;padding:0 1rem;container:visit/inline-size}
+/* one spacing scale for the card: rows .875rem top and bottom, icon to text .75rem,
+   text to map / map to buttons .75rem */
+.vrow{display:flex;flex-wrap:wrap;align-items:flex-start;gap:.75rem;padding:.875rem 0;text-decoration:none;color:inherit}
+.vrow + .vrow,.vmapbox + .vrow{border-top:1px solid var(--line)}
+.vaddr{padding-bottom:.75rem}
+.vmapbox{display:flex;flex-direction:column;gap:.5rem;padding-bottom:.875rem}
+@container visit (width >= 40rem){
+  /* wide card: all the text in one column, the map and its buttons in the other; the last row
+     takes any spare height, so the text rows keep their own spacing */
+  .vlist{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-rows:repeat(4,auto) 1fr;column-gap:2.5rem;padding-inline:.5rem}   /* 1.5rem from the card edge in all */
+  .vlist > *{grid-column:1}
+  .vlist > .vmapbox{grid-column:2;grid-row:1 / -1;padding-top:.875rem}
+  .vaddr{padding-bottom:.875rem}
+  .vmapbox + .vrow{border-top:1px solid var(--line)}
+}
+.vic{flex:none;width:var(--ic-l);height:var(--ic-l);margin-top:.15rem;color:var(--mute)}
+.vtx{flex:1;min-width:0;display:flex;flex-direction:column;gap:.1rem;overflow-wrap:anywhere}
+.vtx small{color:var(--mute);font-size:var(--fs-xs)}
+.vtx b{align-self:flex-start;font-weight:600;font-size:var(--fs-md);overflow-wrap:anywhere}  /* values line up under their labels, also numbers in Persian */
+.vgo{flex:none;align-self:center;width:var(--ic-s);height:var(--ic-s);color:var(--mute)}
+/* the apps' own icons, rounded the way phones show them */
+.vbrand{flex:none;width:24px;height:24px;border-radius:22.5%}
+.vbrand.vic{width:var(--ic-l);height:var(--ic-l)}
+/* the map: an OpenStreetMap image at its own scale (labels stay readable), centred on the
+   cafe, with the pin drawn on top; wider screens simply show more of the area */
+.vmap{position:relative;height:14rem;border:1px solid var(--line);border-radius:var(--r-m);overflow:hidden;background:var(--map-land)}
+.vmap img{display:block;width:100%;height:100%;object-fit:none;filter:var(--map-filter)}
+a.vmap{display:block;transition:opacity .15s}a.vmap:active{opacity:.85}
+a.vmap:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.vpin{position:absolute;left:50%;top:50%;width:38px;height:38px;transform:translate(-50%,-94%);fill:var(--brand);stroke:var(--on-photo-ink);filter:drop-shadow(0 2px 2px rgb(0 0 0/.35))}
+.osm{position:absolute;right:0;bottom:0;padding:.1rem .4rem;border-top-left-radius:var(--r-s);background:var(--credit-bg);color:var(--credit-ink);font-size:var(--fs-xs);line-height:1.5;pointer-events:none}
+[dir="rtl"] .vgo{transform:scaleX(-1)}
+a.vrow{transition:opacity .15s}
+a.vrow:active{opacity:.6}
+a.vrow:focus-visible{outline:2px solid var(--ink);outline-offset:-2px;border-radius:var(--r-s)}
+/* directions: equal buttons in one row */
+.vdir{min-width:0;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);grid-template-columns:minmax(0,1fr);gap:.5rem}
+@container visit (width < 15rem){.vdir{grid-auto-flow:row}.mapgo{overflow-wrap:anywhere}}  /* one row, or all stacked: never 2 + 1 */
+.mapgo{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem;min-height:var(--h-s);padding:.55rem .4rem;line-height:1.25;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface);font-weight:600;font-size:var(--fs-sm);text-align:center;text-decoration:none;color:var(--ink);transition:background-color .15s,transform .12s var(--ease)}
+.mapgo:active{transform:scale(.96)}
+@media(hover:hover){.mapgo:hover{background:var(--soft)}}
+.sheet .mapgo{background:var(--surface)}
+/* opening hours that differ by day */
+.vdays{display:grid;gap:.2rem;margin-top:.15rem;font-weight:400}
+.vdays > span{display:flex;justify-content:space-between;gap:1rem}
+.vdays .today{font-weight:700}
+.foot-end{margin-top:2rem;text-align:center}
+.slogan{font-size:var(--fs-md)}
+.copy{margin-top:.25rem;color:var(--mute);font-size:var(--fs-xs)}
+
+/* ---------- bill bar ---------- */
+.billbar{position:fixed;inset-inline:0;bottom:0;z-index:30;padding:.75rem var(--pad-r) calc(.75rem + env(safe-area-inset-bottom)) var(--pad-l);transform:translateY(120%);visibility:hidden;transition:transform .3s var(--ease),visibility 0s linear .3s;pointer-events:none}
+.billbar.up{transform:none;visibility:visible;transition:transform .3s var(--ease),visibility 0s}
+.billbar button{pointer-events:auto;width:100%;max-width:520px;margin-inline:auto;height:var(--h-l);display:flex;align-items:center;gap:.8rem;background:var(--ink);color:var(--bg);border-radius:var(--r-m);padding-inline:1rem;box-shadow:var(--shadow-2)}
+.billbar .c{background:var(--brand);color:var(--brand-ink);min-width:28px;height:28px;border-radius:var(--r-xs);display:grid;place-items:center;font-weight:700;font-size:var(--fs-sm)}
+.billbar [data-t="bill"]{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:start}  /* the label takes the free space, so the total sits at the end */
+.billbar .t{font-weight:600}
+
+/* ---------- sheets (item card, bill, info) ---------- */
+/* panels: <dialog> elements filling the screen; the visible card is .panel inside */
+.sheet{position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:none;color:inherit;overflow:hidden}
+.sheet::backdrop{background:var(--scrim);animation:fade .2s}
+html:has(dialog.sheet[open]){overflow:hidden}   /* full panels lock the page; the filter menu does not */
+.panel{--pw:560px;position:absolute;bottom:0;inset-inline:0;margin-inline:auto;width:100%;max-width:var(--pw);max-height:90dvh;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border-radius:var(--r-l) var(--r-l) 0 0;padding:.5rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));animation:up .28s var(--ease);touch-action:pan-y}
+.panel.dragging{transition:none}
+.grab{display:block;width:44px;height:5px;border-radius:var(--r-pill);background:var(--line);margin:.2rem auto .9rem}
+.sheet-title{margin-bottom:.15rem}
+.panel .sub{color:var(--mute);font-size:var(--fs-sm);margin-bottom:.9rem}
+.acts{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.25rem}
+.acts .btn{flex:1 1 0%;min-width:8rem}  /* equal halves; with very large text they stack */
+.note{font-size:var(--fs-xs);color:var(--mute);margin-top:.9rem;text-align:center}
+@keyframes up{from{transform:translateY(40px);opacity:.4}}
+@keyframes fade{from{opacity:0}}
+
+/* bill */
+.line{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;padding:.65rem 0;border-bottom:1px solid var(--line)}
+.line .nm{flex:1 1 5.5rem;min-width:0;font-weight:600;overflow-wrap:anywhere}  /* with large text the name takes its own line */
+.line .nm small{display:block;color:var(--mute);font-size:var(--fs-xs);font-weight:400}
+.line .s{min-width:3.6rem;text-align:end;font-weight:600}
+.split{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;margin-top:1rem;padding:.75rem 1rem;background:var(--soft);border-radius:var(--r-m)}
+.tot{display:flex;justify-content:space-between;align-items:baseline;padding:1rem 0 .2rem}
+.tot b{font-size:var(--fs-xl)}
+.per{display:flex;justify-content:space-between;color:var(--mute);font-size:var(--fs-sm)}
+.per b{color:var(--ink)}
+
+/* item card */
+.panel.dpanel{padding:0 0 calc(1.25rem + env(safe-area-inset-bottom))}
+.dpanel .grab{position:absolute;top:.4rem;left:50%;transform:translateX(-50%);z-index:2;margin:0;background:var(--on-photo-dim)}
+/* the photo frame: every photo is square (prepared that way), shown at the card's full width.
+   On phones the card is a bottom sheet that scrolls if the screen is short; from 700px up it is
+   sized to fit the screen (see "item card on tablets and computers" below). */
+.dimg{position:relative;width:100%;aspect-ratio:1;overflow:hidden;background:var(--soft)}
+.dimg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+/* the small menu photo shows at once, softened, until the large one has loaded over it */
+.dimg img.lo{filter:blur(10px);transform:scale(1.08)}
+/* photo strip: one or more photos, swiped sideways and snapping into place */
+.gal{position:absolute;inset:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
+.sl{position:relative;flex:0 0 100%;overflow:hidden;scroll-snap-align:center;scroll-snap-stop:always}
+.gdots{position:absolute;bottom:.55rem;left:50%;transform:translateX(-50%);display:flex;padding:0 4px;border-radius:var(--r-pill);background:var(--scrim)}
+.gdots button{width:24px;height:24px;display:grid;place-items:center}
+.gdots button::after{content:"";width:6px;height:6px;border-radius:3px;background:var(--on-photo-dim);transition:width .2s var(--ease),background-color .2s}
+.gdots button[aria-current]::after{width:16px;background:var(--on-photo)}
+.dclose{position:absolute;top:.75rem;inset-inline-end:.75rem;width:var(--h-s);height:var(--h-s);border-radius:50%;background:var(--on-photo-bg);color:var(--on-photo-ink);font-size:1rem;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.dbody{padding:1.1rem 1.25rem 0;overflow:hidden}
+.dbin{padding:2px}
+.dbody .dbin{margin:-2px}
+.dbody h2{font-size:var(--fs-xl);font-weight:700;line-height:1.35}
+.dbody .alt{color:var(--mute);font-size:var(--fs-sm)}
+.dbody .desc{margin-top:.7rem;line-height:1.75}
+.dbody .ingr{margin-top:.5rem;font-size:var(--fs-sm);color:var(--mute)}
+.dbody .ask{margin-top:.9rem;font-size:var(--fs-xs);color:var(--mute)}
+.dbody .beans{margin-top:.8rem}
+.dbuy{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem;margin-top:1.25rem}
+.dbuy .pr{font-size:var(--fs-xl);font-weight:700;flex:1 1 auto}  /* takes the free space, so the button sits at the end */
+.dbuy .btn{flex:0 1 auto}
+
+/* toast */
+.toast{position:fixed;bottom:calc(var(--billbar-h) + env(safe-area-inset-bottom));left:50%;transform:translate(-50%,10px);max-width:calc(100vw - 2rem);background:var(--ink);color:var(--bg);padding:.55rem 1rem;border-radius:var(--r-s);font-size:var(--fs-sm);z-index:60;opacity:0;visibility:hidden;transition:.2s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toast.show{opacity:1;visibility:visible;transform:translate(-50%,0)}
+
+/* ---------- responsive ---------- */
+@media(max-width:380px){
+  :root{--gut:.8rem;--thumb:72px;--h-xs:32px;--h-s:36px;--h-m:40px}
+  .it{gap:.7rem}
+  .top-actions{gap:.2rem}
+  .panel{padding-inline:1rem}.dbody{padding-inline:1rem}
+}
+@media(min-width:700px){
+  .grid{grid-template-columns:1fr 1fr}
+  /* sheets open centred on tablets and desktops */
+  .panel{bottom:50%;transform:translateY(50%);border-radius:var(--r-l);animation:fade .2s}
+  .panel .grab{display:none}
+}
+@media(min-width:860px){:root{--gut:2rem;--thumb:104px}}
+@media(min-width:1000px){.panel.dpanel{--pw:640px}}
+/* item card on tablets and computers, where the photo fits on top (screens at least 48rem tall):
+   one size for every item. The details area has a fixed height (--dbody-h: the longest item's
+   details) and the square photo takes the rest of the screen's height, 1rem clear above and below. */
+@media(min-width:700px) and (min-height:48rem){
+  /* with very large text the photo stops shrinking at 20rem and the whole card scrolls instead */
+  .panel.dpanel{--dbody-h:24rem;display:flex;flex-direction:column;width:min(var(--pw), 100% - 2 * var(--gut), max(20rem, 100dvh - 2rem - var(--dbody-h)));max-height:calc(100dvh - 2rem);overflow-y:auto;padding-bottom:0}
+  .dpanel .dimg{flex:none}
+  .dpanel .dbody{flex:none;block-size:var(--dbody-h);overflow-y:auto;padding-bottom:1.25rem;scrollbar-width:thin}
+}
+@media(min-width:1400px){:root{--maxw:1360px}.grid{grid-template-columns:repeat(3,1fr)}}
+/* short screens (phones held sideways): the header scrolls away, only the category row stays */
+@media(max-height:520px){
+  .appbar{top:calc(-1 * (var(--bar-row) + var(--h-m) + .75rem))}
+  .panel{max-height:94dvh}
+}
+/* wide screens too short for the photo on top (laptop windows, phones held sideways): the square
+   photo as tall as the screen allows, the details beside it at a fixed width; one size for every item */
+@media(orientation:landscape) and (min-width:560px) and (max-height:47.99rem){
+  /* the details take at most half the screen, so large text still leaves room for the photo */
+  .panel.dpanel{--dw:min(24rem, 50vw);--ph:min(100dvh - 2rem, 94vw - var(--dw));display:grid;grid-template-columns:var(--ph) var(--dw);width:calc(var(--ph) + var(--dw));max-width:none;max-height:none;overflow:hidden;padding-bottom:0}
+  .dimg{width:var(--ph);height:var(--ph)}
+  .dbody{block-size:var(--ph);padding:1.25rem;overflow-y:auto;scrollbar-width:thin}
+}
+
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+#visit[hidden]{display:none}
+@media(hover:hover){.it:hover .beans{background:var(--bg)}}
+@media(max-width:380px){.bean{padding-inline:.4rem}}
+/* espresso row: the bean picker gets its own line under the name, across to the + button */
+.it.has-beans{grid-template-rows:auto auto;row-gap:.35rem}
+.it.has-beans .pic{grid-row:1 / 3}
+.it.has-beans .info{align-self:end}
+.it.has-beans .add{align-self:end}
+.it.has-beans .beans{grid-column:2 / 4;grid-row:2;margin-top:0;justify-self:start}
+/* item card: previous / next */
+/* previous / next item: two named buttons at the end of the card */
+.dsib{display:grid;grid-template-columns:repeat(auto-fit,minmax(7.5rem,1fr));gap:.5rem;margin-top:1.1rem;padding-top:1rem;border-top:1px solid var(--line)}
+.sib{display:flex;align-items:center;gap:.55rem;min-width:0;min-height:56px;padding:.45rem .55rem;border:1px solid var(--line);border-radius:var(--r-m);text-align:start;transition:background-color .15s,transform .12s var(--ease)}
+.sib.next{flex-direction:row-reverse;text-align:end}
+.sib:active{transform:scale(.97)}
+@media(hover:hover){.sib:hover{background:var(--soft)}}
+.sib:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.sib-ic{flex:none;display:grid;color:var(--mute)}
+.sib-ic svg{width:var(--ic-s);height:var(--ic-s)}
+.sib-pic{flex:none;width:40px;height:40px;border-radius:10px;overflow:hidden;background:var(--soft);display:grid;place-items:center}
+.sib-pic img{width:100%;height:100%;object-fit:cover}
+.sib-pic svg{width:24px;height:24px}
+.sib-t{min-width:0;display:flex;flex-direction:column;line-height:1.35}
+.sib-t small{font-size:var(--fs-xs);color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sib-t b{font-size:var(--fs-sm);font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:anywhere}
+/* photo arrows for galleries, computers only */
+.gnav{display:none}
+@media(hover:hover) and (pointer:fine){
+  .gnav{display:grid;place-items:center;position:absolute;top:50%;transform:translateY(-50%);width:var(--h-s);height:var(--h-s);border-radius:50%;background:var(--on-photo-bg);color:var(--on-photo-ink);box-shadow:0 2px 8px rgba(0,0,0,.15);opacity:0;transition:opacity .2s}
+  .gnav svg{width:var(--ic-s);height:var(--ic-s)}
+  .gprev{inset-inline-start:.75rem}.gnext{inset-inline-end:.75rem}
+  .dimg:hover .gnav:not(:disabled),.gnav:focus-visible{opacity:1}
+  .gnav:disabled{visibility:hidden}
+}
+.panel.slide-next .dimg img,.panel.slide-next .dbin{animation:slideN .25s var(--ease)}
+.panel.slide-prev .dimg img,.panel.slide-prev .dbin{animation:slideP .25s var(--ease)}
+@keyframes slideN{from{opacity:0;transform:translateX(calc(-16px * var(--dirx,1)))}}
+@keyframes slideP{from{opacity:0;transform:translateX(calc(16px * var(--dirx,1)))}}
+html[dir="ltr"]{--dirx:-1}
+
+/* ---------- motion and comfort ---------- */
+.chips{position:relative;isolation:isolate}
+.chips .chip.on{background:transparent;color:var(--bg)}
+.chip-ind{position:absolute;top:.5rem;left:0;width:0;height:var(--h-s);border-radius:var(--r-pill);background:var(--ink);z-index:-1;pointer-events:none}
+.chip-ind.ready{transition:transform .32s var(--ease),width .32s var(--ease),opacity .2s}
+
+.empty .pill{margin:1rem auto 0}
+.empty span{display:block}
+
+/* ---------- high-contrast mode (forced colours) ----------
+   The system replaces the page's colours, so anything shown only by a background or a shadow
+   loses its edge: give those parts real borders, and mark chosen buttons the system's way. */
+@media (forced-colors: active){
+  .billbar button,.toast,.panel,.btn,.add,.mapgo,.stepper,.filter-pop,.billbar .c{border:1px solid CanvasText}
+  .billbar button,.toast{background:Canvas;color:CanvasText}
+  .chip-ind{display:none}
+  .chips .chip.on,.chip.on,.bean.on,.fbtn[aria-pressed="true"],.fchip{outline:3px solid Highlight;outline-offset:-3px}
+  .add.has{background:Highlight;color:HighlightText;border-color:Highlight}
+}
