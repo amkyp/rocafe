@@ -4,7 +4,7 @@
      id        fixed, unique, never shown (links the bill, filters and cards to the item)
      fa, en    names        price  in thousand toman (265 = 265,000 toman)
      options   instead of price: choices with their own price (e.g. espresso beans)
-     icon      drawing shown when there is no photo (see ICONS in assets/js/render.js)
+     icon      drawing shown when there is no photo (see DRAWINGS in assets/js/icons.js)
      sub       short line under the name (a section with sub: "ingredients" shows it
                on the item card as the ingredients)
      desc      description on the item card

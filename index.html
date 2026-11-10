@@ -33,7 +33,23 @@
 <script src="assets/js/theme.js"></script>
 <!-- fetch the menu's scripts together instead of one after another -->
 <link rel="modulepreload" href="assets/js/app.js">
-<link rel="modulepreload" href="assets/js/render.js">
+<link rel="modulepreload" href="assets/js/bill.js">
+<link rel="modulepreload" href="assets/js/card.js">
+<link rel="modulepreload" href="assets/js/chips.js">
+<link rel="modulepreload" href="assets/js/dom.js">
+<link rel="modulepreload" href="assets/js/files.js">
+<link rel="modulepreload" href="assets/js/gallery.js">
+<link rel="modulepreload" href="assets/js/header.js">
+<link rel="modulepreload" href="assets/js/icons.js">
+<link rel="modulepreload" href="assets/js/items.js">
+<link rel="modulepreload" href="assets/js/menu.js">
+<link rel="modulepreload" href="assets/js/rows.js">
+<link rel="modulepreload" href="assets/js/search.js">
+<link rel="modulepreload" href="assets/js/sheets.js">
+<link rel="modulepreload" href="assets/js/state.js">
+<link rel="modulepreload" href="assets/js/text.js">
+<link rel="modulepreload" href="assets/js/toast.js">
+<link rel="modulepreload" href="assets/js/visit.js">
 <link rel="modulepreload" href="data/config.js">
 <link rel="modulepreload" href="data/strings.js">
 <link rel="modulepreload" href="data/menu.js">
@@ -76,8 +92,9 @@
 
 <main class="wrap">
   <h1 class="sr" data-t="title">منو</h1>
-  <div id="menu"></div>
-  <div class="empty" id="empty"><b data-t="noneT">چیزی پیدا نشد</b><span id="noneD">یک کلمه‌ی کوتاه‌تر امتحان کنید، مثلاً «شیک».</span><button type="button" class="pill" id="emptyClear">پاک کردن جستجو</button></div>
+  <div id="menu"><p class="loading">منو در حال آماده شدن است… <span lang="en" dir="ltr">Loading the menu…</span></p></div>
+  <noscript><p class="loading">برای دیدن منو، جاوااسکریپت مرورگر را روشن کنید. <span lang="en" dir="ltr">Please turn on JavaScript to see the menu.</span></p></noscript>
+  <div class="empty" id="empty" hidden><b data-t="noneT">چیزی پیدا نشد</b><span id="noneD">یک کلمه‌ی کوتاه‌تر امتحان کنید، مثلاً «شیک».</span><button type="button" class="pill" id="emptyClear">پاک کردن جستجو</button></div>
 
 </main>
 
@@ -104,7 +121,7 @@
       <div class="stepper"><button type="button" id="pMinus" aria-label="-">−</button><span class="num" id="pCount"></span><button type="button" id="pPlus" aria-label="+">+</button></div>
     </div>
     <div class="tot"><span data-t="total">جمع کل</span><b class="num" id="sTotal"></b></div>
-    <div class="per" id="perRow"><span data-t="each">سهم هر نفر</span><b class="num" id="sEach"></b></div>
+    <div class="per" id="perRow" hidden><span data-t="each">سهم هر نفر</span><b class="num" id="sEach"></b></div>
     <div class="acts"><button type="button" class="btn btn-out" id="clearBill" data-t="clear">خالی کردن</button><button type="button" class="btn btn-dark" data-close data-t="close">بستن</button></div>
     <p class="note" data-t="billNote">این حساب فقط برای خود شماست و سفارشی برای کافه ارسال نمی‌شود. سفارش را به صندوق بگویید.</p>
   </div>
