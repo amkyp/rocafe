@@ -158,8 +158,6 @@ main.wrap{padding-top:.25rem;min-height:60vh}
 .pic{background:var(--tint,var(--soft));position:relative;width:var(--thumb);height:var(--thumb);border-radius:var(--r-m);overflow:hidden;display:grid;place-items:center}
 .pic img{width:100%;height:100%;object-fit:cover;transition:transform .35s ease}
 .pic svg{width:50%;height:50%;stroke:var(--ink);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.pic::after{content:"";position:absolute;inset-inline-end:5px;bottom:5px;width:20px;height:20px;border-radius:50%;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.14);opacity:.9;
-  background:var(--on-photo-bg) url(../expand.svg) center/11px no-repeat}
 .info{min-width:0;overflow-wrap:anywhere}
 .info h3{font-size:var(--fs-md);font-weight:600;line-height:1.5;   /* 24px: the name is a tap target */overflow-wrap:anywhere}
 /* the name is the row's button; its invisible layer covers the whole row, so a tap anywhere opens the card */
@@ -330,16 +328,25 @@ html:has(dialog.sheet[open]){overflow:hidden}   /* full panels lock the page; th
   .panel{bottom:50%;transform:translateY(50%);border-radius:var(--r-l);animation:fade .2s}
   .panel .grab{display:none}
 }
-@media(min-width:860px){:root{--gut:2rem;--thumb:104px}}
+@media(min-width:860px){:root{--gut:2rem;--thumb:104px}.search{max-width:36rem}}
 @media(min-width:1000px){.panel.dpanel{--pw:640px}}
-/* item card on tablets and computers, where the photo fits on top (screens at least 48rem tall):
-   one size for every item. The details area has a fixed height (--dbody-h: the longest item's
-   details) and the square photo takes the rest of the screen's height, 1rem clear above and below. */
-@media(min-width:700px) and (min-height:48rem){
+/* item card beyond phones: one size for every item on a given screen, never taller than the screen.
+   In both layouts the details are a column with the previous/next buttons at its foot. */
+@media(min-width:700px), (orientation:landscape) and (min-width:560px){
+  .dpanel .dbody{display:flex;flex-direction:column;overflow-y:auto;scrollbar-width:thin}
+  .dpanel .dbin{flex:1 0 auto;display:flex;flex-direction:column}
+  .dpanel .beans{align-self:flex-start}   /* the choice keeps its own width */
+  .dpanel .ask{margin-bottom:1.1rem}
+  .dpanel .dsib{margin-top:auto}
+}
+/* upright or narrow screens (tablets, narrow windows) at least 48rem tall: photo on top. The details
+   area has a fixed height (--dbody-h: the longest item's details) and the square photo takes the
+   rest of the screen's height, 1rem clear above and below. */
+@media(min-width:700px) and (min-height:48rem) and (max-width:999.98px), (min-width:1000px) and (min-height:48rem) and (orientation:portrait){
   /* with very large text the photo stops shrinking at 20rem and the whole card scrolls instead */
   .panel.dpanel{--dbody-h:24rem;display:flex;flex-direction:column;width:min(var(--pw), 100% - 2 * var(--gut), max(20rem, 100dvh - 2rem - var(--dbody-h)));max-height:calc(100dvh - 2rem);overflow-y:auto;padding-bottom:0}
   .dpanel .dimg{flex:none}
-  .dpanel .dbody{flex:none;block-size:var(--dbody-h);overflow-y:auto;padding-bottom:1.25rem;scrollbar-width:thin}
+  .dpanel .dbody{flex:none;block-size:var(--dbody-h);padding-bottom:1.25rem}
 }
 @media(min-width:1400px){:root{--maxw:1360px}.grid{grid-template-columns:repeat(3,1fr)}}
 /* short screens (phones held sideways): the header scrolls away, only the category row stays */
@@ -347,13 +354,13 @@ html:has(dialog.sheet[open]){overflow:hidden}   /* full panels lock the page; th
   .appbar{top:calc(-1 * (var(--bar-row) + var(--h-m) + .75rem))}
   .panel{max-height:94dvh}
 }
-/* wide screens too short for the photo on top (laptop windows, phones held sideways): the square
-   photo as tall as the screen allows, the details beside it at a fixed width; one size for every item */
-@media(orientation:landscape) and (min-width:560px) and (max-height:47.99rem){
+/* wide screens (computers, tablets and phones held sideways): the square photo beside the details.
+   The photo is as tall as the screen allows, up to --ph-max; the details have a fixed width. */
+@media(orientation:landscape) and (min-width:560px) and (max-height:47.99rem), (orientation:landscape) and (min-width:1000px){
   /* the details take at most half the screen, so large text still leaves room for the photo */
-  .panel.dpanel{--dw:min(24rem, 50vw);--ph:min(100dvh - 2rem, 94vw - var(--dw));display:grid;grid-template-columns:var(--ph) var(--dw);width:calc(var(--ph) + var(--dw));max-width:none;max-height:none;overflow:hidden;padding-bottom:0}
+  .panel.dpanel{--ph-max:45rem;--dw:min(24rem, 50vw);--ph:min(100dvh - 2rem, 94vw - var(--dw), var(--ph-max));display:grid;grid-template-columns:var(--ph) var(--dw);width:calc(var(--ph) + var(--dw));max-width:none;max-height:none;overflow:hidden;padding-bottom:0}
   .dimg{width:var(--ph);height:var(--ph)}
-  .dbody{block-size:var(--ph);padding:1.25rem;overflow-y:auto;scrollbar-width:thin}
+  .dbody{block-size:var(--ph);padding:1.25rem}
 }
 
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}html{scroll-behavior:auto}}

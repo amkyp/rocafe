@@ -47,8 +47,8 @@ export const priceOf = it => it.options ? it.options[it.sel].price : it.price;
 /* where the site's files live, in one place: menu photos and the apps' icons.
    Every photo is square and comes in several widths (data/photos.js, made by the photo
    preparation script); the browser picks the file that suits the screen (srcset + sizes).
-   SHOWN is how wide the photos appear: keep it in step with --thumb and --pw in style.css. */
-const SHOWN = { thumb: "(min-width: 860px) 104px, (max-width: 380px) 72px, 92px", card: "(min-width: 700px) 640px, 100vw" };
+   SHOWN is how wide the photos appear: keep it in step with --thumb, --pw and --ph-max in style.css. */
+const SHOWN = { thumb: "(min-width: 860px) 104px, (max-width: 380px) 72px, 92px", card: "(min-width: 1000px) 720px, (min-width: 700px) 560px, 100vw" };
 const photo = (dir, f, widths, sizes) => ({
   src: `${dir}${encodeURIComponent(f)}-${widths[0]}.webp`,
   srcset: widths.map(w => `${dir}${encodeURIComponent(f)}-${w}.webp ${w}w`).join(", "),

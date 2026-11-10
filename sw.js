@@ -4,7 +4,7 @@
 const SITE = "ro-site-1", PHOTOS = "ro-photos-3";
 const CORE = ["./", "index.html", "assets/css/style.css", "assets/js/theme.js", "assets/js/app.js", "assets/js/render.js",
   "data/config.js", "data/strings.js", "data/menu.js", "data/photos.js", "assets/fonts/plex-arabic-400-500.woff2", "assets/fonts/plex-arabic-600-800.woff2",
-  "assets/fonts/plex-latin-400-500.woff2", "assets/fonts/plex-latin-600-800.woff2", "assets/icon.svg", "assets/expand.svg", "manifest.webmanifest"];
+  "assets/fonts/plex-latin-400-500.woff2", "assets/fonts/plex-latin-600-800.woff2", "assets/icon.svg", "manifest.webmanifest"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(SITE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
