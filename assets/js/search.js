@@ -45,14 +45,19 @@ export function matches(it) {
 
 /* Why an item is showing when its name does not contain the search words: the text that does
    (its name in the other language, its ingredients, one of its options), or nothing when it
-   matched through its section's name, which is on the page already. */
+   matched through its section's name, which is on the page already. Returns { text, lang } or "". */
 export function matchedText(it) {
   if (!words) return "";
-  const other = otherLang();
-  const options = (it.options || []).flatMap((o) => [o[state.lang], o[other]]);
-  const texts = [it[state.lang], it.sub?.[state.lang], it[other], it.sub?.[other], ...options];
-  const hit = texts.find((text) => text && norm(text).includes(words));
-  return hit === it[state.lang] || hit === it.sub?.[state.lang] ? "" : hit || "";
+  const found = (lang) =>
+    [it.sub?.[lang], it[lang], ...(it.options || []).map((o) => o[lang])].find(
+      (text) => text && norm(text).includes(words),
+    );
+  if (norm(it[state.lang]).includes(words)) return "";
+  for (const lang of [state.lang, otherLang()]) {
+    const text = found(lang);
+    if (text) return { text, lang };
+  }
+  return "";
 }
 
 /* the text as safe HTML, with the search words marked */

@@ -92,7 +92,6 @@
   <!-- the welcome line: what the cafe says about itself, and whether it is open (a link to the hours) -->
   <div class="wrap hello">
     <p data-t="slogan">ما به قهوه حساسیم، به رفاقت بیشتر.</p>
-    <a id="openNow" href="#visit" hidden></a>
   </div>
   <div class="wrap">
     <div class="search" id="searchBox" role="search">
@@ -113,7 +112,10 @@
 
 <main class="wrap">
   <h1 class="sr" data-t="title">منو</h1>
-  <div id="menu" tabindex="-1"><p class="loading">منو در حال آماده شدن است… <span lang="en" dir="ltr">Loading the menu…</span></p></div>
+  <div id="menu" tabindex="-1" aria-busy="true">
+    <p class="sr">منو در حال آماده شدن است… <span lang="en" dir="ltr">Loading the menu…</span></p>
+    <div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div>
+  </div>
   <noscript><p class="loading">برای دیدن منو، جاوااسکریپت مرورگر را روشن کنید. <span lang="en" dir="ltr">Please turn on JavaScript to see the menu.</span></p></noscript>
   <div class="empty" id="empty" hidden><b data-t="noneT">چیزی پیدا نشد</b><span id="noneD">یک کلمه‌ی کوتاه‌تر امتحان کنید، مثلاً «شیک».</span><button type="button" class="pill" id="emptyClear">پاک کردن جستجو</button></div>
 

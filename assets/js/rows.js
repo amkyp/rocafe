@@ -4,7 +4,7 @@ import { inBill, stepperHTML } from "./bill.js";
 import { FILES, pictureHTML } from "./files.js";
 import { drawing } from "./icons.js";
 import { ITEMS, billKey, optionOf, priceOf, pics } from "./items.js";
-import { state, t, otherLang, digits } from "./state.js";
+import { state, t, digits } from "./state.js";
 import { esc } from "./text.js";
 
 /* photos of the first rows load at once and first; the rest load as the page nears them */
@@ -51,14 +51,12 @@ export function priceHTML(thousands, cls = "price") {
    area); the bill control and the option buttons are separate buttons on top of it.
    .why is filled while searching, when the item matched through something other than its name. */
 function rowHTML(it, first) {
-  const sub = it.options ? "" : it.sub?.[state.lang];
   const key = billKey(it);
   return `<li class="it" data-open="${it.id}">
     <div class="pic">${thumbHTML(it, first)}</div>
     <div class="info">
       <h3><button type="button" class="it-name">${esc(it[state.lang])}</button></h3>
-      ${sub ? `<p class="sub">${esc(sub)}</p>` : ""}
-      <p class="why" lang="${otherLang()}" hidden></p>
+      <p class="why" hidden></p>
       ${it.options ? "" : tagsHTML(it)}
       ${priceHTML(priceOf(it))}
     </div>

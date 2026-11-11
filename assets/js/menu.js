@@ -21,6 +21,7 @@ export const visibleIds = () =>
 /* Build the whole menu (on start and when the language changes). */
 export function draw() {
   menu.innerHTML = menuHTML();
+  menu.removeAttribute("aria-busy");
   rows = new Map([...menu.querySelectorAll(".it")].map((row) => [row.dataset.open, row]));
   markedWords = ""; // freshly built names carry no marks
   emit("menu:drawn");
@@ -45,11 +46,11 @@ function applySearch() {
       count++;
       if (!remark) continue;
       row.querySelector(".it-name").innerHTML = marked(it[state.lang]);
-      const sub = row.querySelector(".info .sub");
-      if (sub) sub.innerHTML = marked(it.sub[state.lang]);
       const why = row.querySelector(".why");
-      why.innerHTML = marked(matchedText(it));
-      why.hidden = !why.textContent;
+      const match = matchedText(it);
+      why.innerHTML = match ? marked(match.text) : "";
+      why.lang = match ? match.lang : "";
+      why.hidden = !match;
     }
     const part = $(section.id);
     part.hidden = !count;

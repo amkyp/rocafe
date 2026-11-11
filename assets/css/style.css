@@ -570,23 +570,6 @@ html[data-theme="dark"] .tool .moon {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.hello .open-now {
-  flex: none;
-  align-self: stretch; /* the whole height of the line can be tapped */
-  margin: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-3);
-  font-weight: 600;
-  text-decoration: none;
-}
-.hello .open-now::before {
-  content: "";
-  width: var(--sp-3);
-  height: var(--sp-3);
-  border-radius: 50%;
-  background: currentColor;
-}
 .fdot {
   position: absolute;
   top: 7px;
@@ -902,7 +885,6 @@ main.wrap {
   position: relative;
   z-index: 1;
 }
-.info .sub,
 .info .why {
   font-size: var(--fs-xs);
   color: var(--mute);
@@ -1019,6 +1001,39 @@ main.wrap {
   padding: var(--sp-11) 0;
   text-align: center;
   color: var(--mute);
+}
+/* while the menu is on its way: grey rows in the menu's own shape, so nothing jumps when it arrives */
+.sk {
+  display: flex;
+  align-items: center;
+  gap: var(--it-gap);
+  padding-block: var(--sp-5);
+}
+.sk::before,
+.sk::after {
+  content: "";
+  border-radius: var(--r-m);
+  background: var(--soft);
+  animation: wait 1.2s ease-in-out infinite alternate;
+}
+.sk::before {
+  flex: none;
+  width: var(--thumb);
+  height: var(--thumb);
+}
+.sk::after {
+  width: 40%;
+  height: var(--sp-6);
+}
+@keyframes wait {
+  to {
+    opacity: 0.45;
+  }
+}
+@media (scripting: none) {
+  .sk {
+    display: none;
+  }
 }
 /* shown while the menu's scripts load, or if they cannot run */
 .loading {

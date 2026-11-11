@@ -171,13 +171,8 @@ function yearNow() {
   return parts.find((part) => part.type === "year").value;
 }
 
-/* the header's welcome line says whether the cafe is open; it links to the hours in the footer */
+/* the open / closed note beside the hours, kept true while the page stays open */
 function drawOpenNow() {
-  const open = isOpenNow();
-  const link = $("openNow");
-  link.className = `open-now ${open ? "yes" : "no"}`;
-  link.textContent = open ? t().openNow : t().closedNow;
-  link.hidden = false;
   for (const label of document.querySelectorAll("#visitCard .open-now"))
     label.outerHTML = openNowHTML();
 }
