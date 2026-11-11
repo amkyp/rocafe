@@ -107,12 +107,13 @@ $("filters").addEventListener("click", (e) => {
 /* while searching or filtering: how many items show, and each filter as a chip that removes it */
 function drawFilterState(total) {
   const box = $("fstat");
-  box.hidden = filters.size === 0 && !words;
+  box.hidden = filters.size === 0 && !(words && total);
   if (box.hidden) {
     box.replaceChildren();
     return;
   }
-  const count = `<span class="num">${t().nItems.replace("{n}", digits(total))}</span>`;
+  // "nothing found" is said by the message below, not by a count of zero
+  const count = total ? `<span class="num">${t().nItems.replace("{n}", digits(total))}</span>` : "";
   const chips = [...filters].map((id) => {
     const label = esc(t().removeF.replace("{f}", filterName(id)));
     return `<button type="button" class="fchip" data-f="${id}" aria-label="${label}">${filterName(id)}${icon("x")}</button>`;

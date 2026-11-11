@@ -84,19 +84,25 @@
       <b data-t="name">کافه رو</b>
     </a>
     <div class="top-actions">
-      <button type="button" class="pill icon" id="themeBtn" aria-label="حالت شب"><svg class="ic sun" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-sun"/></svg><svg class="ic moon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-moon"/></svg></button>
-      <button type="button" class="pill" id="langBtn" lang="en">EN</button>
-      <button type="button" class="pill icon" id="infoBtn" data-label="info" aria-label="اطلاعات"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-info"/></svg></button>
+      <a class="tool" id="visitLink" href="#visit" data-label="visit" aria-label="آدرس و تماس"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pin"/></svg></a>
+      <button type="button" class="tool" id="langBtn" lang="en">EN</button>
+      <button type="button" class="tool" id="themeBtn" aria-label="حالت شب"><svg class="ic sun" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-sun"/></svg><svg class="ic moon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-moon"/></svg></button>
     </div>
-
+  </div>
+  <!-- the welcome line: what the cafe says about itself, and whether it is open (a link to the hours) -->
+  <div class="wrap hello">
+    <p data-t="slogan">ما به قهوه حساسیم، به رفاقت بیشتر.</p>
+    <a id="openNow" href="#visit" data-t="hours">ساعات کاری</a>
   </div>
   <div class="wrap">
     <div class="search" id="searchBox" role="search">
-      <label class="sr" for="q" data-t="search">جستجو در منو</label>
-      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-search"/></svg>
-      <input id="q" type="search" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
-      <button class="clear" id="clearQ" type="button" data-label="clearSearch" aria-label="پاک کردن جستجو"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></button>
-      <button type="button" class="fbtn-in" id="filterBtn" data-label="filter" aria-label="فیلتر" aria-haspopup="dialog" aria-expanded="false" aria-controls="filterPop"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-filter"/></svg><span class="fdot" id="fdot" hidden></span></button>
+      <div class="field">
+        <label class="sr" for="q" data-t="search">جستجو در منو</label>
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-search"/></svg>
+        <input id="q" type="search" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
+        <button class="clear" id="clearQ" type="button" data-label="clearSearch" aria-label="پاک کردن جستجو"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></button>
+      </div>
+      <button type="button" class="tool-fill" id="filterBtn" data-label="filter" aria-label="فیلتر" aria-haspopup="dialog" aria-expanded="false" aria-controls="filterPop"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-filter"/></svg><span class="fdot" id="fdot" hidden></span></button>
       <dialog class="filter-pop" id="filterPop" data-label="filter" aria-label="فیلتر"><div class="filters" id="filters" tabindex="-1" autofocus></div></dialog>
     </div>
     <div class="fstat" id="fstat" role="status" hidden></div>
@@ -115,7 +121,7 @@
 
 <footer class="site-foot" id="visit" hidden>
   <div class="wrap">
-    <h2 data-t="visit">آدرس و تماس</h2>
+    <h2 id="visitTitle" data-t="visit" tabindex="-1">آدرس و تماس</h2>
     <address class="visit card" id="visitCard"></address>
     <div class="foot-end">
       <p class="slogan" data-t="slogan2">یه میز، چند فنجون، کلی حرف…</p>
@@ -129,29 +135,21 @@
 <dialog class="sheet" id="billSheet" aria-labelledby="billTitle">
   <div class="panel">
     <div class="grab"></div>
+    <button type="button" class="sheet-close" data-close data-label="close" aria-label="بستن"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></button>
     <h2 class="sheet-title" id="billTitle" data-t="bill" tabindex="-1" autofocus>حساب میز</h2>
     <p class="sub" data-t="billSub">سفارشتان را اینجا جمع بزنید و اگر خواستید بین دوستان تقسیم کنید.</p>
     <!-- role="list": Safari stops announcing a list once its bullets are styled away -->
     <ul id="lines" role="list"></ul>
     <div class="split"><span data-t="people">تقسیم بین</span>
-      <div class="stepper"><button type="button" id="pMinus" aria-label="-">−</button><span class="num" id="pCount"></span><button type="button" id="pPlus" aria-label="+">+</button></div>
+      <div class="stepper"><button type="button" id="pMinus" aria-label="-">−</button><span class="num" id="pCount" aria-live="polite"></span><button type="button" id="pPlus" aria-label="+">+</button></div>
     </div>
     <div class="tot"><span data-t="total">جمع کل</span><b class="num" id="sTotal"></b></div>
     <div class="per" id="perRow" hidden><span data-t="each">سهم هر نفر</span><b class="num" id="sEach"></b></div>
-    <div class="acts"><button type="button" class="btn btn-out" id="clearBill" data-t="clear">خالی کردن</button><button type="button" class="btn btn-dark" data-close data-t="close">بستن</button></div>
+    <div class="acts"><button type="button" class="btn btn-out" id="clearBill" data-t="clear">خالی کردن</button></div>
     <p class="note" data-t="billNote">این حساب فقط برای خود شماست و سفارشی برای کافه ارسال نمی‌شود. سفارش را به صندوق بگویید.</p>
   </div>
 </dialog>
 
-<dialog class="sheet" id="infoSheet" aria-labelledby="infoTitle">
-  <div class="panel">
-    <div class="grab"></div>
-    <h2 class="sheet-title" id="infoTitle" data-t="visit" tabindex="-1" autofocus>آدرس و تماس</h2>
-    <p class="sub" data-t="slogan">ما به قهوه حساسیم، به رفاقت بیشتر.</p>
-    <address class="visit card" id="visitCard2"></address>
-    <div class="acts"><button type="button" class="btn btn-dark" data-close data-t="close">بستن</button></div>
-  </div>
-</dialog>
 <dialog class="sheet" id="detailSheet" aria-labelledby="dName">
   <div class="panel dpanel" id="dPanel"></div>
 </dialog>

@@ -51,7 +51,9 @@ function applySearch() {
       why.innerHTML = marked(matchedText(it));
       why.hidden = !why.textContent;
     }
-    $(section.id).hidden = !count;
+    const part = $(section.id);
+    part.hidden = !count;
+    part.querySelector(".count").textContent = digits(count);
     shown.set(section.id, count);
     total += count;
   }

@@ -47,7 +47,7 @@ function neighbour(step) {
 /* named buttons at the card's foot, so it is clear where each one goes */
 function neighbourHTML(step) {
   const id = neighbour(step);
-  if (!id) return "<span></span>";
+  if (!id) return ""; // at either end the one button takes the whole width
   const it = findItem(id);
   const name = pics(it)[0];
   const back = step < 0;
@@ -128,7 +128,7 @@ function drawCard() {
       ${textHTML(it)}
       ${it.options ? optionsHTML(it, "data-dbean") : ""}
       <div class="dbuy">${buyHTML(it)}</div>
-      <p class="ask">${t().ask}</p>
+      <p class="ask">${icon("info")}${t().ask}</p>
       <nav class="dsib" aria-label="${t().moreItems}">${neighbourHTML(-1)}${neighbourHTML(1)}</nav>
     </div></div>`;
 

@@ -80,7 +80,7 @@ export function draw() {
   }
   $("bTotal").textContent = money(sum);
   $("sTotal").textContent = money(sum);
-  $("pCount").textContent = digits(people);
+  $("pCount").textContent = `${digits(people)} ${t().persons}`;
   $("perRow").hidden = people === 1;
   $("sEach").textContent = money(Math.ceil(sum / people));
   $("lines").innerHTML = keys.length

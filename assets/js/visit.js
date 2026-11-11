@@ -2,11 +2,10 @@
    cafe's details for search engines. Everything comes from the settings file (data/config.js). */
 import { CONFIG } from "../../data/config.js";
 import { T } from "../../data/strings.js";
-import { $ } from "./dom.js";
+import { $, scrollStyle } from "./dom.js";
 import { FILES } from "./files.js";
 import { arrowOn, icon } from "./icons.js";
-import { openSheet } from "./sheets.js";
-import { state, t, digits, on } from "./state.js";
+import { state, t, digits } from "./state.js";
 import { esc, safeUrl } from "./text.js";
 
 /* ---------- opening hours; today is worked out in Iran time ---------- */
@@ -172,26 +171,38 @@ function yearNow() {
   return parts.find((part) => part.type === "year").value;
 }
 
-/* The footer's card is drawn at once. The info panel's copy is drawn when the panel is opened,
-   so a guest who never opens it never pays for it. */
-const inPanel = $("visitCard2");
+/* the header's welcome line says whether the cafe is open; it links to the hours in the footer */
+function drawOpenNow() {
+  const open = isOpenNow();
+  const link = $("openNow");
+  link.className = `open-now ${open ? "yes" : "no"}`;
+  link.textContent = open ? t().openNow : t().closedNow;
+  for (const label of document.querySelectorAll("#visitCard .open-now"))
+    label.outerHTML = openNowHTML();
+}
 
 export function draw() {
   $("visitCard").innerHTML = cardHTML();
-  if (inPanel.hasChildNodes()) inPanel.innerHTML = cardHTML();
+  drawOpenNow();
   $("copy").textContent = `© ${yearNow()} ${t().name}`;
   $("visit").hidden = false;
 }
 
-on("sheet:open", (id) => {
-  if (id === "infoSheet") inPanel.innerHTML = cardHTML(); // fresh each time: "open now" is current
-});
-/* a tab left open comes back with the right "open now": only that label is replaced */
+/* a tab left open comes back with the right "open now": only those labels are replaced */
 document.addEventListener("visibilitychange", () => {
-  if (document.hidden) return;
-  for (const label of document.querySelectorAll(".open-now")) label.outerHTML = openNowHTML();
+  if (!document.hidden) drawOpenNow();
 });
-$("infoBtn").addEventListener("click", () => openSheet("infoSheet"));
+
+/* The header's links to the address go there without putting #visit in the address bar (which a
+   later reload would jump back to); focus moves to the section's heading. */
+for (const link of document.querySelectorAll('.appbar a[href="#visit"]')) {
+  link.addEventListener("click", (e) => {
+    if (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    $("visit").scrollIntoView({ behavior: scrollStyle() });
+    $("visitTitle").focus({ preventScroll: true });
+  });
+}
 
 /* ---------- search engines: the cafe as schema.org data ---------- */
 const DAY_NAME = {

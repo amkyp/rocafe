@@ -53,7 +53,7 @@ export function priceHTML(thousands, cls = "price") {
 function rowHTML(it, first) {
   const sub = it.options ? "" : it.sub?.[state.lang];
   const key = billKey(it);
-  return `<li class="it${it.options ? " has-beans" : ""}" data-open="${it.id}">
+  return `<li class="it" data-open="${it.id}">
     <div class="pic">${thumbHTML(it, first)}</div>
     <div class="info">
       <h3><button type="button" class="it-name">${esc(it[state.lang])}</button></h3>
@@ -63,7 +63,7 @@ function rowHTML(it, first) {
       ${priceHTML(priceOf(it))}
     </div>
     <div class="buy" data-key="${key}">${buyHTML(key)}</div>
-    ${it.options ? optionsHTML(it, "data-bean") : ""}
+    ${it.options ? `<div class="choice">${optionsHTML(it, "data-bean")}</div>` : ""}
   </li>`;
 }
 
@@ -74,7 +74,10 @@ export function menuHTML() {
     const id = esc(section.id);
     // role="list": Safari stops announcing a list once its bullets are styled away
     return `<section class="sec" id="${id}" aria-labelledby="${id}-title" data-tint="${esc(section.tint)}">
-      <div class="sec-h"><h2 id="${id}-title">${esc(section[state.lang])}</h2></div>
+      <div class="sec-h">
+        <h2 id="${id}-title">${esc(section[state.lang])}</h2>
+        <span class="count num"></span>
+      </div>
       <ul class="grid" role="list">${items.join("")}</ul>
     </section>`;
   });

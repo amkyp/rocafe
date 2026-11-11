@@ -99,10 +99,12 @@
   --pad-r: max(var(--gut), env(safe-area-inset-right));
   --billbar-h: calc(var(--h-l) + 1.5rem); /* the bill bar, without the home-bar area below it */
   --gut: var(--sp-6);
+  --hello-h: 2rem; /* the welcome line under the logo: one line, so the header knows its height */
   --maxw: 1080px;
   --bar-row: 52px;
   /* photo and panel sizes, in px: files.js reads these to ask for photos of the right size */
   --thumb: 92px; /* menu photos */
+  --it-gap: var(--sp-6); /* between a row's photo, text and bill control */
   --sib-thumb: 40px; /* the previous / next item's photo on the item card */
   --pw: 560px; /* widest a panel gets */
   --ph-max: 720px; /* largest the item card's photo gets beside its details */
@@ -369,16 +371,9 @@ picture {
   min-width: var(--h-s);
   font-weight: 600;
 }
-.pill.icon {
-  width: var(--h-s);
-  padding: 0;
-}
-.pill svg {
-  width: var(--ic-m);
-  height: var(--ic-m);
-}
 .chip {
   padding-inline: var(--sp-6);
+  background: var(--soft);
   color: var(--mute);
 }
 .chip.on,
@@ -393,8 +388,12 @@ picture {
   color: var(--bg);
 }
 @media (hover: hover) {
+  .chip:not(.on):hover {
+    background: var(--line);
+  }
   .pill:hover,
-  .chip:not(.on):hover,
+  .tool:hover,
+  .sheet-close:hover,
   .bean:not(.on):hover,
   .fbtn:not([aria-pressed="true"]):hover {
     background: var(--soft);
@@ -412,10 +411,6 @@ picture {
   align-items: center;
   justify-content: center;
   padding: 0 var(--sp-7);
-}
-.btn-dark {
-  background: var(--ink);
-  color: var(--bg);
 }
 .btn-brand {
   background: var(--brand);
@@ -452,13 +447,13 @@ picture {
 .stepper.lg button {
   width: var(--h-l);
 }
-.pill .moon {
+.tool .moon {
   display: none;
 }
-html[data-theme="dark"] .pill .sun {
+html[data-theme="dark"] .tool .sun {
   display: none;
 }
-html[data-theme="dark"] .pill .moon {
+html[data-theme="dark"] .tool .moon {
   display: block;
 }
 
@@ -521,7 +516,76 @@ html[data-theme="dark"] .pill .moon {
 }
 .top-actions {
   display: flex;
+  gap: var(--sp-1);
+}
+/* a plain header button: an icon or a short word, no outline; its shape shows on hover and focus */
+.tool,
+.sheet-close {
+  min-width: var(--h-s);
+  height: var(--h-s);
+  padding-inline: var(--sp-4);
+  border-radius: var(--r-s);
+  display: inline-grid;
+  place-items: center;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background var(--t-fast);
+}
+/* the same, filled: a control that stands on its own beside the search field */
+.tool-fill {
+  position: relative;
+  flex: none;
+  width: var(--h-m);
+  height: var(--h-m);
+  border-radius: var(--r-m);
+  background: var(--soft);
+  display: grid;
+  place-items: center;
+  transition: background var(--t-fast);
+}
+.tool-fill.open,
+.tool-fill:has(.fdot:not([hidden])) {
+  background: var(--ink);
+  color: var(--bg);
+}
+@media (hover: hover) {
+  .tool-fill:not(.open):hover {
+    background: var(--line);
+  }
+}
+/* the welcome line: the cafe's own words, and whether it is open now */
+.hello {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  height: var(--hello-h);
+  color: var(--mute);
+  font-size: var(--fs-sm);
+}
+.hello p {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hello .open-now {
+  flex: none;
+  align-self: stretch; /* the whole height of the line can be tapped */
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
   gap: var(--sp-3);
+  font-weight: 600;
+  text-decoration: none;
+}
+.hello .open-now::before {
+  content: "";
+  width: var(--sp-3);
+  height: var(--sp-3);
+  border-radius: 50%;
+  background: currentColor;
 }
 .fdot {
   position: absolute;
@@ -558,18 +622,24 @@ html[data-theme="dark"] .pill .moon {
   padding: var(--sp-4);
 }
 .search {
-  position: relative;
-  display: block;
+  position: relative; /* the filter menu hangs under this row */
+  display: flex;
+  gap: var(--sp-4);
   margin-top: var(--sp-4);
+}
+.field {
+  position: relative;
+  flex: 1;
+  min-width: 0;
 }
 .search input {
   appearance: none;
   width: 100%;
   height: var(--h-m);
   border-radius: var(--r-m);
-  border: 1px solid var(--line);
+  border: 1px solid transparent;
   background: var(--soft);
-  padding-inline: var(--sp-10) calc(2 * var(--h-s) + var(--sp-3));
+  padding-inline: var(--sp-10) var(--h-s);
   font: inherit;
   font-size: var(--fs-md);
   color: var(--ink);
@@ -583,7 +653,7 @@ html[data-theme="dark"] .pill .moon {
   background: var(--surface);
   border-color: var(--ink);
 }
-.search > svg {
+.field > .ic {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
@@ -597,7 +667,7 @@ html[data-theme="dark"] .pill .moon {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  inset-inline-end: calc(var(--h-s) + var(--sp-1));
+  inset-inline-end: var(--sp-1);
   width: var(--h-s);
   height: var(--h-s);
   border-radius: 50%;
@@ -607,34 +677,6 @@ html[data-theme="dark"] .pill .moon {
 }
 .search.has .clear {
   display: grid;
-}
-.fbtn-in {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  inset-inline-end: var(--sp-1);
-  width: var(--h-s);
-  height: var(--h-s);
-  border-radius: var(--r-s);
-  display: grid;
-  place-items: center;
-  color: var(--ink);
-  transition:
-    background-color var(--t-fast),
-    color var(--t-fast);
-}
-.fbtn-in svg {
-  width: var(--ic-m);
-  height: var(--ic-m);
-}
-@media (hover: hover) {
-  .fbtn-in:hover {
-    background: var(--line);
-  }
-}
-.fbtn-in:focus-visible {
-  outline: var(--focus);
-  outline-offset: -2px;
 }
 /* filters in use: item count and one chip per filter (tap to remove) */
 .fstat {
@@ -705,7 +747,7 @@ main.wrap {
   min-height: 60vh;
 }
 .sec {
-  padding-top: var(--sp-10);
+  padding-top: var(--sp-11);
 }
 .sec:first-of-type {
   padding-top: var(--sp-5);
@@ -716,6 +758,10 @@ main.wrap {
   color: var(--mute);
 }
 .sec-h {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-4);
   margin-bottom: var(--sp-3);
 }
 .sec-h h2 {
@@ -723,25 +769,38 @@ main.wrap {
   font-weight: 600;
   line-height: var(--lh-tight);
 }
+.sec-h .count {
+  color: var(--mute);
+  font-size: var(--fs-sm);
+}
 .site-foot h2,
 .sheet-title {
   font-size: var(--fs-lg);
   font-weight: 600;
   line-height: var(--lh-tight);
 }
+/* the bill's close button, in the panel's top corner like the item card's */
+.sheet-close {
+  position: absolute;
+  top: var(--sp-5);
+  inset-inline-end: var(--sp-5);
+  padding: 0;
+  color: var(--mute);
+}
 /* where a panel or menu opens, focus lands on its start (autofocus, so screen readers begin there); not a control, no ring */
 [autofocus][tabindex="-1"]:focus {
   outline: none;
 }
 .grid {
+  --cols: 1;
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); /* columns never grow past the page */
   column-gap: var(--sp-9);
 }
 .it {
-  display: grid;
-  grid-template-columns: var(--thumb) minmax(0, 1fr) auto;
-  gap: var(--sp-6);
+  display: flex;
+  flex-wrap: wrap; /* with very large text the bill control moves to a line of its own */
+  gap: var(--it-gap);
   align-items: center;
   padding: var(--sp-5) var(--sp-4);
   margin-inline: calc(var(--sp-4) * -1);
@@ -774,6 +833,7 @@ main.wrap {
   }
 }
 .pic {
+  flex: none;
   background: var(--tint, var(--soft));
   position: relative;
   width: var(--thumb);
@@ -799,6 +859,10 @@ main.wrap {
   stroke-linejoin: round;
 }
 .info {
+  flex: 1 1 5rem; /* the least room the name and price need beside the photo */
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -846,8 +910,8 @@ main.wrap {
   margin-top: var(--sp-1);
 }
 .price {
-  display: block;
-  margin-top: var(--sp-2);
+  margin-top: auto; /* at the foot of the row, in line with the photo's lower edge */
+  padding-top: var(--sp-2);
   font-size: var(--fs-md);
   font-weight: 600;
 }
@@ -924,14 +988,13 @@ main.wrap {
   color: var(--n);
 }
 .beans {
-  display: inline-grid;
-  grid-auto-flow: column;
-  grid-auto-columns: auto;
+  display: inline-flex;
+  flex-wrap: wrap; /* with large text the choices take a second line instead of leaving the screen */
   gap: 2px;
   padding: 3px;
   margin-top: var(--sp-4);
   background: var(--soft);
-  border-radius: var(--r-pill);
+  border-radius: calc(var(--h-xs) / 2 + 3px); /* a pill on one line, the same corners on two */
   max-width: 100%;
 }
 .bean {
@@ -1566,9 +1629,18 @@ html:has(dialog.sheet[open]) {
   color: var(--mute);
 }
 .dbody .ask {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-4);
   margin-top: var(--sp-6);
-  font-size: var(--fs-xs);
   color: var(--mute);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+}
+.dbody .ask .ic {
+  width: var(--ic-s);
+  height: var(--ic-s);
+  margin-top: var(--sp-1);
 }
 .dbody .beans {
   margin-top: var(--sp-5);
@@ -1636,9 +1708,7 @@ html:has(dialog.sheet[open]) {
   :root {
     --gut: var(--sp-5);
     --thumb: 72px;
-  }
-  .it {
-    gap: var(--sp-5);
+    --it-gap: var(--sp-5);
   }
   .top-actions {
     gap: var(--sp-2);
@@ -1652,7 +1722,7 @@ html:has(dialog.sheet[open]) {
 }
 @media (min-width: 700px) {
   .grid {
-    grid-template-columns: 1fr 1fr;
+    --cols: 2;
   }
   /* sheets open centred on tablets and desktops */
   .panel {
@@ -1673,6 +1743,19 @@ html:has(dialog.sheet[open]) {
   }
   .search {
     max-width: 36rem;
+  }
+  /* each item is a tile with its own bill control inside, so the two clearly belong together */
+  .grid {
+    gap: var(--sp-5);
+  }
+  .it {
+    margin-inline: 0;
+    padding: var(--sp-5);
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .it::after {
+    content: none;
   }
 }
 /* ---------- item card beyond phones ----------
@@ -1727,19 +1810,19 @@ html:has(dialog.sheet[open]) {
     --maxw: 1360px;
   }
   .grid {
-    grid-template-columns: repeat(3, 1fr);
+    --cols: 3;
   }
 }
-/* phones: the logo row scrolls away with the page; search and categories stay */
+/* phones: the logo row and the welcome line scroll away with the page; search and categories stay */
 @media (max-width: 699.98px) {
   .appbar {
-    top: calc(-1 * (var(--bar-row) + var(--sp-2)));
+    top: calc(-1 * (var(--bar-row) + var(--sp-2) + var(--hello-h)));
   }
 }
 /* short screens (phones held sideways): the search field scrolls away too, only categories stay */
 @media (max-height: 520px) {
   .appbar {
-    top: calc(-1 * (var(--bar-row) + var(--h-m) + var(--sp-5)));
+    top: calc(-1 * (var(--bar-row) + var(--hello-h) + var(--h-m) + var(--sp-5)));
   }
   .panel {
     max-height: 94dvh;
@@ -1783,35 +1866,25 @@ html:has(dialog.sheet[open]) {
     padding-inline: var(--sp-3);
   }
 }
-/* espresso row: the bean picker gets its own line under the name, across to the + button */
-.it.has-beans {
-  grid-template-rows: auto auto;
-  row-gap: var(--sp-3);
+/* a row with choices: they get a line of their own under the row, in line with the name */
+.it .choice {
+  flex-basis: 100%;
+  min-width: 0; /* a long choice is cut short rather than widening the page */
+  padding-inline-start: calc(var(--thumb) + var(--it-gap));
 }
-.it.has-beans .pic {
-  grid-row: 1 / 3;
-}
-.it.has-beans .info {
-  align-self: end;
-}
-.it.has-beans .buy {
-  align-self: end;
+.it .beans {
+  margin-top: 0;
 }
 /* a row's bill control: the + button, or the quantity control once the item is in the bill */
 .buy {
   display: grid;
   justify-items: end;
+  margin-inline-start: auto;
 }
 .buy .stepper {
   border-color: var(--brand);
   background: var(--brand-soft);
   animation: pop var(--t-mid) var(--ease);
-}
-.it.has-beans .beans {
-  grid-column: 2 / 4;
-  grid-row: 2;
-  margin-top: 0;
-  justify-self: start;
 }
 /* item card: previous / next */
 /* previous / next item: two named buttons at the end of the card */
