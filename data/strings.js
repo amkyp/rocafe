@@ -2,7 +2,7 @@
 export const T = {
  fa:{name:"کافه رو",docTitle:"کافه رو | منو",langName:"English",openIn:"باز کردن در",toLight:"حالت روز",toDark:"حالت شب",to:"تا",sep:"، ",
     dayPart:{late:"بامداد",morning:"صبح",noon:"ظهر",afternoon:"بعدازظهر",evening:"عصر",night:"شب"},
-    skip:"رفتن به منو",cats:"دسته‌ها",more:"یکی بیشتر: {item}",less:"یکی کمتر: {item}",openNow:"اکنون باز است",closedNow:"اکنون بسته است",title:"منو",slogan:"ما به قهوه حساسیم، به رفاقت بیشتر.",search:"جستجو در منو",ph:"جستجو: لاته، شیک، دمنوش…",
+    skip:"رفتن به منو",cats:"دسته‌ها",more:"یکی بیشتر: {item}",less:"یکی کمتر: {item}",title:"منو",slogan:"ما به قهوه حساسیم، به رفاقت بیشتر.",search:"جستجو در منو",ph:"جستجو: لاته، شیک، دمنوش…",
      noneT:"چیزی پیدا نشد",noneD:"یک کلمه‌ی کوتاه‌تر امتحان کنید، مثلاً «شیک».",visit:"آدرس و تماس",slogan2:"یه میز، چند فنجون، کلی حرف…",
      bill:"حساب میز",billSub:"سفارشتان را اینجا جمع بزنید و اگر خواستید بین دوستان تقسیم کنید.",people:"تقسیم بین",persons:"نفر",total:"جمع کل",each:"سهم هر نفر",clear:"خالی کردن",close:"بستن",
      billNote:"این حساب فقط برای خود شماست و سفارشی برای کافه ارسال نمی‌شود. سفارش را به صندوق بگویید.",
@@ -10,7 +10,7 @@ export const T = {
      lang:"EN",filter:"فیلتر",from:"از {p}",hours:"ساعات کاری",closedDay:"تعطیل",everyDay:"هر روز",clearSearch:"پاک کردن جستجو",prev:"قبلی",next:"بعدی",prevPhoto:"عکس قبلی",nextPhoto:"عکس بعدی",moreItems:"آیتم‌های دیگر",offline:"اینترنت قطع است؛ منو از حافظه‌ی گوشی نمایش داده می‌شود",days:["شنبه","یکشنبه","دوشنبه","سه‌شنبه","چهارشنبه","پنجشنبه","جمعه"],tag_pm:"شیر گیاهی",tag_cf:"بدون کافئین",tag_cold:"نوشیدنی سرد",nItems:"{n} مورد",removeF:"حذف فیلتر {f}",clearAll:"حذف جستجو و فیلترها",clearFilters:"حذف فیلترها",noneF:"فیلترهای کمتری را امتحان کنید.",tag_n:"مغزدار",add:"افزودن به حساب",ask:"برای جزئیات بیشتر یا حساسیت غذایی، از همکاران ما بپرسید.",ingr:"مواد",bean:"دانه",empty:"حساب خالی است.",},
  en:{name:"Ro Cafe",docTitle:"Ro Cafe | Menu",langName:"فارسی",openIn:"open in",toLight:"Light mode",toDark:"Dark mode",to:"–",sep:", ",
     dayPart:{am:"AM",pm:"PM",noon:"noon",midnight:"midnight"},
-    skip:"Skip to the menu",cats:"Categories",more:"One more: {item}",less:"One fewer: {item}",openNow:"Open now",closedNow:"Closed now",title:"Menu",slogan:"We're picky about coffee, and pickier about friendship.",search:"Search the menu",ph:"Search: latte, shake, tea…",
+    skip:"Skip to the menu",cats:"Categories",more:"One more: {item}",less:"One fewer: {item}",title:"Menu",slogan:"We're picky about coffee, and pickier about friendship.",search:"Search the menu",ph:"Search: latte, shake, tea…",
      noneT:"Nothing found",noneD:"Try a shorter word, like “shake”.",visit:"Address & contact",slogan2:"One table, a few cups, lots to talk about…",
      bill:"Table bill",billSub:"Add up your order here and split it with friends if you like.",people:"Split between",persons:"people",total:"Total",each:"Each person",clear:"Clear",close:"Close",
      billNote:"This bill is just for you. It doesn't send an order to the cafe; please order at the counter.",

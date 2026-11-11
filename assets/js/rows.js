@@ -114,10 +114,7 @@ export function menuHTML() {
     const id = esc(section.id);
     // role="list": Safari stops announcing a list once its bullets are styled away
     return `<section class="sec" id="${id}" aria-labelledby="${id}-title" data-tint="${esc(section.tint)}">
-      <div class="sec-h">
-        <h2 id="${id}-title">${esc(section[state.lang])}</h2>
-        <span class="count num"></span>
-      </div>
+      <h2 class="sec-h" id="${id}-title">${esc(section[state.lang])}</h2>
       <ul class="grid" role="list">${items.join("")}</ul>
     </section>`;
   });

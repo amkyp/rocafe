@@ -12,34 +12,10 @@ import { esc, safeUrl } from "./text.js";
 const DAYS = ["sat", "sun", "mon", "tue", "wed", "thu", "fri"];
 const DAY_SHORT = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
 
-const TEHRAN = new Intl.DateTimeFormat("en-US", {
-  timeZone: "Asia/Tehran",
-  weekday: "short",
-  hour: "2-digit",
-  minute: "2-digit",
-  hourCycle: "h23",
-});
-const minutesOf = (time) => {
-  const [hour, minute] = time.split(":").map(Number);
-  return hour * 60 + minute;
-};
+const TEHRAN = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Tehran", weekday: "short" });
 
-/* the day of the week and the minutes since midnight, in Tehran */
-function nowInTehran() {
-  const parts = Object.fromEntries(TEHRAN.formatToParts(new Date()).map((p) => [p.type, p.value]));
-  return {
-    day: DAY_SHORT.indexOf(parts.weekday),
-    minutes: minutesOf(`${parts.hour}:${parts.minute}`),
-  };
-}
-
-function isOpenNow() {
-  const { day, minutes } = nowInTehran();
-  const spans = CONFIG.hours[DAYS[day]] || [];
-  return spans.some(
-    ([opens, closes]) => minutesOf(opens) <= minutes && minutes < minutesOf(closes),
-  );
-}
+/* today's place in the week, in Tehran */
+const todayInTehran = () => DAY_SHORT.indexOf(TEHRAN.format(new Date()));
 
 /* the Persian name for the part of the day an hour falls in */
 function dayPart(hour) {
@@ -75,18 +51,12 @@ function hoursHTML() {
   if (perDay.every((day) => day === perDay[0])) {
     return `${t().everyDay}${t().sep}${spans(hours[DAYS[0]])}`;
   }
-  const today = nowInTehran().day;
+  const today = todayInTehran();
   const lines = DAYS.map(
     (key, i) =>
       `<span${i === today ? ' class="today"' : ""}><span>${t().days[i]}</span><span>${spans(hours[key])}</span></span>`,
   );
   return `<span class="vdays">${lines.join("")}</span>`;
-}
-
-/* open or closed at this moment, in words and colour */
-function openNowHTML() {
-  const open = isOpenNow();
-  return `<span class="open-now ${open ? "yes" : "no"}">${open ? t().openNow : t().closedNow}</span>`;
 }
 
 /* ---------- the card ---------- */
@@ -150,7 +120,6 @@ function cardHTML() {
           mark: icon("clock", "vic"),
           label: t().hours,
           value: hoursHTML(),
-          note: openNowHTML(),
         })
       : "",
   ];
@@ -171,23 +140,11 @@ function yearNow() {
   return parts.find((part) => part.type === "year").value;
 }
 
-/* the open / closed note beside the hours, kept true while the page stays open */
-function drawOpenNow() {
-  for (const label of document.querySelectorAll("#visitCard .open-now"))
-    label.outerHTML = openNowHTML();
-}
-
 export function draw() {
   $("visitCard").innerHTML = cardHTML();
-  drawOpenNow();
   $("copy").textContent = `© ${yearNow()} ${t().name}`;
   $("visit").hidden = false;
 }
-
-/* a tab left open comes back with the right "open now": only those labels are replaced */
-document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) drawOpenNow();
-});
 
 /* The header's links to the address go there without putting #visit in the address bar (which a
    later reload would jump back to); focus moves to the section's heading. */

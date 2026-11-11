@@ -25,10 +25,6 @@
   --brand-soft: #fdf3cf;
   --brand-ink: #18181b;
   --mark: #18181b;
-  --ok-bg: #e3f3e1;
-  --ok: #25632a;
-  --no-bg: #f6e3e1;
-  --no: #8a2f25;
   --pm-bg: #e7f2e4;
   --pm: #2f6a2a;
   --cf-bg: #eef0fb;
@@ -131,10 +127,6 @@ html[data-theme="dark"] {
   --mute: #a1a1a9;
   --brand-soft: #4a3d12;
   --mark: #000;
-  --ok-bg: #1d2e1b;
-  --ok: #9fd394;
-  --no-bg: #3a201d;
-  --no: #f0a99f;
   --pm-bg: #1d2e1b;
   --pm: #9fd394;
   --cf-bg: #1f2340;
@@ -545,7 +537,7 @@ html[data-theme="dark"] .tool .moon {
   transition: background var(--t-fast);
 }
 .tool-fill.open,
-.tool-fill:has(.fdot:not([hidden])) {
+.tool-fill.on {
   background: var(--ink);
   color: var(--bg);
 }
@@ -565,16 +557,6 @@ html[data-theme="dark"] .tool .moon {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-.fdot {
-  position: absolute;
-  top: 7px;
-  inset-inline-end: 7px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--brand);
-  box-shadow: 0 0 0 2px var(--bg);
 }
 /* filters: a small non-modal <dialog> inside the search field's box, so it sits under the field
    and moves with the header by itself; the page stays usable */
@@ -738,20 +720,10 @@ main.wrap {
   color: var(--mute);
 }
 .sec-h {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--sp-4);
   margin-bottom: var(--sp-3);
-}
-.sec-h h2 {
   font-size: var(--fs-xl);
   font-weight: 600;
   line-height: var(--lh-tight);
-}
-.sec-h .count {
-  color: var(--mute);
-  font-size: var(--fs-sm);
 }
 .site-foot h2,
 .sheet-title {
@@ -1146,22 +1118,6 @@ html:has(.billbar.up) .site-foot {
   flex: none;
   width: var(--ic-l);
   height: var(--ic-l);
-}
-/* open or closed at this moment */
-.open-now {
-  margin-top: var(--sp-2);
-  padding: 0 var(--sp-4);
-  border-radius: var(--r-xs);
-  font-size: var(--fs-xs);
-  line-height: var(--lh-body);
-}
-.open-now.yes {
-  background: var(--ok-bg);
-  color: var(--ok);
-}
-.open-now.no {
-  background: var(--no-bg);
-  color: var(--no);
 }
 .vgo {
   flex: none;
@@ -1771,8 +1727,27 @@ html:has(dialog.sheet[open]) {
   /* the search field is the row's first pill and grows while in use */
   .find .field {
     flex: none;
-    width: 15rem;
+    width: 10.5rem;
     transition: width var(--t-mid) var(--ease);
+  }
+  /* at rest the field is a pill that shows its own label; the example text comes with the field */
+  .find .search:not(:focus-within, .has) .sr {
+    inset-block: 0;
+    inset-inline-start: var(--sp-9);
+    display: flex;
+    align-items: center;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+    color: var(--mute);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    pointer-events: none;
+  }
+  .find .search:not(:focus-within, .has) input::placeholder {
+    color: transparent;
   }
   .find .search:focus-within .field,
   .find .search.has .field {

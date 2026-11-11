@@ -56,7 +56,6 @@ function applySearch() {
     }
     const part = $(section.id);
     part.hidden = !count;
-    part.querySelector(".count").textContent = digits(count);
     shown.set(section.id, count);
     total += count;
   }

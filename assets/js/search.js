@@ -96,7 +96,7 @@ function drawFilters() {
     ({ id }) =>
       `<button type="button" class="fbtn" data-f="${id}" aria-pressed="${filters.has(id)}">${filterName(id)}</button>`,
   ).join("");
-  $("fdot").hidden = filters.size === 0;
+  filterBtn.classList.toggle("on", filters.size > 0);
 }
 
 function toggleFilter(id) {
