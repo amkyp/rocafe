@@ -43,6 +43,7 @@
 <link rel="modulepreload" href="assets/js/icons.js">
 <link rel="modulepreload" href="assets/js/items.js">
 <link rel="modulepreload" href="assets/js/menu.js">
+<link rel="modulepreload" href="assets/js/popup.js">
 <link rel="modulepreload" href="assets/js/rows.js">
 <link rel="modulepreload" href="assets/js/search.js">
 <link rel="modulepreload" href="assets/js/sheets.js">
@@ -83,30 +84,31 @@
       <span class="mark"><svg viewBox="0 0 150 100" aria-hidden="true"><use href="#ro"/></svg></span>
       <b data-t="name">کافه رو</b>
     </a>
+    <p class="slogan" data-t="slogan">ما به قهوه حساسیم، به رفاقت بیشتر.</p>
     <div class="top-actions">
       <a class="tool" id="visitLink" href="#visit" data-label="visit" aria-label="آدرس و تماس"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pin"/></svg></a>
       <button type="button" class="tool" id="langBtn" lang="en">EN</button>
       <button type="button" class="tool" id="themeBtn" aria-label="حالت شب"><svg class="ic sun" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-sun"/></svg><svg class="ic moon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-moon"/></svg></button>
     </div>
   </div>
-  <!-- the welcome line: what the cafe says about itself, and whether it is open (a link to the hours) -->
-  <div class="wrap hello">
-    <p data-t="slogan">ما به قهوه حساسیم، به رفاقت بیشتر.</p>
-  </div>
-  <div class="wrap">
+  <!-- finding things: search and filters, then the categories (one row on wide screens) -->
+  <div class="find">
+  <div class="wrap find-search">
     <div class="search" id="searchBox" role="search">
       <div class="field">
         <label class="sr" for="q" data-t="search">جستجو در منو</label>
         <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-search"/></svg>
         <input id="q" type="search" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
         <button class="clear" id="clearQ" type="button" data-label="clearSearch" aria-label="پاک کردن جستجو"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></button>
+        <kbd class="key" aria-hidden="true">/</kbd>
       </div>
       <button type="button" class="tool-fill" id="filterBtn" data-label="filter" aria-label="فیلتر" aria-haspopup="dialog" aria-expanded="false" aria-controls="filterPop"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-filter"/></svg><span class="fdot" id="fdot" hidden></span></button>
-      <dialog class="filter-pop" id="filterPop" data-label="filter" aria-label="فیلتر"><div class="filters" id="filters" tabindex="-1" autofocus></div></dialog>
+      <dialog class="pop" id="filterPop" data-label="filter" aria-label="فیلتر"><div class="filters" id="filters" tabindex="-1" autofocus></div></dialog>
     </div>
-    <div class="fstat" id="fstat" role="status" hidden></div>
   </div>
   <nav class="chips" id="chips" data-label="cats" aria-label="دسته‌ها"></nav>
+  </div>
+  <div class="wrap"><div class="fstat" id="fstat" role="status" hidden></div></div>
 
 </header>
 

@@ -4,6 +4,7 @@ import { FILTERS } from "../../data/menu.js";
 import { $ } from "./dom.js";
 import { icon } from "./icons.js";
 import { sectionOf } from "./items.js";
+import { togglePopup } from "./popup.js";
 import { state, t, otherLang, digits, on, emit } from "./state.js";
 import { esc, norm } from "./text.js";
 
@@ -158,58 +159,17 @@ on("filtered", ({ total }) => {
   drawEmpty(total);
 });
 
-/* ---------- the filter menu ----------
-   A small non-modal <dialog> (dialog.show(), which older browsers support too): the page keeps
-   scrolling and the list updates underneath. The stylesheet places it under the search field. It
-   closes with its button, Escape, or a tap outside; like a phone's own menus, that closing tap does nothing else
-   (scrolling is not a tap). */
-function closeFilters() {
-  if (filterPop.open) filterPop.close();
-}
+/* ---------- the filter menu: the list updates underneath while it is open ---------- */
+filterBtn.addEventListener("click", () => togglePopup(filterPop, filterBtn));
 
-function setOpenLook(open) {
-  filterBtn.setAttribute("aria-expanded", open);
-  filterBtn.classList.toggle("open", open);
-}
-
-filterBtn.addEventListener("click", () => {
-  if (filterPop.open) return closeFilters();
-  filterPop.show();
-  setOpenLook(true);
-});
-filterPop.addEventListener("close", () => setOpenLook(false));
+/* "/" from anywhere on the page goes to the search field */
 addEventListener("keydown", (e) => {
-  if (e.key !== "Escape" || !filterPop.open) return;
-  closeFilters();
-  filterBtn.focus();
+  if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (document.activeElement.matches("input, textarea, select")) return;
+  e.preventDefault();
+  input.focus();
 });
 
-let closingTap = false; // this tap began outside the open menu
-addEventListener(
-  "pointerdown",
-  (e) => {
-    closingTap = filterPop.open && !e.target.closest("#filterPop, #filterBtn");
-  },
-  true,
-);
-addEventListener(
-  "pointercancel", // the touch became a scroll
-  () => {
-    closingTap = false;
-  },
-  true,
-);
-addEventListener(
-  "click",
-  (e) => {
-    if (!closingTap) return;
-    closingTap = false;
-    closeFilters();
-    e.preventDefault();
-    e.stopPropagation();
-  },
-  true,
-);
 /* the words that depend on the language */
 export function draw() {
   input.placeholder = t().ph;

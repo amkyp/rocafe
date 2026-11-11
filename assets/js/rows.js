@@ -3,7 +3,7 @@ import { MENU } from "../../data/menu.js";
 import { inBill, stepperHTML } from "./bill.js";
 import { FILES, pictureHTML } from "./files.js";
 import { drawing } from "./icons.js";
-import { ITEMS, billKey, optionOf, priceOf, pics } from "./items.js";
+import { ITEMS, optionOf, pics } from "./items.js";
 import { state, t, digits } from "./state.js";
 import { esc } from "./text.js";
 
@@ -18,7 +18,7 @@ export function tagsHTML(it) {
   return `<div class="tags">${tags.join("")}</div>`;
 }
 
-/* an item's option buttons (in the menu row: data-bean; on the item card: data-dbean) */
+/* an item's option buttons on the item card */
 export function optionsHTML(it, attribute) {
   const buttons = it.options.map((option, i) => {
     const on = i === optionOf(it);
@@ -43,25 +43,67 @@ function thumbHTML(it, first) {
 }
 
 /* a price: the number guests read (in thousands), and the full amount in Toman for machines */
-export function priceHTML(thousands, cls = "price") {
-  return `<data class="${cls} num" value="${thousands * 1000}">${digits(thousands)}<span class="sr"> ${t().unit}</span></data>`;
+export function priceHTML(thousands, cls = "price", text = digits(thousands)) {
+  return `<data class="${cls} num" value="${thousands * 1000}">${text}<span class="sr"> ${t().unit}</span></data>`;
+}
+
+/* ---------- an item with options (e.g. espresso beans) in the menu list ----------
+   Its row shows the lowest price and names the options; its + button opens a small menu with one
+   line per option (assets/js/choose.js). */
+const optionKeys = (it) => it.options.map((option, i) => `${it.id}.${i}`);
+
+/* the options by name, or, once some are in the bill, those with their counts */
+export function optionsLine(it) {
+  const names = it.options.map((option) => esc(option[state.lang]));
+  const taken = optionKeys(it)
+    .map((key, i) => inBill(key) && `${names[i]} × ${digits(inBill(key))}`)
+    .filter(Boolean);
+  return (taken.length ? taken : names).join(" · ");
+}
+
+/* the menu's lines: an option not in the bill is one button (name and price); one that is in
+   the bill shows its quantity control */
+export function choicesHTML(it) {
+  return optionKeys(it)
+    .map((key, i) => {
+      const name = `<span>${esc(it.options[i][state.lang])}</span>`;
+      if (inBill(key)) return `<div class="pick">${name}${stepperHTML(key)}</div>`;
+      return `<button type="button" class="pick" data-add="${key}">${name}${priceHTML(it.options[i].price, "")}</button>`;
+    })
+    .join("");
+}
+
+function chooseHTML(it) {
+  const label = esc(`${it[state.lang]}: ${t().bean}`);
+  return `<button type="button" class="add" data-choose aria-label="${label}" aria-haspopup="dialog" aria-expanded="false">+</button>
+    <dialog class="pop" aria-label="${label}"></dialog>`;
+}
+
+function optionRowEndHTML(it) {
+  const lowest = Math.min(...it.options.map((option) => option.price));
+  return `<p class="opts">${optionsLine(it)}</p>
+      ${priceHTML(lowest, "price", t().from.replace("{p}", digits(lowest)))}
+    </div>
+    <div class="buy">${chooseHTML(it)}</div>`;
 }
 
 /* One menu row: the item's name is a real button (opens the card; the whole row is its tap
    area); the bill control and the option buttons are separate buttons on top of it.
    .why is filled while searching, when the item matched through something other than its name. */
 function rowHTML(it, first) {
-  const key = billKey(it);
   return `<li class="it" data-open="${it.id}">
     <div class="pic">${thumbHTML(it, first)}</div>
     <div class="info">
       <h3><button type="button" class="it-name">${esc(it[state.lang])}</button></h3>
       <p class="why" hidden></p>
-      ${it.options ? "" : tagsHTML(it)}
-      ${priceHTML(priceOf(it))}
+      ${
+        it.options
+          ? optionRowEndHTML(it)
+          : `${tagsHTML(it)}
+      ${priceHTML(it.price)}
     </div>
-    <div class="buy" data-key="${key}">${buyHTML(key)}</div>
-    ${it.options ? `<div class="choice">${optionsHTML(it, "data-bean")}</div>` : ""}
+    <div class="buy" data-key="${it.id}">${buyHTML(it.id)}</div>`
+      }
   </li>`;
 }
 

@@ -479,7 +479,7 @@ html[data-theme="dark"] .tool .moon {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sp-4);
+  column-gap: var(--sp-4);
   min-height: var(--bar-row);
   margin-top: var(--sp-2);
 }
@@ -554,18 +554,14 @@ html[data-theme="dark"] .tool .moon {
     background: var(--line);
   }
 }
-/* the welcome line: the cafe's own words, and whether it is open now */
-.hello {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-5);
+/* the cafe's own words: a line of their own under the logo on phones, beside it on wide screens */
+.slogan {
+  order: 1;
+  flex-basis: 100%;
   height: var(--hello-h);
+  line-height: var(--hello-h);
   color: var(--mute);
   font-size: var(--fs-sm);
-}
-.hello p {
-  flex: 1;
-  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -582,7 +578,8 @@ html[data-theme="dark"] .tool .moon {
 }
 /* filters: a small non-modal <dialog> inside the search field's box, so it sits under the field
    and moves with the header by itself; the page stays usable */
-.filter-pop {
+/* a small menu hanging from its button: the filters, an item's choices (assets/js/popup.js) */
+.pop {
   position: absolute;
   inset: auto;
   inset-block-start: calc(100% + var(--sp-3));
@@ -790,9 +787,7 @@ main.wrap {
   position: relative;
   border-radius: var(--r-m);
   cursor: pointer;
-  transition:
-    background var(--t-fast),
-    transform var(--t-fast);
+  transition: background var(--t-fast);
 }
 .it::after {
   content: "";
@@ -805,7 +800,6 @@ main.wrap {
 }
 .it:active {
   background: var(--soft);
-  transform: scale(0.985);
 }
 @media (hover: hover) {
   .it:hover {
@@ -880,11 +874,10 @@ main.wrap {
   box-shadow: inset 0 0 0 var(--focus-w) var(--ink);
 }
 /* the row's own buttons sit above that layer */
-.it .buy,
-.it .beans {
+.it .buy {
   position: relative;
-  z-index: 1;
 }
+.info .opts,
 .info .why {
   font-size: var(--fs-xs);
   color: var(--mute);
@@ -1752,6 +1745,71 @@ html:has(dialog.sheet[open]) {
   }
 }
 @media (min-width: 860px) {
+  /* the header in two rows: logo, slogan and tools; then search, filters and categories */
+  .slogan {
+    order: 0;
+    flex: 1;
+    margin-inline-start: var(--sp-4);
+  }
+  .find {
+    display: flex;
+    align-items: center;
+    max-width: var(--maxw);
+    margin-inline: auto;
+    padding-left: var(--pad-l);
+    padding-right: var(--pad-r);
+  }
+  .find-search {
+    flex: none;
+    margin: 0;
+    padding: 0;
+  }
+  .find .search {
+    margin-top: 0;
+    gap: var(--sp-3);
+  }
+  /* the search field is the row's first pill and grows while in use */
+  .find .field {
+    flex: none;
+    width: 15rem;
+    transition: width var(--t-mid) var(--ease);
+  }
+  .find .search:focus-within .field,
+  .find .search.has .field {
+    width: 24rem;
+  }
+  .find .search input {
+    height: var(--h-s);
+    border-radius: var(--r-pill);
+    padding-inline-start: var(--sp-9);
+    font-size: var(--fs-sm);
+    text-overflow: ellipsis;
+  }
+  .find .field > .ic {
+    inset-inline-start: var(--sp-5);
+    width: var(--ic-s);
+    height: var(--ic-s);
+  }
+  .find .tool-fill {
+    width: var(--h-s);
+    height: var(--h-s);
+    border-radius: 50%;
+  }
+  .find .pop {
+    inset-inline: 0 auto;
+    width: max-content;
+    max-width: 80vw;
+  }
+  .find .chips {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    padding-inline: var(--sp-3) 0;
+  }
+  .fstat {
+    padding-top: 0;
+    padding-bottom: var(--sp-3);
+  }
   :root {
     --gut: 2rem;
     --thumb: 104px;
@@ -1871,24 +1929,42 @@ html:has(dialog.sheet[open]) {
     scroll-behavior: auto;
   }
 }
-@media (hover: hover) {
-  .it:hover .beans {
-    background: var(--bg);
-  }
-}
 @media (max-width: 380px) {
   .bean {
     padding-inline: var(--sp-3);
   }
 }
-/* a row with choices: they get a line of their own under the row, in line with the name */
-.it .choice {
-  flex-basis: 100%;
-  min-width: 0; /* a long choice is cut short rather than widening the page */
-  padding-inline-start: calc(var(--thumb) + var(--it-gap));
+/* an item's choices: a menu at its + button, one line per choice */
+.it .pop {
+  z-index: 5;
+  width: max-content;
+  max-width: min(18rem, 80vw);
+  padding: var(--sp-2);
+  cursor: auto;
 }
-.it .beans {
-  margin-top: 0;
+.pick {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-7);
+  width: 100%;
+  min-height: var(--h-l);
+  padding-inline: var(--sp-5);
+  border-radius: var(--r-s);
+  font-weight: 600;
+  text-align: start;
+}
+div.pick {
+  padding-inline-end: var(--sp-2);
+}
+@media (hover: hover) {
+  button.pick:hover {
+    background: var(--soft);
+  }
+}
+/* "/" goes to the search field: said only where there is a keyboard to press it on */
+.key {
+  display: none;
 }
 /* a row's bill control: the + button, or the quantity control once the item is in the bill */
 .buy {
@@ -2070,7 +2146,7 @@ html[dir="ltr"] {
   .add,
   .mapgo,
   .stepper,
-  .filter-pop,
+  .pop,
   .billbar .c {
     border: 1px solid CanvasText;
   }
@@ -2085,5 +2161,24 @@ html[dir="ltr"] {
   .fchip {
     outline: 3px solid Highlight;
     outline-offset: -3px;
+  }
+}
+@media (min-width: 860px) and (hover: hover) {
+  .search:not(:focus-within, .has) .key {
+    display: grid;
+    place-items: center;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    inset-inline-end: var(--sp-4);
+    min-width: var(--sp-7);
+    height: var(--sp-7);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xs);
+    background: var(--bg);
+    color: var(--mute);
+    font: inherit;
+    font-size: var(--fs-xs);
+    pointer-events: none;
   }
 }

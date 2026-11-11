@@ -3,8 +3,9 @@
 import { MENU } from "../../data/menu.js";
 import { change, inBill, isEmpty } from "./bill.js";
 import { $ } from "./dom.js";
-import { ITEMS, billKey, optionOf, priceOf, setOption } from "./items.js";
-import { buyHTML, menuHTML } from "./rows.js";
+import { ITEMS, findItem } from "./items.js";
+import { closePopup, togglePopup } from "./popup.js";
+import { buyHTML, choicesHTML, menuHTML, optionsLine } from "./rows.js";
 import { matches, marked, matchedText, searchWords } from "./search.js";
 import { state, t, digits, on, emit } from "./state.js";
 import { toast, LONG } from "./toast.js";
@@ -20,6 +21,7 @@ export const visibleIds = () =>
 
 /* Build the whole menu (on start and when the language changes). */
 export function draw() {
+  closePopup(); // an open choice menu is part of what is redrawn
   menu.innerHTML = menuHTML();
   menu.removeAttribute("aria-busy");
   rows = new Map([...menu.querySelectorAll(".it")].map((row) => [row.dataset.open, row]));
@@ -77,25 +79,23 @@ function drawBuy(cell) {
   if (focused) cell.querySelector("[data-inc], [data-add]").focus();
 }
 
-function drawBuys() {
-  for (const cell of menu.querySelectorAll(".buy")) drawBuy(cell);
+/* a row with options: its line of names and counts, and its menu if that is open */
+function drawChoices(row) {
+  const it = findItem(row.dataset.open);
+  row.querySelector(".opts").innerHTML = optionsLine(it);
+  const pop = row.querySelector(".pop");
+  if (!pop.open) return;
+  const focused = document.activeElement.closest(".pick")?.firstChild.textContent;
+  pop.innerHTML = choicesHTML(it);
+  const again = [...pop.querySelectorAll(".pick")].find(
+    (p) => p.firstChild.textContent === focused,
+  );
+  (again?.querySelector("[data-inc]") || again)?.focus(); // the keyboard stays on its line
 }
 
-/* an item's option changed (e.g. the espresso bean): its price, + button and choice follow */
-function drawOption(it) {
-  const row = rows.get(it.id);
-  const price = row.querySelector(".price");
-  price.value = priceOf(it) * 1000;
-  price.firstChild.textContent = digits(priceOf(it));
-  const cell = row.querySelector(".buy");
-  cell.dataset.key = billKey(it);
-  cell.replaceChildren(); // its control belongs to the other option: build it anew
-  drawBuy(cell);
-  for (const button of row.querySelectorAll("[data-bean]")) {
-    const on = Number(button.dataset.bean) === optionOf(it);
-    button.classList.toggle("on", on);
-    button.setAttribute("aria-pressed", on);
-  }
+function drawBuys() {
+  for (const cell of menu.querySelectorAll(".buy[data-key]")) drawBuy(cell);
+  for (const pop of menu.querySelectorAll(".pop")) drawChoices(pop.closest(".it"));
 }
 
 /* The bill is the guest's own list, not an order: say so the first time something is added.
@@ -109,12 +109,19 @@ function sayHowToOrder(key) {
 menu.addEventListener("click", (e) => {
   const row = e.target.closest("[data-open]");
   if (!row) return;
-  const option = e.target.closest("[data-bean]");
+  const choose = e.target.closest("[data-choose]");
   const add = e.target.closest("[data-add]");
-  if (option) setOption(row.dataset.open, Number(option.dataset.bean));
-  else if (add) {
+  if (choose) {
+    const pop = row.querySelector(".pop");
+    pop.innerHTML = choicesHTML(findItem(row.dataset.open));
+    togglePopup(pop, choose);
+  } else if (add) {
     change(add.dataset.add, 1);
     sayHowToOrder(add.dataset.add);
+    if (add.matches(".pick")) {
+      closePopup(); // chosen: back to the row's + button
+      row.querySelector("[data-choose]").focus();
+    }
   } else if (!e.target.closest(".buy")) emit("item:open", row.dataset.open); // not the − or +
 });
 
@@ -132,4 +139,3 @@ for (const event of ["pointerdown", "mouseover"]) {
 
 on("search", applySearch);
 on("bill", drawBuys);
-on("option", drawOption);
