@@ -849,7 +849,11 @@ main.wrap {
 .it .buy {
   position: relative;
 }
-.info .opts,
+.info .opts {
+  font-size: var(--fs-sm);
+  color: var(--mute);
+  line-height: var(--lh-body);
+}
 .info .why {
   font-size: var(--fs-xs);
   color: var(--mute);
@@ -1775,11 +1779,16 @@ html:has(dialog.sheet[open]) {
     width: max-content;
     max-width: 80vw;
   }
+  /* the row's fading ends fall on its own padding, never on a category */
   .find .chips {
     flex: 1;
     min-width: 0;
     margin: 0;
-    padding-inline: var(--sp-3) 0;
+    margin-inline-end: calc(-1 * var(--gut));
+    padding-inline: var(--gut);
+  }
+  .sec-h {
+    margin-bottom: var(--sp-6);
   }
   .fstat {
     padding-top: 0;
