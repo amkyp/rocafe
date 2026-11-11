@@ -94,14 +94,15 @@
     <div class="search" id="searchBox" role="search">
       <label class="sr" for="q" data-t="search">جستجو در منو</label>
       <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-search"/></svg>
-      <input id="q" type="text" role="searchbox" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
+      <input id="q" type="search" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
       <button class="clear" id="clearQ" type="button" data-label="clearSearch" aria-label="پاک کردن جستجو"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></button>
       <button type="button" class="fbtn-in" id="filterBtn" data-label="filter" aria-label="فیلتر" aria-haspopup="dialog" aria-expanded="false" aria-controls="filterPop"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-filter"/></svg><span class="fdot" id="fdot" hidden></span></button>
+      <dialog class="filter-pop" id="filterPop" data-label="filter" aria-label="فیلتر"><div class="filters" id="filters" tabindex="-1" autofocus></div></dialog>
     </div>
     <div class="fstat" id="fstat" role="status" hidden></div>
   </div>
   <nav class="chips" id="chips" data-label="cats" aria-label="دسته‌ها"></nav>
-  <dialog class="filter-pop" id="filterPop" data-label="filter" aria-label="فیلتر"><div class="filters" id="filters" tabindex="-1" autofocus></div></dialog>
+
 </header>
 
 <main class="wrap">
@@ -130,7 +131,8 @@
     <div class="grab"></div>
     <h2 class="sheet-title" id="billTitle" data-t="bill" tabindex="-1" autofocus>حساب میز</h2>
     <p class="sub" data-t="billSub">سفارشتان را اینجا جمع بزنید و اگر خواستید بین دوستان تقسیم کنید.</p>
-    <div id="lines"></div>
+    <!-- role="list": Safari stops announcing a list once its bullets are styled away -->
+    <ul id="lines" role="list"></ul>
     <div class="split"><span data-t="people">تقسیم بین</span>
       <div class="stepper"><button type="button" id="pMinus" aria-label="-">−</button><span class="num" id="pCount"></span><button type="button" id="pPlus" aria-label="+">+</button></div>
     </div>

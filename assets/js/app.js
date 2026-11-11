@@ -3,6 +3,7 @@
      search    search field and filters   menu     the list of items
      card      item card (with gallery)   bill     the table's bill
      visit     address and contact        sheets   the panels all of these open in */
+import { MENU } from "../../data/menu.js";
 import * as bill from "./bill.js";
 import * as card from "./card.js";
 import * as chips from "./chips.js";
@@ -27,6 +28,10 @@ function drawAll() {
 
 on("lang", drawAll);
 drawAll();
+card.openFromAddress();
+/* arriving at a section's address (a category opened in a new tab) */
+const section = MENU.find(({ id }) => `#${id}` === location.hash);
+if (section) chips.arriveAt(section.id);
 
 /* A reload (phones reload background tabs) returns to the same place in the menu. The menu is
    built by script, after the moment a browser restores the scroll position by itself, so the

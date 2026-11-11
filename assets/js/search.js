@@ -4,7 +4,7 @@ import { FILTERS } from "../../data/menu.js";
 import { $ } from "./dom.js";
 import { icon } from "./icons.js";
 import { sectionOf } from "./items.js";
-import { state, t, digits, on, emit } from "./state.js";
+import { state, t, otherLang, digits, on, emit } from "./state.js";
 import { esc, norm } from "./text.js";
 
 const FILTER = new Map(FILTERS.map((f) => [f.id, f]));
@@ -41,6 +41,18 @@ function textOf(it) {
 export function matches(it) {
   for (const id of filters) if (!passes(FILTER.get(id), it)) return false;
   return !words || textOf(it).includes(words);
+}
+
+/* Why an item is showing when its name does not contain the search words: the text that does
+   (its name in the other language, its ingredients, one of its options), or nothing when it
+   matched through its section's name, which is on the page already. */
+export function matchedText(it) {
+  if (!words) return "";
+  const other = otherLang();
+  const options = (it.options || []).flatMap((o) => [o[state.lang], o[other]]);
+  const texts = [it[state.lang], it.sub?.[state.lang], it[other], it.sub?.[other], ...options];
+  const hit = texts.find((text) => text && norm(text).includes(words));
+  return hit === it[state.lang] || hit === it.sub?.[state.lang] ? "" : hit || "";
 }
 
 /* the text as safe HTML, with the search words marked */
@@ -142,21 +154,11 @@ on("filtered", ({ total }) => {
 
 /* ---------- the filter menu ----------
    A small non-modal <dialog> (dialog.show(), which older browsers support too): the page keeps
-   scrolling and the list updates underneath. It sits under the search field and closes with its
-   button, Escape, or a tap outside; like a phone's own menus, that closing tap does nothing else
+   scrolling and the list updates underneath. The stylesheet places it under the search field. It
+   closes with its button, Escape, or a tap outside; like a phone's own menus, that closing tap does nothing else
    (scrolling is not a tap). */
-const GAP = 6; // px between the search field and the menu
-
 function closeFilters() {
   if (filterPop.open) filterPop.close();
-}
-
-function placeFilters() {
-  const field = $("searchBox").getBoundingClientRect();
-  if (field.bottom < 0) return closeFilters(); // the header scrolled away
-  filterPop.style.top = `${field.bottom + GAP}px`;
-  const fromEnd = state.lang === "fa" ? field.left : innerWidth - field.right;
-  filterPop.style.insetInlineEnd = `${fromEnd}px`;
 }
 
 function setOpenLook(open) {
@@ -166,7 +168,6 @@ function setOpenLook(open) {
 
 filterBtn.addEventListener("click", () => {
   if (filterPop.open) return closeFilters();
-  placeFilters();
   filterPop.show();
   setOpenLook(true);
 });
@@ -203,16 +204,6 @@ addEventListener(
   },
   true,
 );
-for (const event of ["scroll", "resize"]) {
-  addEventListener(
-    event,
-    () => {
-      if (filterPop.open) placeFilters();
-    },
-    { passive: true },
-  );
-}
-
 /* the words that depend on the language */
 export function draw() {
   input.placeholder = t().ph;

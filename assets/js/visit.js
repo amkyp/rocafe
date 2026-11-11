@@ -91,6 +91,8 @@ function openNowHTML() {
 }
 
 /* ---------- the card ---------- */
+/* a phone number's spaces become non-breaking ones, so it wraps only if it cannot fit at all */
+const inOnePiece = (text) => text.replaceAll(" ", "\u00a0");
 /* the apps' own icons, from their app-store listings */
 const brand = (key, cls = "vbrand") =>
   `<img class="${cls}" src="${FILES.brand(key)}" alt="" width="24" height="24" loading="lazy" decoding="async">`;
@@ -116,26 +118,50 @@ function mapHTML() {
 const mapButtonHTML = (m) =>
   `<a class="mapgo" href="${esc(placeUrl(m.url))}" ${NEW_TAB}>${m.icon ? brand(m.icon) : ""}<span>${esc(appName(m.app))}</span></a>`;
 
-/* one row: an icon, a small label and the value; rows that link are links over their whole width */
-function rowHTML({ mark, label, value, href, attrs = "", note = "" }) {
-  const text = `${mark}<span class="vtx"><small>${label}</small><b${href ? ' class="ltr"' : ""}>${value}</b>${note}</span>`;
-  if (!href) return `<div class="vrow">${text}</div>`;
-  return `<a class="vrow" href="${esc(href)}" ${attrs}>${text}${arrowOn("vgo")}</a>`;
+/* One row of the card: a label (with its icon) and its value, as a term and its description.
+   A value that links somewhere is a link whose tap area is the whole row. */
+function rowHTML({ mark, label, value, href, attrs = "", note = "", cls = "" }) {
+  const shown = href
+    ? `<a href="${esc(href)}" ${attrs}><span class="ltr">${value}</span>${arrowOn("vgo")}</a>`
+    : value;
+  return `<div class="vrow${cls ? ` ${cls}` : ""}"><dt>${mark}${label}</dt><dd>${shown}${note}</dd></div>`;
 }
 
-/* Inside <address>: address, the map with directions, phone, Instagram, hours.
+/* Inside <address>: the address, the map with directions, then phone, Instagram and hours.
    Phones: one column in that order. Wide cards: the text in one column, the map in the other. */
 function cardHTML() {
   const { phone, phoneDisplay, instagram, hours } = CONFIG;
-  return `<div class="vlist">
-    <div class="vrow vaddr">${icon("pin", "vic")}<span class="vtx"><small>${t().addr}</small><b>${t().addrV}</b></span></div>
+  const address = rowHTML({ mark: icon("pin", "vic"), label: t().addr, value: t().addrV });
+  const contacts = [
+    rowHTML({
+      mark: icon("phone", "vic"),
+      label: t().phone,
+      value: esc(inOnePiece(digits(phoneDisplay))),
+      href: safeUrl(`tel:${phone}`, ["tel:"]),
+    }),
+    rowHTML({
+      mark: brand(instagram.icon, "vbrand vic"),
+      label: t().insta,
+      value: `@${esc(instagram.handle)}`,
+      href: safeUrl(instagram.url),
+      attrs: NEW_TAB,
+    }),
+    hours
+      ? rowHTML({
+          mark: icon("clock", "vic"),
+          label: t().hours,
+          value: hoursHTML(),
+          note: openNowHTML(),
+        })
+      : "",
+  ];
+  return `<div class="vbody">
+    <dl class="vlist">${address}</dl>
     <div class="vmapbox">
       ${mapHTML()}
       <span class="vdir" role="group" aria-label="${t().map}">${maps().map(mapButtonHTML).join("")}</span>
     </div>
-    ${rowHTML({ mark: icon("phone", "vic"), label: t().phone, value: esc(phoneDisplay), href: safeUrl(`tel:${phone}`, ["tel:"]) })}
-    ${rowHTML({ mark: brand(instagram.icon, "vbrand vic"), label: t().insta, value: `@${esc(instagram.handle)}`, href: safeUrl(instagram.url), attrs: NEW_TAB })}
-    ${hours ? rowHTML({ mark: icon("clock", "vic"), label: t().hours, value: hoursHTML(), note: openNowHTML() }) : ""}
+    <dl class="vlist">${contacts.join("")}</dl>
   </div>`;
 }
 
@@ -160,9 +186,10 @@ export function draw() {
 on("sheet:open", (id) => {
   if (id === "infoSheet") inPanel.innerHTML = cardHTML(); // fresh each time: "open now" is current
 });
-/* a tab left open comes back with the right "open now" */
+/* a tab left open comes back with the right "open now": only that label is replaced */
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) draw();
+  if (document.hidden) return;
+  for (const label of document.querySelectorAll(".open-now")) label.outerHTML = openNowHTML();
 });
 $("infoBtn").addEventListener("click", () => openSheet("infoSheet"));
 

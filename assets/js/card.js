@@ -7,7 +7,7 @@ import { arrowBack, arrowOn, drawing, icon } from "./icons.js";
 import { findItem, billKey, optionOf, priceOf, pics, sectionOf, setOption } from "./items.js";
 import { visibleIds } from "./menu.js";
 import { optionsHTML, tagsHTML } from "./rows.js";
-import { openSheet, topSheet } from "./sheets.js";
+import { openSheet, setSheetAddress, topSheet } from "./sheets.js";
 import { state, t, otherLang, digits, on } from "./state.js";
 import { esc } from "./text.js";
 
@@ -62,7 +62,7 @@ function neighbourHTML(step) {
 function buyHTML(it) {
   const key = billKey(it);
   const count = inBill(key);
-  const price = `<span class="pr num">${digits(priceOf(it))} <small>${t().unit}</small></span>`;
+  const price = `<data class="pr num" value="${priceOf(it) * 1000}">${digits(priceOf(it))} <small>${t().unit}</small></data>`;
   if (!count) {
     return `${price}<button type="button" class="btn btn-brand" data-dadd="${key}">${t().add}</button>`;
   }
@@ -91,10 +91,10 @@ function photosHTML(names) {
   const slides = names.map(
     (name) => `<div class="sl">${pictureHTML(FILES.thumb(name), 'class="lo" alt=""')}</div>`,
   );
-  const strip = many
-    ? `<div class="gal" role="region" tabindex="0" aria-label="${t().photos}">`
-    : `<div class="gal">`;
-  return `${strip}${slides.join("")}</div>${many ? gallery.dotsHTML(names.length) : ""}`;
+  // several photos: a named part of the page that the keyboard can reach and scroll
+  if (!many) return `<div class="gal">${slides.join("")}</div>`;
+  return `<section class="gal" tabindex="0" aria-label="${t().photos}">${slides.join("")}</section>
+    ${gallery.dotsHTML(names.length)}`;
 }
 
 function textHTML(it) {
@@ -142,11 +142,32 @@ function drawCard() {
   warm(neighbour(1));
 }
 
+/* The open item is in the address (…?item=latte), so it can be shared and a reload reopens it. */
+const ADDRESS_KEY = "item";
+const itemInAddress = () => findItem(new URLSearchParams(location.search).get(ADDRESS_KEY))?.id;
+const addressOf = (id) => `?${ADDRESS_KEY}=${encodeURIComponent(id)}`;
+
 function open(id) {
   shownId = id;
   drawCard();
   openSheet(SHEET);
+  setSheetAddress(addressOf(id));
 }
+
+/* Arriving with an item in the address. A reload of an open card is already on the card's own
+   history entry. A fresh arrival (a shared link) is not: the page first takes the plain address,
+   so that closing the card leads back to the menu and not away from the site. */
+export function openFromAddress() {
+  const id = itemInAddress();
+  if (!id) return;
+  if (!history.state?.sheets) history.replaceState(null, "", location.pathname);
+  open(id);
+}
+/* Forward, or back to an entry that holds an item: show it again */
+addEventListener("popstate", () => {
+  const id = itemInAddress();
+  if (id && !isOpen()) open(id);
+});
 
 /* move to the item before or after */
 function step(by) {
@@ -158,6 +179,7 @@ function step(by) {
   panel.classList.remove("slide-next", "slide-prev");
   panel.classList.add(by > 0 ? "slide-next" : "slide-prev");
   drawCard();
+  setSheetAddress(addressOf(id));
   if (!fromButton) {
     panel.scrollTop = 0;
     return;
@@ -182,9 +204,10 @@ panel.addEventListener("click", (e) => {
   else if (target("[data-dbean]")) setOption(shownId, Number(target("[data-dbean]").dataset.dbean));
 });
 
-/* the arrow keys move between items, following the reading direction */
+/* the arrow keys move between items, following the reading direction; inside the photo strip
+   they belong to the photos */
 addEventListener("keydown", (e) => {
-  if (topSheet() !== SHEET) return;
+  if (topSheet() !== SHEET || e.target.closest?.(".gal")) return;
   const forward = state.lang === "fa" ? "ArrowLeft" : "ArrowRight";
   const back = state.lang === "fa" ? "ArrowRight" : "ArrowLeft";
   if (e.key === forward) step(1);

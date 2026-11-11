@@ -29,7 +29,10 @@ export function arrowsHTML() {
 }
 
 function showCurrent() {
-  dots.forEach((dot, i) => dot.toggleAttribute("aria-current", i === current));
+  dots.forEach((dot, i) => {
+    if (i === current) dot.setAttribute("aria-current", "true");
+    else dot.removeAttribute("aria-current");
+  });
   previous.disabled = current === 0;
   next.disabled = current === strip.children.length - 1;
 }

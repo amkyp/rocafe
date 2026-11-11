@@ -5,7 +5,7 @@ import { change, inBill, isEmpty } from "./bill.js";
 import { $ } from "./dom.js";
 import { ITEMS, billKey, optionOf, priceOf, setOption } from "./items.js";
 import { buyHTML, menuHTML } from "./rows.js";
-import { matches, marked, searchWords } from "./search.js";
+import { matches, marked, matchedText, searchWords } from "./search.js";
 import { state, t, digits, on, emit } from "./state.js";
 import { toast, LONG } from "./toast.js";
 
@@ -45,8 +45,11 @@ function applySearch() {
       count++;
       if (!remark) continue;
       row.querySelector(".it-name").innerHTML = marked(it[state.lang]);
-      const sub = row.querySelector(".info p");
+      const sub = row.querySelector(".info .sub");
       if (sub) sub.innerHTML = marked(it.sub[state.lang]);
+      const why = row.querySelector(".why");
+      why.innerHTML = marked(matchedText(it));
+      why.hidden = !why.textContent;
     }
     $(section.id).hidden = !count;
     shown.set(section.id, count);
@@ -78,7 +81,9 @@ function drawBuys() {
 /* an item's option changed (e.g. the espresso bean): its price, + button and choice follow */
 function drawOption(it) {
   const row = rows.get(it.id);
-  row.querySelector(".price").firstChild.textContent = digits(priceOf(it));
+  const price = row.querySelector(".price");
+  price.value = priceOf(it) * 1000;
+  price.firstChild.textContent = digits(priceOf(it));
   const cell = row.querySelector(".buy");
   cell.dataset.key = billKey(it);
   cell.replaceChildren(); // its control belongs to the other option: build it anew

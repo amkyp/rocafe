@@ -4,7 +4,7 @@ import { inBill, stepperHTML } from "./bill.js";
 import { FILES, pictureHTML } from "./files.js";
 import { drawing } from "./icons.js";
 import { ITEMS, billKey, optionOf, priceOf, pics } from "./items.js";
-import { state, t, digits } from "./state.js";
+import { state, t, otherLang, digits } from "./state.js";
 import { esc } from "./text.js";
 
 /* photos of the first rows load at once and first; the rest load as the page nears them */
@@ -42,31 +42,40 @@ function thumbHTML(it, first) {
   return pictureHTML(FILES.thumb(name), `alt="" ${loading}`);
 }
 
+/* a price: the number guests read (in thousands), and the full amount in Toman for machines */
+export function priceHTML(thousands, cls = "price") {
+  return `<data class="${cls} num" value="${thousands * 1000}">${digits(thousands)}<span class="sr"> ${t().unit}</span></data>`;
+}
+
 /* One menu row: the item's name is a real button (opens the card; the whole row is its tap
-   area); the bill control and the option buttons are separate buttons on top of it. */
+   area); the bill control and the option buttons are separate buttons on top of it.
+   .why is filled while searching, when the item matched through something other than its name. */
 function rowHTML(it, first) {
   const sub = it.options ? "" : it.sub?.[state.lang];
   const key = billKey(it);
-  return `<div class="it${it.options ? " has-beans" : ""}" data-open="${it.id}">
+  return `<li class="it${it.options ? " has-beans" : ""}" data-open="${it.id}">
     <div class="pic">${thumbHTML(it, first)}</div>
     <div class="info">
       <h3><button type="button" class="it-name">${esc(it[state.lang])}</button></h3>
-      ${sub ? `<p>${esc(sub)}</p>` : ""}
+      ${sub ? `<p class="sub">${esc(sub)}</p>` : ""}
+      <p class="why" lang="${otherLang()}" hidden></p>
       ${it.options ? "" : tagsHTML(it)}
-      <span class="price num">${digits(priceOf(it))}<span class="sr"> ${t().unit}</span></span>
+      ${priceHTML(priceOf(it))}
     </div>
     <div class="buy" data-key="${key}">${buyHTML(key)}</div>
     ${it.options ? optionsHTML(it, "data-bean") : ""}
-  </div>`;
+  </li>`;
 }
 
 export function menuHTML() {
   let rows = 0;
   const sections = MENU.map((section) => {
     const items = section.items.map((it) => rowHTML(it, rows++ < LOAD_FIRST));
-    return `<section class="sec" id="${esc(section.id)}" data-tint="${esc(section.tint)}">
-      <div class="sec-h"><h2>${esc(section[state.lang])}</h2></div>
-      <div class="grid">${items.join("")}</div>
+    const id = esc(section.id);
+    // role="list": Safari stops announcing a list once its bullets are styled away
+    return `<section class="sec" id="${id}" aria-labelledby="${id}-title" data-tint="${esc(section.tint)}">
+      <div class="sec-h"><h2 id="${id}-title">${esc(section[state.lang])}</h2></div>
+      <ul class="grid" role="list">${items.join("")}</ul>
     </section>`;
   });
   return `<p class="unit-note">${t().unitNote}</p>${sections.join("")}`;

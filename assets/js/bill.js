@@ -54,11 +54,11 @@ export function stepperHTML(key, cls = "") {
 
 function lineHTML(key) {
   const item = ITEMS[key];
-  return `<div class="line">
+  return `<li class="line">
     <div class="nm">${esc(item[state.lang])}<small class="num">${digits(item.p)} ${t().unit}</small></div>
     ${stepperHTML(key)}
     <span class="s num">${digits(bill[key] * item.p)}</span>
-  </div>`;
+  </li>`;
 }
 
 export function draw() {
@@ -85,7 +85,7 @@ export function draw() {
   $("sEach").textContent = money(Math.ceil(sum / people));
   $("lines").innerHTML = keys.length
     ? keys.map(lineHTML).join("")
-    : `<p class="sub">${t().empty}</p>`;
+    : `<li class="sub">${t().empty}</li>`;
   if (!count) closeSheet("billSheet");
 }
 

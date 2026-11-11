@@ -43,7 +43,8 @@ const closedByKeyboard = () => (lastInputWasPointer = false); // Escape, where i
 /* closed by a button, Escape, Back, a swipe or a tap outside */
 function onClose(dialog) {
   if (lastInputWasPointer) document.activeElement?.blur();
-  openStack.splice(openStack.indexOf(dialog.id), 1);
+  const at = openStack.indexOf(dialog.id); // already gone when Back closed it
+  if (at >= 0) openStack.splice(at, 1);
   const panel = dialog.querySelector(".panel");
   panel.style.transform = "";
   panel.classList.remove("dragging");
@@ -54,11 +55,19 @@ function onClose(dialog) {
 }
 
 addEventListener("popstate", () => {
-  if (steppingBack)
+  if (steppingBack) {
     steppingBack = false; // our own step back has landed
-  else if (openStack.length) closeSheet(topSheet()); // the visitor pressed Back
+  } else if (openStack.length) {
+    closeSheet(openStack.pop()); // the visitor pressed Back: the top panel is gone from now
+  }
   if (openStack.length) keepHistoryEntry(); // panels still open keep their entry
 });
+
+/* The open panel's entry can carry an address of its own (the item card uses this, so an item
+   can be shared and survives a reload). Closing the panel steps back to the plain address. */
+export function setSheetAddress(search) {
+  history.replaceState(history.state, "", `${location.pathname}${search}`);
+}
 
 /* Swipe down to close. The stylesheet says which panels open from the bottom (--swipe: on). */
 const SWIPE_TO_CLOSE = 110; // px

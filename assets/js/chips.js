@@ -8,12 +8,12 @@ import { esc } from "./text.js";
 const header = $("chipsBar");
 const bar = $("chips");
 
+/* each chip is a link to its section */
 export function draw() {
-  const chips = MENU.map(
+  bar.innerHTML = MENU.map(
     (section) =>
-      `<button type="button" class="chip" data-go="${esc(section.id)}">${esc(section[state.lang])}</button>`,
-  );
-  bar.innerHTML = `${chips.join("")}<span class="chip-ind" aria-hidden="true"></span>`;
+      `<a class="chip" href="#${esc(section.id)}" data-go="${esc(section.id)}">${esc(section[state.lang])}</a>`,
+  ).join("");
 }
 
 /* ---------- the header's height ----------
@@ -29,14 +29,20 @@ function syncHeader() {
   watchSections(); // the line under the header moved
 }
 on("menu:drawn", watchSections); // the sections are new elements
+let arrival = null; // a section to go to once the header's height is known
 new ResizeObserver(([entry]) => {
   headerSize = entry.borderBoxSize[0].blockSize;
   syncHeader();
+  if (arrival) goTo(arrival);
+  arrival = null;
 }).observe(header);
+/* the page was opened at a section's address */
+export function arriveAt(id) {
+  arrival = id;
+}
 addEventListener("resize", () => {
   viewHeight = innerHeight;
   syncHeader();
-  moveMarker();
 });
 
 /* ---------- the highlighted chip ---------- */
@@ -48,24 +54,10 @@ function setCurrent(id) {
       bar.scrollTo({ left, behavior: scrollStyle() }); // bring it to the middle of the bar
     }
     chip.classList.toggle("on", current);
-    chip.setAttribute("aria-current", current);
+    if (current) chip.setAttribute("aria-current", "true");
+    else chip.removeAttribute("aria-current");
   }
-  moveMarker();
 }
-
-/* the dark shape behind the current chip: appears in place the first time, glides after that */
-function moveMarker() {
-  const marker = bar.querySelector(".chip-ind");
-  const current = bar.querySelector(".chip.on");
-  if (!marker) return;
-  marker.style.opacity = current ? 1 : 0;
-  if (!current) return;
-  marker.style.width = `${current.offsetWidth}px`;
-  marker.style.transform = `translateX(${current.offsetLeft}px)`;
-  if (!marker.classList.contains("ready"))
-    requestAnimationFrame(() => marker.classList.add("ready"));
-}
-document.fonts?.ready.then(moveMarker);
 
 /* ---------- tapping a chip ----------
    The highlight is held on the tapped chip until the page has finished scrolling, so it never
@@ -91,9 +83,13 @@ function goTo(id) {
   scrollTo({ top, behavior: scrollStyle() });
 }
 
+/* a plain tap scrolls there without changing the address; opening a chip in a new tab is left
+   to the browser, and that tab arrives at the section (see app.js) */
 bar.addEventListener("click", (e) => {
   const chip = e.target.closest("[data-go]");
-  if (chip) goTo(chip.dataset.go);
+  if (!chip || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  e.preventDefault();
+  goTo(chip.dataset.go);
 });
 // the guest took over the scrolling
 for (const event of ["wheel", "touchstart", "keydown"]) {
@@ -154,5 +150,4 @@ addEventListener(
 on("filtered", ({ shown }) => {
   for (const chip of bar.querySelectorAll("[data-go]")) chip.hidden = !shown.get(chip.dataset.go);
   pickSection();
-  moveMarker(); // chips beside the current one may have gone
 });
