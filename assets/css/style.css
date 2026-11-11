@@ -1840,16 +1840,23 @@ html:has(dialog.sheet[open]) {
     --cols: 3;
   }
 }
-/* phones: the logo row and the welcome line scroll away with the page; search and categories stay */
-@media (max-width: 699.98px) {
-  .appbar {
-    top: calc(-1 * (var(--bar-row) + var(--sp-2) + var(--hello-h)));
+/* where the slogan has a line of its own: the whole header stays while the page scrolls (logo to
+   go back up, language and day/night always in reach); only the slogan folds away */
+@media (max-width: 859.98px) {
+  .slogan {
+    transition:
+      height var(--t-mid) var(--ease),
+      opacity var(--t-fast);
+  }
+  .appbar.stuck .slogan {
+    height: 0;
+    opacity: 0;
   }
 }
-/* short screens (phones held sideways): the search field scrolls away too, only categories stay */
+/* short screens (phones held sideways): there is room for the categories only */
 @media (max-height: 520px) {
   .appbar {
-    top: calc(-1 * (var(--bar-row) + var(--hello-h) + var(--h-m) + var(--sp-5)));
+    top: calc(-1 * (var(--bar-row) + var(--h-m) + var(--sp-5)));
   }
   .panel {
     max-height: 94dvh;
