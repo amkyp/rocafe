@@ -66,7 +66,10 @@ const SLOW_FOR = 30000; // ms
 let slowUntil = 0;
 
 async function freshOrSaved(e) {
-  const fresh = fetch(e.request).then((response) => keep(SITE, e.request, response));
+  // no-cache: always checked with the server, so a new page never runs with old scripts
+  const fresh = fetch(e.request, { cache: "no-cache" }).then((response) =>
+    keep(SITE, e.request, response),
+  );
   const saved = await savedCopy(e.request);
   if (!saved) return fresh;
   e.waitUntil(fresh.catch(() => {}));

@@ -1,4 +1,4 @@
-/* Address and contact: the card in the footer and in the info panel, the opening hours, and the
+/* Address and contact: the card in the footer, the opening hours, and the
    cafe's details for search engines. Everything comes from the settings file (data/config.js). */
 import { CONFIG } from "../../data/config.js";
 import { T } from "../../data/strings.js";
@@ -177,6 +177,7 @@ function drawOpenNow() {
   const link = $("openNow");
   link.className = `open-now ${open ? "yes" : "no"}`;
   link.textContent = open ? t().openNow : t().closedNow;
+  link.hidden = false;
   for (const label of document.querySelectorAll("#visitCard .open-now"))
     label.outerHTML = openNowHTML();
 }
