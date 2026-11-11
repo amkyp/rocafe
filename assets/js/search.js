@@ -53,7 +53,8 @@ export function matchedText(it) {
     [it.sub?.[lang], it[lang], ...(it.options || []).map((o) => o[lang])].find(
       (text) => text && norm(text).includes(words),
     );
-  if (norm(it[state.lang]).includes(words)) return "";
+  const shown = [it[state.lang], ...(it.tags || []).map((tag) => t()[`tag_${tag}`])];
+  if (shown.some((text) => norm(text).includes(words))) return ""; // marked where it shows
   for (const lang of [state.lang, otherLang()]) {
     const text = found(lang);
     if (text) return { text, lang };

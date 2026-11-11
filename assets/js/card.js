@@ -1,12 +1,13 @@
 /* The item card: large photos, description, price and quantity, and the items before and after. */
 import { change, inBill, stepperHTML } from "./bill.js";
+import { drawChoices } from "./choices.js";
 import { $ } from "./dom.js";
 import { FILES, pictureHTML } from "./files.js";
 import * as gallery from "./gallery.js";
 import { arrowBack, arrowOn, drawing, icon } from "./icons.js";
-import { findItem, billKey, optionOf, priceOf, pics, sectionOf, setOption } from "./items.js";
+import { findItem, pics, sectionOf } from "./items.js";
 import { visibleIds } from "./menu.js";
-import { optionsHTML, tagsHTML } from "./rows.js";
+import { tagsHTML } from "./rows.js";
 import { openSheet, setSheetAddress, topSheet } from "./sheets.js";
 import { state, t, otherLang, digits, on } from "./state.js";
 import { esc } from "./text.js";
@@ -58,28 +59,35 @@ function neighbourHTML(step) {
   </button>`;
 }
 
-/* ---------- price and quantity ---------- */
+/* ---------- price and quantity ----------
+   An item with options has one line per option instead (assets/js/choices.js). */
+const ORDER_NOTE = () => `<p class="order-note">${t().orderNote}</p>`; // the bill is not an order
+const optionsInBill = (it) => it.options.some((option, i) => inBill(`${it.id}.${i}`));
+
 function buyHTML(it) {
-  const key = billKey(it);
-  const count = inBill(key);
-  const price = `<data class="pr num" value="${priceOf(it) * 1000}">${digits(priceOf(it))} <small>${t().unit}</small></data>`;
-  if (!count) {
-    return `${price}<button type="button" class="btn btn-brand" data-dadd="${key}">${t().add}</button>`;
+  const price = `<data class="pr num" value="${it.price * 1000}">${digits(it.price)} <small>${t().unit}</small></data>`;
+  if (!inBill(it.id)) {
+    return `${price}<button type="button" class="btn btn-brand" data-add="${it.id}">${t().add}</button>`;
   }
-  // in the bill: the quantity, and a reminder that the bill is not an order
-  return `${price}${stepperHTML(key, "lg")}<p class="order-note">${t().orderNote}</p>`;
+  return `${price}${stepperHTML(it.id, "lg")}${ORDER_NOTE()}`;
 }
 
-/* the quantity or the option changed: only the price and quantity area is redrawn */
+/* the bill changed: only the price and quantity area is redrawn */
 function drawBuy() {
   if (!isOpen()) return;
   const it = findItem(shownId);
-  panel.querySelector(".dbuy").innerHTML = buyHTML(it);
-  for (const button of panel.querySelectorAll("[data-dbean]")) {
-    const on = Number(button.dataset.dbean) === optionOf(it);
-    button.classList.toggle("on", on);
-    button.setAttribute("aria-pressed", on);
+  const box = panel.querySelector(".dbuy");
+  if (!it.options) {
+    box.innerHTML = buyHTML(it);
+    return;
   }
+  drawOptions(it);
+}
+
+function drawOptions(it) {
+  const box = panel.querySelector(".dbuy");
+  drawChoices(box.querySelector(".picks"), it);
+  box.querySelector(".order-note").hidden = !optionsInBill(it);
 }
 
 /* ---------- the card ---------- */
@@ -126,8 +134,7 @@ function drawCard() {
       <div class="alt" lang="${otherLang()}">${esc(it[otherLang()])}</div>
       ${tagsHTML(it)}
       ${textHTML(it)}
-      ${it.options ? optionsHTML(it, "data-dbean") : ""}
-      <div class="dbuy">${buyHTML(it)}</div>
+      <div class="dbuy">${it.options ? `<div class="picks" role="group" aria-label="${t().bean}"></div>${ORDER_NOTE()}` : buyHTML(it)}</div>
       <p class="ask">${icon("info")}${t().ask}</p>
       <nav class="dsib" aria-label="${t().moreItems}">${neighbourHTML(-1)}${neighbourHTML(1)}</nav>
     </div></div>`;
@@ -137,6 +144,7 @@ function drawCard() {
     picture.querySelector("img").alt = many ? `${name} (${digits(i + 1)})` : name;
     slide.append(picture);
   });
+  if (it.options) drawOptions(it);
   if (many) gallery.start(panel);
   warm(neighbour(-1));
   warm(neighbour(1));
@@ -200,8 +208,7 @@ panel.addEventListener("click", (e) => {
   if (target("[data-step]")) step(Number(target("[data-step]").dataset.step));
   else if (target("[data-pic]")) gallery.go(Number(target("[data-pic]").dataset.pic));
   else if (target("[data-gal]")) gallery.move(Number(target("[data-gal]").dataset.gal));
-  else if (target("[data-dadd]")) change(target("[data-dadd]").dataset.dadd, 1);
-  else if (target("[data-dbean]")) setOption(shownId, Number(target("[data-dbean]").dataset.dbean));
+  else if (target("[data-add]")) change(target("[data-add]").dataset.add, 1);
 });
 
 /* the arrow keys move between items, following the reading direction; inside the photo strip
@@ -217,4 +224,3 @@ addEventListener("keydown", (e) => {
 on("item:open", open);
 on("item:near", warm);
 on("bill", drawBuy);
-on("option", drawBuy);

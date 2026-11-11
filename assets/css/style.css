@@ -51,8 +51,7 @@
   --fs-xl: 1.5rem; /* 24  totals, item card title */
 
   /* controls: three heights */
-  --h-xs: 36px;
-  --h-s: 40px; /* pills, chips, bean picker, filters, stepper */
+  --h-s: 40px; /* pills, chips, filters, stepper */
   --h-m: 44px; /* search, add button */
   --h-l: 52px; /* primary buttons, bill bar */
 
@@ -334,7 +333,6 @@ picture {
 /* ---------- shared controls ---------- */
 .pill,
 .chip,
-.bean,
 .fbtn {
   height: var(--h-s);
   border-radius: var(--r-pill);
@@ -350,14 +348,12 @@ picture {
     border-color var(--t-fast);
 }
 .pill,
-.bean,
 .fbtn {
   border: 1px solid var(--line);
   padding-inline: var(--sp-5);
 }
 .pill,
 .chip,
-.bean,
 .fbtn,
 .btn {
   min-width: var(--h-s);
@@ -369,7 +365,6 @@ picture {
   color: var(--mute);
 }
 .chip.on,
-.bean.on,
 .fbtn[aria-pressed="true"] {
   background: var(--ink);
   color: var(--bg);
@@ -386,7 +381,6 @@ picture {
   .pill:hover,
   .tool:hover,
   .sheet-close:hover,
-  .bean:not(.on):hover,
   .fbtn:not([aria-pressed="true"]):hover {
     background: var(--soft);
   }
@@ -907,6 +901,11 @@ main.wrap {
   color: inherit;
   border-radius: 3px;
 }
+/* on a tag's own colour the soft mark would not show */
+.tag mark {
+  background: var(--brand);
+  color: var(--brand-ink);
+}
 .tags {
   display: flex;
   gap: var(--sp-2);
@@ -932,34 +931,6 @@ main.wrap {
 .tag.n {
   background: var(--n-bg);
   color: var(--n);
-}
-.beans {
-  display: inline-flex;
-  flex-wrap: wrap; /* with large text the choices take a second line instead of leaving the screen */
-  gap: 2px;
-  padding: 3px;
-  margin-top: var(--sp-4);
-  background: var(--soft);
-  border-radius: calc(var(--h-xs) / 2 + 3px); /* a pill on one line, the same corners on two */
-  max-width: 100%;
-}
-.bean {
-  height: var(--h-xs);
-  border: 0;
-  padding-inline: var(--sp-4);
-  font-size: var(--fs-xs);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.bean.on {
-  background: var(--ink);
-  color: var(--bg);
-}
-@media (hover: hover) {
-  .bean:not(.on):hover {
-    background: var(--line);
-  }
 }
 .empty {
   padding: var(--sp-11) 0;
@@ -1605,9 +1576,6 @@ html:has(dialog.sheet[open]) {
   height: var(--ic-s);
   margin-top: var(--sp-1);
 }
-.dbody .beans {
-  margin-top: var(--sp-5);
-}
 .dbuy {
   display: flex;
   flex-wrap: wrap;
@@ -1622,6 +1590,16 @@ html:has(dialog.sheet[open]) {
 } /* takes the free space, so the button sits at the end */
 .dbuy .btn {
   flex: 0 1 auto;
+}
+/* an item's choices on its card: one bordered line each */
+.picks {
+  flex: 1 0 100%;
+  display: grid;
+  gap: var(--sp-3);
+}
+.picks .pick {
+  border: 1px solid var(--line);
+  border-radius: var(--r-m);
 }
 /* once the item is in the bill: the bill is the guest's own list, not an order */
 .dbuy .order-note {
@@ -1833,9 +1811,6 @@ html:has(dialog.sheet[open]) {
     display: flex;
     flex-direction: column;
   }
-  .dpanel .beans {
-    align-self: flex-start;
-  } /* the choice keeps its own width */
   .dpanel .ask {
     margin-bottom: var(--sp-6);
   }
@@ -1906,11 +1881,6 @@ html:has(dialog.sheet[open]) {
   }
   html {
     scroll-behavior: auto;
-  }
-}
-@media (max-width: 380px) {
-  .bean {
-    padding-inline: var(--sp-3);
   }
 }
 /* an item's choices: a menu at its + button, one line per choice */
@@ -2135,7 +2105,6 @@ html[dir="ltr"] {
     color: CanvasText;
   }
   .chip.on,
-  .bean.on,
   .fbtn[aria-pressed="true"],
   .fchip {
     outline: 3px solid Highlight;

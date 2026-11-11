@@ -3,7 +3,7 @@ import { MENU } from "../../data/menu.js";
 import { inBill, stepperHTML } from "./bill.js";
 import { FILES, pictureHTML } from "./files.js";
 import { drawing } from "./icons.js";
-import { ITEMS, optionOf, pics } from "./items.js";
+import { ITEMS, pics } from "./items.js";
 import { state, t, digits } from "./state.js";
 import { esc } from "./text.js";
 
@@ -16,15 +16,6 @@ export function tagsHTML(it) {
     (tag) => `<span class="tag ${esc(tag)}">${esc(t()[`tag_${tag}`] || tag)}</span>`,
   );
   return `<div class="tags">${tags.join("")}</div>`;
-}
-
-/* an item's option buttons on the item card */
-export function optionsHTML(it, attribute) {
-  const buttons = it.options.map((option, i) => {
-    const on = i === optionOf(it);
-    return `<button type="button" class="bean${on ? " on" : ""}" aria-pressed="${on}" ${attribute}="${i}">${esc(option[state.lang])}</button>`;
-  });
-  return `<div class="beans" role="group" aria-label="${t().bean}">${buttons.join("")}</div>`;
 }
 
 /* A row's way to the bill: a + button, and once the item is in the bill, the quantity control

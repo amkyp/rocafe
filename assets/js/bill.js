@@ -3,7 +3,7 @@
 import { $ } from "./dom.js";
 import { ITEMS } from "./items.js";
 import { openSheet, closeSheet } from "./sheets.js";
-import { state, session, t, digits, money, on, emit } from "./state.js";
+import { state, session, t, digits, amount, money, on, emit } from "./state.js";
 import { esc } from "./text.js";
 
 const SAVED = "ro-bill";
@@ -55,9 +55,9 @@ export function stepperHTML(key, cls = "") {
 function lineHTML(key) {
   const item = ITEMS[key];
   return `<li class="line">
-    <div class="nm">${esc(item[state.lang])}<small class="num">${digits(item.p)} ${t().unit}</small></div>
+    <div class="nm">${esc(item[state.lang])}${bill[key] > 1 ? `<small class="num">${digits(bill[key])} × ${amount(item.p)}</small>` : ""}</div>
     ${stepperHTML(key)}
-    <span class="s num">${digits(bill[key] * item.p)}</span>
+    <span class="s num">${amount(bill[key] * item.p)}</span>
   </li>`;
 }
 

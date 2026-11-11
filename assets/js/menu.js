@@ -2,10 +2,11 @@
    and its taps. */
 import { MENU } from "../../data/menu.js";
 import { change, inBill, isEmpty } from "./bill.js";
+import { drawChoices } from "./choices.js";
 import { $ } from "./dom.js";
 import { ITEMS, findItem } from "./items.js";
 import { closePopup, togglePopup } from "./popup.js";
-import { buyHTML, choicesHTML, menuHTML, optionsLine } from "./rows.js";
+import { buyHTML, menuHTML, optionsLine } from "./rows.js";
 import { matches, marked, matchedText, searchWords } from "./search.js";
 import { state, t, digits, on, emit } from "./state.js";
 import { toast, LONG } from "./toast.js";
@@ -48,6 +49,7 @@ function applySearch() {
       count++;
       if (!remark) continue;
       row.querySelector(".it-name").innerHTML = marked(it[state.lang]);
+      for (const tag of row.querySelectorAll(".tag")) tag.innerHTML = marked(tag.textContent);
       const why = row.querySelector(".why");
       const match = matchedText(it);
       why.innerHTML = match ? marked(match.text) : "";
@@ -78,22 +80,16 @@ function drawBuy(cell) {
 }
 
 /* a row with options: its line of names and counts, and its menu if that is open */
-function drawChoices(row) {
+function drawOptionRow(row) {
   const it = findItem(row.dataset.open);
   row.querySelector(".opts").innerHTML = optionsLine(it);
   const pop = row.querySelector(".pop");
-  if (!pop.open) return;
-  const focused = document.activeElement.closest(".pick")?.firstChild.textContent;
-  pop.innerHTML = choicesHTML(it);
-  const again = [...pop.querySelectorAll(".pick")].find(
-    (p) => p.firstChild.textContent === focused,
-  );
-  (again?.querySelector("[data-inc]") || again)?.focus(); // the keyboard stays on its line
+  if (pop.open) drawChoices(pop, it);
 }
 
 function drawBuys() {
   for (const cell of menu.querySelectorAll(".buy[data-key]")) drawBuy(cell);
-  for (const pop of menu.querySelectorAll(".pop")) drawChoices(pop.closest(".it"));
+  for (const pop of menu.querySelectorAll(".pop")) drawOptionRow(pop.closest(".it"));
 }
 
 /* The bill is the guest's own list, not an order: say so the first time something is added.
@@ -111,7 +107,7 @@ menu.addEventListener("click", (e) => {
   const add = e.target.closest("[data-add]");
   if (choose) {
     const pop = row.querySelector(".pop");
-    pop.innerHTML = choicesHTML(findItem(row.dataset.open));
+    drawChoices(pop, findItem(row.dataset.open));
     togglePopup(pop, choose);
   } else if (add) {
     change(add.dataset.add, 1);

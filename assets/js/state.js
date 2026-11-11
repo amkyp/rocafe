@@ -45,12 +45,13 @@ export function setLang(lang) {
 /* numbers in the language's own digits; prices with its thousands separator (made once, reused) */
 export const digits = (s) => (state.lang === "fa" ? faDigits(s) : String(s));
 const NUMBER = { fa: new Intl.NumberFormat("fa-IR"), en: new Intl.NumberFormat("en-US") };
-export const money = (thousands) => `${NUMBER[state.lang].format(thousands * 1000)} ${t().toman}`;
+/* a price (kept in thousands) as the full amount, and with its unit */
+export const amount = (thousands) => NUMBER[state.lang].format(thousands * 1000);
+export const money = (thousands) => `${amount(thousands)} ${t().toman}`;
 
 /* Parts of the page tell each other what happened instead of calling into each other:
      lang                   the language changed
      bill                   the bill changed
-     option   (item)        an item's option was switched
      search                 the search words or filters changed
      menu:drawn             the menu list was built anew
      filtered ({ total, shown })   the menu now shows these counts (shown: per section id)
