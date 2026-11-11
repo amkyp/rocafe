@@ -1,10 +1,10 @@
 /* The item card: large photos, description, price and quantity, and the items before and after. */
-import { change, inBill } from "./bill.js";
+import { change, inBill, stepperHTML } from "./bill.js";
 import { $ } from "./dom.js";
-import { FILES, imgAttrs } from "./files.js";
+import { FILES, pictureHTML } from "./files.js";
 import * as gallery from "./gallery.js";
-import { arrowBack, arrowOn, drawing } from "./icons.js";
-import { findItem, billKey, priceOf, pics, setOption } from "./items.js";
+import { arrowBack, arrowOn, drawing, icon } from "./icons.js";
+import { findItem, billKey, optionOf, priceOf, pics, sectionOf, setOption } from "./items.js";
 import { visibleIds } from "./menu.js";
 import { optionsHTML, tagsHTML } from "./rows.js";
 import { openSheet, topSheet } from "./sheets.js";
@@ -18,23 +18,17 @@ let shownId = null;
 const isOpen = () => $(SHEET).open;
 
 /* ---------- large photos ----------
-   Each is downloaded once and kept as a ready <img>, so reopening an item (or changing its
+   Each is downloaded once and kept as a ready <picture>, so reopening an item (or changing its
    quantity) shows the photo instantly. */
 const largePhotos = new Map();
 
 function largePhoto(name, lazy = false) {
-  let img = largePhotos.get(name);
-  if (img) return img;
-  const photo = FILES.card(name);
-  img = new Image(photo.side, photo.side); // square: its space is kept before the file arrives
-  img.decoding = "async";
-  img.className = "hi";
-  if (lazy) img.loading = "lazy";
-  img.sizes = photo.sizes;
-  img.srcset = photo.srcset;
-  img.src = photo.src;
-  largePhotos.set(name, img);
-  return img;
+  if (!largePhotos.has(name)) {
+    const holder = document.createElement("div");
+    holder.innerHTML = pictureHTML(FILES.card(name), `class="hi"${lazy ? ' loading="lazy"' : ""}`);
+    largePhotos.set(name, holder.firstElementChild);
+  }
+  return largePhotos.get(name);
 }
 
 /* start downloading an item's first large photo before its card is opened */
@@ -59,7 +53,7 @@ function neighbourHTML(step) {
   const back = step < 0;
   return `<button type="button" class="sib ${back ? "prev" : "next"}" data-step="${step}">
     <span class="sib-ic">${back ? arrowBack() : arrowOn()}</span>
-    <span class="sib-pic">${name ? `<img ${imgAttrs(FILES.neighbour(name))} alt="">` : drawing(it.icon)}</span>
+    <span class="sib-pic">${name ? pictureHTML(FILES.neighbour(name)) : drawing(it.icon)}</span>
     <span class="sib-t"><small>${back ? t().prev : t().next}</small><b>${esc(it[state.lang])}</b></span>
   </button>`;
 }
@@ -73,13 +67,7 @@ function buyHTML(it) {
     return `${price}<button type="button" class="btn btn-brand" data-dadd="${key}">${t().add}</button>`;
   }
   // in the bill: the quantity, and a reminder that the bill is not an order
-  return `${price}
-    <div class="stepper lg">
-      <button type="button" data-dec="${key}" aria-label="−">−</button>
-      <span class="num" aria-live="polite">${digits(count)}</span>
-      <button type="button" data-inc="${key}" aria-label="+">+</button>
-    </div>
-    <p class="order-note">${t().orderNote}</p>`;
+  return `${price}${stepperHTML(key, "lg")}<p class="order-note">${t().orderNote}</p>`;
 }
 
 /* the quantity or the option changed: only the price and quantity area is redrawn */
@@ -88,7 +76,7 @@ function drawBuy() {
   const it = findItem(shownId);
   panel.querySelector(".dbuy").innerHTML = buyHTML(it);
   for (const button of panel.querySelectorAll("[data-dbean]")) {
-    const on = Number(button.dataset.dbean) === it.sel;
+    const on = Number(button.dataset.dbean) === optionOf(it);
     button.classList.toggle("on", on);
     button.setAttribute("aria-pressed", on);
   }
@@ -99,9 +87,9 @@ function photosHTML(names) {
   if (!names.length) return "";
   const many = names.length > 1;
   // the small menu photo shows at once, softened, until the large one has loaded over it
+  // (the same file the menu list already downloaded)
   const slides = names.map(
-    (name) =>
-      `<div class="sl"><img class="lo" src="${FILES.thumb(name).src}" alt="" aria-hidden="true"></div>`,
+    (name) => `<div class="sl">${pictureHTML(FILES.thumb(name), 'class="lo" alt=""')}</div>`,
   );
   const strip = many
     ? `<div class="gal" role="region" tabindex="0" aria-label="${t().photos}">`
@@ -112,7 +100,7 @@ function photosHTML(names) {
 function textHTML(it) {
   const description = it.desc?.[state.lang];
   const sub = it.sub?.[state.lang];
-  if (sub && it.cat.sub === "ingredients") {
+  if (sub && sectionOf(it).sub === "ingredients") {
     return `${description ? `<p class="desc">${esc(description)}</p>` : ""}
       <p class="ingr">${t().ingr}: ${esc(sub)}</p>`;
   }
@@ -130,12 +118,12 @@ function drawCard() {
     <div class="grab" aria-hidden="true"></div>
     <div class="dimg">
       ${photosHTML(names)}
-      <button type="button" class="dclose" data-close aria-label="${t().close}">✕</button>
+      <button type="button" class="dclose" data-close aria-label="${t().close}">${icon("x")}</button>
       ${many ? gallery.arrowsHTML() : ""}
     </div>
     <div class="dbody"><div class="dbin">
       <h2 id="dName" tabindex="-1" autofocus>${esc(name)}</h2>
-      <div class="alt">${esc(it[otherLang()])}</div>
+      <div class="alt" lang="${otherLang()}">${esc(it[otherLang()])}</div>
       ${tagsHTML(it)}
       ${textHTML(it)}
       ${it.options ? optionsHTML(it, "data-dbean") : ""}
@@ -145,9 +133,9 @@ function drawCard() {
     </div></div>`;
 
   panel.querySelectorAll(".sl").forEach((slide, i) => {
-    const img = largePhoto(names[i], i > 0);
-    img.alt = many ? `${name} (${digits(i + 1)})` : name;
-    slide.append(img);
+    const picture = largePhoto(names[i], i > 0);
+    picture.querySelector("img").alt = many ? `${name} (${digits(i + 1)})` : name;
+    slide.append(picture);
   });
   if (many) gallery.start(panel);
   warm(neighbour(-1));

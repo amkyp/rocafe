@@ -48,26 +48,10 @@ const DRAWINGS = {
 export const drawing = (key) =>
   `<svg viewBox="0 0 50 50" aria-hidden="true">${DRAWINGS[key] || DRAWINGS.cup}</svg>`;
 
-/* ---------- Lucide icons (lucide.dev), ISC License, Copyright (c) Lucide Icons and Contributors:
-   map-pin, phone, clock, chevron-right ---------- */
-const LUCIDE = {
-  pin: '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>',
-  phone:
-    '<path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"/>',
-  clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
-  go: '<path d="m9 18 6-6-6-6"/>',
-};
-
-export const icon = (key, cls = "vic") =>
-  `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${LUCIDE[key]}</svg>`;
-/* the pin's outline, drawn over the map with its own colours */
-export const PIN = LUCIDE.pin;
-
-/* ---------- arrows that follow the reading direction ---------- */
-const TO_RIGHT = "M9 6l6 6-6 6";
-const TO_LEFT = "M15 6l-6 6 6 6";
-const arrow = (d) =>
-  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
-/* towards where reading starts (previous) and where it ends (next) */
-export const arrowBack = () => arrow(state.lang === "fa" ? TO_RIGHT : TO_LEFT);
-export const arrowOn = () => arrow(state.lang === "fa" ? TO_LEFT : TO_RIGHT);
+/* ---------- icons ----------
+   Every icon is drawn once, in the sprite at the top of index.html, and shown by name.
+   back / on: arrows that follow the reading direction (previous / next). */
+export const icon = (name, cls = "") =>
+  `<svg class="ic${cls ? ` ${cls}` : ""}" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+export const arrowBack = (cls) => icon(state.lang === "fa" ? "right" : "left", cls);
+export const arrowOn = (cls) => icon(state.lang === "fa" ? "left" : "right", cls);

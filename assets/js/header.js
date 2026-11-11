@@ -1,5 +1,5 @@
 /* The top row: the logo, the theme and language buttons, and every fixed piece of text on the
-   page that follows the language. */
+   page that follows the language (data-t: an element's text; data-label: its spoken name). */
 import { $, scrollStyle } from "./dom.js";
 import { state, store, t, otherLang, setLang } from "./state.js";
 
@@ -25,13 +25,17 @@ function setTheme(theme) {
   showTheme();
 }
 
+/* A choice that differs from the device's own setting is remembered; choosing what the device
+   already uses is not a choice any more, and the page goes back to following the device. */
+const deviceDark = matchMedia("(prefers-color-scheme: dark)");
 themeBtn.addEventListener("click", () => {
   const theme = root.dataset.theme === "dark" ? "light" : "dark";
-  store.set("ro-theme", theme);
+  if (theme === (deviceDark.matches ? "dark" : "light")) store.remove("ro-theme");
+  else store.set("ro-theme", theme);
   setTheme(theme);
 });
 /* follow the device's dark or light setting unless the guest picked one */
-matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+deviceDark.addEventListener("change", (e) => {
   if (!THEMES.includes(store.get("ro-theme"))) setTheme(e.matches ? "dark" : "light");
 });
 
@@ -46,11 +50,21 @@ document.querySelector(".appbar .brand").addEventListener("click", (e) => {
   scrollTo({ top: 0, behavior: scrollStyle() });
 });
 
+/* ---------- "skip to the menu", the first thing the keyboard reaches: moves there without
+   putting #menu in the address (which a later reload would jump back to) ---------- */
+document.querySelector(".skip").addEventListener("click", (e) => {
+  e.preventDefault();
+  $("menu").focus();
+});
+
 export function draw() {
   root.lang = state.lang;
   root.dir = state.lang === "fa" ? "rtl" : "ltr";
   document.title = t().docTitle;
   for (const el of document.querySelectorAll("[data-t]")) el.textContent = t()[el.dataset.t];
+  for (const el of document.querySelectorAll("[data-label]")) {
+    el.setAttribute("aria-label", t()[el.dataset.label]);
+  }
   langBtn.textContent = t().lang;
   langBtn.lang = otherLang();
   langBtn.title = t().langName;

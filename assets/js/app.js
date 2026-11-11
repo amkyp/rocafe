@@ -9,7 +9,7 @@ import * as chips from "./chips.js";
 import * as header from "./header.js";
 import * as menu from "./menu.js";
 import * as search from "./search.js";
-import { on, t } from "./state.js";
+import { on, session, t } from "./state.js";
 import { toast } from "./toast.js";
 import * as visit from "./visit.js";
 
@@ -27,6 +27,17 @@ function drawAll() {
 
 on("lang", drawAll);
 drawAll();
+
+/* A reload (phones reload background tabs) returns to the same place in the menu. The menu is
+   built by script, after the moment a browser restores the scroll position by itself, so the
+   page does it: the position is saved when the page is left and used when it comes back. */
+const PLACE = "ro-place";
+history.scrollRestoration = "manual";
+addEventListener("pagehide", () => session.set(PLACE, String(Math.round(scrollY))));
+const arrival = performance.getEntriesByType("navigation")[0]?.type;
+if (arrival === "reload" || arrival === "back_forward") {
+  scrollTo({ top: Number(session.get(PLACE)) || 0, behavior: "instant" });
+}
 visit.describeForSearchEngines();
 
 /* works offline and from the home screen */

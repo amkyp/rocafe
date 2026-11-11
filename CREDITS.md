@@ -5,7 +5,7 @@ other servers) and keeps its own licence; the LICENSE file does not apply to the
 
 | Part | Files | Source | Licence |
 |---|---|---|---|
-| IBM Plex Sans Arabic 1.101 | `assets/fonts/*.woff2` (400–500 and 600–800 weights, Arabic and Latin subsets) | github.com/IBM/plex | SIL Open Font License 1.1, `assets/fonts/OFL.txt` |
+| IBM Plex Sans Arabic, release 1.1.0 | `assets/fonts/*.woff2` (regular and semibold, Persian/Arabic and Latin letters) | github.com/IBM/plex | SIL Open Font License 1.1, `assets/fonts/OFL.txt` |
 | Lucide icons | drawn in `assets/js/icons.js` | lucide.dev | ISC |
 | Map | `assets/map.webp` (zoom 17 around 36.9009192, 50.6720273) | openstreetmap.org | © OpenStreetMap contributors, ODbL |
 | App icons | `assets/brands/*.webp` | Google Maps, Neshan, Balad, Instagram | trademarks of their owners, shown only to link to them |

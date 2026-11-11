@@ -12,7 +12,6 @@
   --line: #e8e8e3;
   --ink: #141416;
   --mute: #66666d;
-  --on-ink: #ffffff;
   /* over photos and the map: the same in both themes */
   --on-photo: #fff;
   --on-photo-dim: rgb(255 255 255/0.6);
@@ -68,16 +67,38 @@
   --r-l: 24px;
   --r-pill: 999px;
   /* icon sizes: small (inside small buttons and arrows), controls, list rows */
+  --ic-xs: 14px;
   --ic-s: 18px;
   --ic-m: 20px;
   --ic-l: 22px;
+
+  /* spacing: one scale for every gap, padding and margin */
+  --sp-1: 0.125rem; /* 2 */
+  --sp-2: 0.25rem; /* 4 */
+  --sp-3: 0.375rem; /* 6 */
+  --sp-4: 0.5rem; /* 8 */
+  --sp-5: 0.75rem; /* 12 */
+  --sp-6: 1rem; /* 16 */
+  --sp-7: 1.25rem; /* 20 */
+  --sp-8: 1.5rem; /* 24 */
+  --sp-9: 2rem; /* 32 */
+  --sp-10: 2.5rem; /* 40 */
+  --sp-11: 3rem; /* 48 */
+  /* motion: three speeds, one curve (--ease) */
+  --t-fast: 0.15s; /* taps, hovers */
+  --t-mid: 0.2s; /* small things appearing */
+  --t-slow: 0.3s; /* panels, sliding */
+  /* line height: headings and labels, running text, descriptions */
+  --lh-tight: 1.3;
+  --lh-body: 1.6;
+  --lh-loose: 1.75;
 
   /* layout */
   /* page edges: the gutter, or more where a phone's notch or rounded corner needs it */
   --pad-l: max(var(--gut), env(safe-area-inset-left));
   --pad-r: max(var(--gut), env(safe-area-inset-right));
   --billbar-h: calc(var(--h-l) + 1.5rem); /* the bill bar, without the home-bar area below it */
-  --gut: 1.1rem;
+  --gut: var(--sp-6);
   --maxw: 1080px;
   --bar-row: 52px;
   /* photo and panel sizes, in px: files.js reads these to ask for photos of the right size */
@@ -88,7 +109,6 @@
   /* the item card with its photo on top: height to width. The photo is square, so the details
      get the rest (.7 of the width) */
   --card-shape: 1.7;
-  --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.08), 0 6px 16px -10px rgba(0, 0, 0, 0.25);
   --shadow-2: 0 18px 48px -16px rgba(0, 0, 0, 0.35);
   --shadow-control: 0 2px 8px rgb(0 0 0/0.15); /* round buttons over photos */
   --shadow-header: 0 6px 18px -14px rgb(0 0 0/0.35);
@@ -104,7 +124,6 @@ html[data-theme="dark"] {
   --line: #2d2d33;
   --ink: #f1f1ee;
   --mute: #a1a1a9;
-  --on-ink: #141416;
   --brand-soft: #4a3d12;
   --mark: #000;
   --ok-bg: #1d2e1b;
@@ -131,38 +150,46 @@ html[data-theme="dark"] {
 }
 
 /* ---------- base ---------- */
-/* IBM Plex Sans Arabic (SIL Open Font License), subset to the characters this site uses */
+/* IBM Plex Sans Arabic (SIL Open Font License), regular and semibold: the only two weights the
+   site uses. Each is split into Persian/Arabic and Latin letters (made by the font preparation
+   script), so the browser downloads only what a page shows. */
 @font-face {
   font-family: "RoPlex";
   font-style: normal;
-  font-weight: 400 500;
+  font-weight: 400;
   font-display: swap;
-  src: url(../fonts/plex-arabic-400-500.woff2) format("woff2");
-  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF;
+  src: url(../fonts/plex-arabic-400.woff2) format("woff2");
+  unicode-range:
+    U+060C, U+061B, U+061F, U+0621-063A, U+0640-0655, U+0660-066C, U+0670, U+067E, U+0686, U+0698,
+    U+06A9, U+06AF, U+06BE, U+06C0-06C3, U+06CC, U+06D5, U+06F0-06F9;
 }
 @font-face {
   font-family: "RoPlex";
   font-style: normal;
-  font-weight: 400 500;
+  font-weight: 400;
   font-display: swap;
-  src: url(../fonts/plex-latin-400-500.woff2) format("woff2");
-  unicode-range: U+0000-00FF, U+2000-206F, U+20AC, U+2212, U+00D7, U+2715;
+  src: url(../fonts/plex-latin-400.woff2) format("woff2");
+  unicode-range:
+    U+0020-007E, U+00A0-00FF, U+2013-2014, U+2018-201A, U+201C-201D, U+2022, U+2026, U+2212;
 }
 @font-face {
   font-family: "RoPlex";
   font-style: normal;
-  font-weight: 600 800;
+  font-weight: 600;
   font-display: swap;
-  src: url(../fonts/plex-arabic-600-800.woff2) format("woff2");
-  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF;
+  src: url(../fonts/plex-arabic-600.woff2) format("woff2");
+  unicode-range:
+    U+060C, U+061B, U+061F, U+0621-063A, U+0640-0655, U+0660-066C, U+0670, U+067E, U+0686, U+0698,
+    U+06A9, U+06AF, U+06BE, U+06C0-06C3, U+06CC, U+06D5, U+06F0-06F9;
 }
 @font-face {
   font-family: "RoPlex";
   font-style: normal;
-  font-weight: 600 800;
+  font-weight: 600;
   font-display: swap;
-  src: url(../fonts/plex-latin-600-800.woff2) format("woff2");
-  unicode-range: U+0000-00FF, U+2000-206F, U+20AC, U+2212, U+00D7, U+2715;
+  src: url(../fonts/plex-latin-600.woff2) format("woff2");
+  unicode-range:
+    U+0020-007E, U+00A0-00FF, U+2013-2014, U+2018-201A, U+201C-201D, U+2022, U+2026, U+2212;
 }
 
 *,
@@ -182,7 +209,7 @@ html {
 body {
   font-family: "RoPlex", Tahoma, system-ui, sans-serif;
   font-size: var(--fs-md);
-  line-height: 1.6;
+  line-height: var(--lh-body);
   background: var(--bg);
   color: var(--ink);
   -webkit-tap-highlight-color: transparent;
@@ -196,6 +223,14 @@ button {
 }
 a {
   color: inherit;
+}
+/* the font has two weights: regular, and semibold for everything emphasised */
+b,
+strong,
+h1,
+h2,
+h3 {
+  font-weight: 600;
 }
 img {
   max-width: 100%;
@@ -215,6 +250,40 @@ img {
 }
 .defs {
   position: absolute;
+}
+/* icons: drawn in the sprite in index.html, in the colour of the text around them */
+.ic {
+  width: var(--ic-m);
+  height: var(--ic-m);
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* a photo's <picture> wrapper takes no box of its own: the <img> is laid out in its place */
+picture {
+  display: contents;
+}
+/* first thing the keyboard reaches: jumps past the header to the menu; shown only when focused */
+.skip {
+  position: absolute;
+  inset-block-start: var(--sp-4);
+  inset-inline-start: var(--sp-4);
+  z-index: 70;
+  padding: var(--sp-4) var(--sp-6);
+  border-radius: var(--r-s);
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 600;
+  transform: translateY(-200%);
+}
+.skip:focus {
+  transform: none;
+}
+#menu:focus {
+  outline: none;
 }
 /* each section colours its photo placeholders (set from data-tint, no inline styles) */
 .sec[data-tint="coffee"] {
@@ -272,19 +341,19 @@ img {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
+  gap: var(--sp-3);
   white-space: nowrap;
   font-size: var(--fs-sm);
   transition:
-    background 0.15s,
-    color 0.15s,
-    border-color 0.15s;
+    background var(--t-fast),
+    color var(--t-fast),
+    border-color var(--t-fast);
 }
 .pill,
 .bean,
 .fbtn {
   border: 1px solid var(--line);
-  padding-inline: 0.85rem;
+  padding-inline: var(--sp-5);
 }
 .pill,
 .chip,
@@ -303,7 +372,7 @@ img {
   height: var(--ic-m);
 }
 .chip {
-  padding-inline: 1rem;
+  padding-inline: var(--sp-6);
   color: var(--mute);
 }
 .chip.on,
@@ -336,7 +405,7 @@ img {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 1.2rem;
+  padding: 0 var(--sp-7);
 }
 .btn-dark {
   background: var(--ink);
@@ -357,7 +426,7 @@ img {
 .stepper {
   display: inline-flex;
   align-items: center;
-  height: var(--h-s);
+  height: var(--h-m);
   border: 1px solid var(--line);
   border-radius: var(--r-s);
 }
@@ -396,8 +465,8 @@ html[data-theme="dark"] .pill .moon {
   background: var(--bg);
   border-bottom: 1px solid transparent;
   transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
+    border-color var(--t-mid),
+    box-shadow var(--t-mid);
 }
 .appbar.stuck {
   border-color: var(--line);
@@ -409,9 +478,9 @@ html[data-theme="dark"] .pill .moon {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.6rem;
+  gap: var(--sp-4);
   min-height: var(--bar-row);
-  margin-top: 0.25rem;
+  margin-top: var(--sp-2);
 }
 /* the name never gets squeezed: with very large text the buttons move to a second row instead */
 .bar-row .brand {
@@ -421,14 +490,14 @@ html[data-theme="dark"] .pill .moon {
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: var(--sp-4);
   min-width: 0;
   text-decoration: none;
 }
 .brand b {
   font-size: var(--fs-md);
   font-weight: 600;
-  line-height: 1.2;
+  line-height: var(--lh-tight);
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -446,7 +515,7 @@ html[data-theme="dark"] .pill .moon {
 }
 .top-actions {
   display: flex;
-  gap: 0.35rem;
+  gap: var(--sp-3);
 }
 .fdot {
   position: absolute;
@@ -470,18 +539,18 @@ html[data-theme="dark"] .pill .moon {
   border: 1px solid var(--line);
   border-radius: var(--r-m);
   box-shadow: var(--shadow-2);
-  animation: fade 0.15s;
+  animation: fade var(--t-fast);
 }
 .filters {
   display: flex;
-  gap: 0.4rem;
+  gap: var(--sp-3);
   flex-wrap: wrap;
-  padding: 0.6rem;
+  padding: var(--sp-4);
 }
 .search {
   position: relative;
   display: block;
-  margin-top: 0.5rem;
+  margin-top: var(--sp-4);
 }
 .search input {
   width: 100%;
@@ -489,7 +558,7 @@ html[data-theme="dark"] .pill .moon {
   border-radius: var(--r-m);
   border: 1px solid var(--line);
   background: var(--soft);
-  padding-inline: 2.75rem calc(2 * var(--h-s) + 0.35rem);
+  padding-inline: var(--sp-10) calc(2 * var(--h-s) + var(--sp-3));
   font: inherit;
   font-size: var(--fs-md);
   color: var(--ink);
@@ -503,7 +572,7 @@ html[data-theme="dark"] .pill .moon {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  inset-inline-start: 0.95rem;
+  inset-inline-start: var(--sp-6);
   width: var(--ic-m);
   height: var(--ic-m);
   color: var(--mute);
@@ -513,7 +582,7 @@ html[data-theme="dark"] .pill .moon {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  inset-inline-end: calc(var(--h-s) + 0.15rem);
+  inset-inline-end: calc(var(--h-s) + var(--sp-1));
   width: var(--h-s);
   height: var(--h-s);
   border-radius: 50%;
@@ -528,7 +597,7 @@ html[data-theme="dark"] .pill .moon {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  inset-inline-end: 0.15rem;
+  inset-inline-end: var(--sp-1);
   width: var(--h-s);
   height: var(--h-s);
   border-radius: var(--r-s);
@@ -536,8 +605,8 @@ html[data-theme="dark"] .pill .moon {
   place-items: center;
   color: var(--ink);
   transition:
-    background-color 0.15s,
-    color 0.15s;
+    background-color var(--t-fast),
+    color var(--t-fast);
 }
 .fbtn-in svg {
   width: var(--ic-m);
@@ -557,8 +626,8 @@ html[data-theme="dark"] .pill .moon {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.4rem;
-  padding-top: 0.5rem;
+  gap: var(--sp-3);
+  padding-top: var(--sp-4);
   font-size: var(--fs-sm);
   color: var(--mute);
 }
@@ -566,8 +635,8 @@ html[data-theme="dark"] .pill .moon {
   height: var(--h-s);
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding-inline: 0.85rem 0.7rem;
+  gap: var(--sp-4);
+  padding-inline: var(--sp-5) var(--sp-5);
   border-radius: var(--r-pill);
   background: var(--ink);
   color: var(--bg);
@@ -575,9 +644,14 @@ html[data-theme="dark"] .pill .moon {
   font-weight: 600;
   white-space: nowrap;
 }
-.fchip span {
-  font-size: var(--fs-xs);
+.fchip .ic {
+  width: var(--ic-xs);
+  height: var(--ic-xs);
   opacity: 0.75;
+}
+.search .clear .ic {
+  width: var(--ic-s);
+  height: var(--ic-s);
 }
 .fchip:focus-visible {
   outline: 2px solid var(--ink);
@@ -585,12 +659,12 @@ html[data-theme="dark"] .pill .moon {
 }
 .chips {
   display: flex;
-  gap: 0.35rem;
+  gap: var(--sp-3);
   overflow-x: auto;
   scrollbar-width: none;
   max-width: var(--maxw);
   margin-inline: auto;
-  padding: 0.5rem var(--pad-r) 0.5rem var(--pad-l);
+  padding: var(--sp-4) var(--pad-r) var(--sp-4) var(--pad-l);
   min-height: calc(var(--h-s) + 1rem);
   scroll-padding-inline: var(--gut);
 }
@@ -609,33 +683,33 @@ html[data-theme="dark"] .pill .moon {
 
 /* ---------- menu ---------- */
 main.wrap {
-  padding-top: 0.25rem;
+  padding-top: var(--sp-2);
   min-height: 60vh;
 }
 .sec {
-  padding-top: 2.5rem;
+  padding-top: var(--sp-10);
 }
 .sec:first-of-type {
-  padding-top: 0.75rem;
+  padding-top: var(--sp-5);
 }
 .unit-note {
-  padding-top: 0.9rem;
+  padding-top: var(--sp-6);
   font-size: var(--fs-xs);
   color: var(--mute);
 }
 .sec-h {
-  margin-bottom: 0.35rem;
+  margin-bottom: var(--sp-3);
 }
 .sec-h h2 {
   font-size: var(--fs-xl);
-  font-weight: 800;
-  line-height: 1.3;
+  font-weight: 600;
+  line-height: var(--lh-tight);
 }
 .site-foot h2,
 .sheet-title {
   font-size: var(--fs-lg);
-  font-weight: 700;
-  line-height: 1.35;
+  font-weight: 600;
+  line-height: var(--lh-tight);
 }
 /* where a panel or menu opens, focus lands on its start (autofocus, so screen readers begin there); not a control, no ring */
 [autofocus][tabindex="-1"]:focus {
@@ -644,26 +718,26 @@ main.wrap {
 .grid {
   display: grid;
   grid-template-columns: 1fr;
-  column-gap: 2rem;
+  column-gap: var(--sp-9);
 }
 .it {
   display: grid;
   grid-template-columns: var(--thumb) minmax(0, 1fr) auto;
-  gap: 0.9rem;
+  gap: var(--sp-6);
   align-items: center;
-  padding: 0.75rem 0.5rem;
-  margin-inline: -0.5rem;
+  padding: var(--sp-5) var(--sp-4);
+  margin-inline: calc(var(--sp-4) * -1);
   position: relative;
   border-radius: var(--r-m);
   cursor: pointer;
   transition:
-    background 0.15s,
-    transform 0.12s;
+    background var(--t-fast),
+    transform var(--t-fast);
 }
 .it::after {
   content: "";
   position: absolute;
-  inset-inline: 0.5rem;
+  inset-inline: var(--sp-4);
   bottom: 0;
   height: 1px;
   background: var(--line);
@@ -695,7 +769,7 @@ main.wrap {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.35s ease;
+  transition: transform var(--t-slow) var(--ease);
 }
 .pic svg {
   width: 50%;
@@ -713,7 +787,7 @@ main.wrap {
 .info h3 {
   font-size: var(--fs-md);
   font-weight: 600;
-  line-height: 1.5; /* 24px: the name is a tap target */
+  line-height: var(--lh-body); /* 24px: the name is a tap target */
   overflow-wrap: anywhere;
 }
 /* the name is the row's button; its invisible layer covers the whole row, so a tap anywhere opens the card */
@@ -740,7 +814,8 @@ main.wrap {
 .it-name:focus-visible::before {
   box-shadow: inset 0 0 0 2.5px var(--ink);
 }
-.it .add,
+/* the row's own buttons sit above that layer */
+.it .buy,
 .it .beans {
   position: relative;
   z-index: 1;
@@ -748,12 +823,12 @@ main.wrap {
 .info p {
   font-size: var(--fs-xs);
   color: var(--mute);
-  line-height: 1.55;
-  margin-top: 0.1rem;
+  line-height: var(--lh-body);
+  margin-top: var(--sp-1);
 }
 .price {
   display: block;
-  margin-top: 0.25rem;
+  margin-top: var(--sp-2);
   font-size: var(--fs-md);
   font-weight: 600;
 }
@@ -775,9 +850,9 @@ main.wrap {
   font-weight: 400;
   line-height: 1;
   transition:
-    background 0.15s,
-    transform 0.1s,
-    color 0.15s;
+    background var(--t-fast),
+    transform var(--t-fast),
+    color var(--t-fast);
 }
 .add:active {
   transform: scale(0.92);
@@ -786,16 +861,9 @@ main.wrap {
   .add:hover {
     background: var(--line);
   }
-  .it:hover .add:not(.has) {
+  .it:hover .add {
     background: var(--bg);
   }
-}
-.add.has {
-  background: var(--brand);
-  color: var(--brand-ink);
-  font-size: var(--fs-md);
-  font-weight: 700;
-  animation: pop 0.25s var(--ease);
 }
 @keyframes pop {
   50% {
@@ -803,7 +871,7 @@ main.wrap {
   }
 }
 .billbar .c {
-  animation: pop 0.3s var(--ease) both;
+  animation: pop var(--t-slow) var(--ease) both;
 } /* replayed by bill.js when the count changes ("both" keeps it replayable) */
 .it mark {
   background: var(--brand-soft);
@@ -812,15 +880,15 @@ main.wrap {
 }
 .tags {
   display: flex;
-  gap: 0.25rem;
+  gap: var(--sp-2);
   flex-wrap: wrap;
-  margin-top: 0.3rem;
+  margin-top: var(--sp-2);
 }
 .tag {
   font-size: var(--fs-xs);
   font-weight: 600;
-  line-height: 1.6;
-  padding: 0 0.45rem;
+  line-height: var(--lh-body);
+  padding: 0 var(--sp-4);
   border-radius: var(--r-xs);
   max-width: 100%;
 }
@@ -842,7 +910,7 @@ main.wrap {
   grid-auto-columns: auto;
   gap: 2px;
   padding: 3px;
-  margin-top: 0.45rem;
+  margin-top: var(--sp-4);
   background: var(--soft);
   border-radius: var(--r-pill);
   max-width: 100%;
@@ -850,7 +918,7 @@ main.wrap {
 .bean {
   height: var(--h-xs);
   border: 0;
-  padding-inline: 0.55rem;
+  padding-inline: var(--sp-4);
   font-size: var(--fs-xs);
   min-width: 0;
   overflow: hidden;
@@ -866,13 +934,13 @@ main.wrap {
   }
 }
 .empty {
-  padding: 3rem 0;
+  padding: var(--sp-11) 0;
   text-align: center;
   color: var(--mute);
 }
 /* shown while the menu's scripts load, or if they cannot run */
 .loading {
-  padding: 3rem 0;
+  padding: var(--sp-11) 0;
   text-align: center;
   color: var(--mute);
 }
@@ -883,21 +951,21 @@ main.wrap {
   display: block;
   color: var(--ink);
   font-size: var(--fs-md);
-  margin-bottom: 0.25rem;
+  margin-bottom: var(--sp-2);
 }
 
 /* ---------- footer ---------- */
 .site-foot {
-  margin-top: 3rem;
+  margin-top: var(--sp-11);
   background: var(--soft);
   border-top: 1px solid var(--line);
-  padding: 2rem 0 calc(2rem + env(safe-area-inset-bottom));
+  padding: var(--sp-9) 0 calc(var(--sp-9) + env(safe-area-inset-bottom));
 }
 html:has(.billbar.up) .site-foot {
-  padding-bottom: calc(var(--billbar-h) + 1.5rem + env(safe-area-inset-bottom));
+  padding-bottom: calc(var(--billbar-h) + var(--sp-8) + env(safe-area-inset-bottom));
 }
 .site-foot h2 {
-  margin-bottom: 1rem;
+  margin-bottom: var(--sp-6);
 }
 .card {
   background: var(--surface);
@@ -910,7 +978,7 @@ html:has(.billbar.up) .site-foot {
 /* visit card: one grouped list, every row the same shape */
 .visit {
   font-style: normal;
-  padding: 0 1rem;
+  padding: 0 var(--sp-6);
   container: visit/inline-size;
 }
 /* one spacing scale for the card: rows .875rem top and bottom, icon to text .75rem,
@@ -919,8 +987,8 @@ html:has(.billbar.up) .site-foot {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.875rem 0;
+  gap: var(--sp-5);
+  padding: var(--sp-5) 0;
   text-decoration: none;
   color: inherit;
 }
@@ -929,13 +997,13 @@ html:has(.billbar.up) .site-foot {
   border-top: 1px solid var(--line);
 }
 .vaddr {
-  padding-bottom: 0.75rem;
+  padding-bottom: var(--sp-5);
 }
 .vmapbox {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  padding-bottom: 0.875rem;
+  gap: var(--sp-4);
+  padding-bottom: var(--sp-5);
 }
 @container visit (width >= 40rem) {
   /* wide card: all the text in one column, the map and its buttons in the other; the last row
@@ -944,8 +1012,8 @@ html:has(.billbar.up) .site-foot {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
     grid-template-rows: repeat(4, auto) 1fr;
-    column-gap: 2.5rem;
-    padding-inline: 0.5rem;
+    column-gap: var(--sp-10);
+    padding-inline: var(--sp-4);
   } /* 1.5rem from the card edge in all */
   .vlist > * {
     grid-column: 1;
@@ -953,10 +1021,10 @@ html:has(.billbar.up) .site-foot {
   .vlist > .vmapbox {
     grid-column: 2;
     grid-row: 1 / -1;
-    padding-top: 0.875rem;
+    padding-top: var(--sp-5);
   }
   .vaddr {
-    padding-bottom: 0.875rem;
+    padding-bottom: var(--sp-5);
   }
   .vmapbox + .vrow {
     border-top: 1px solid var(--line);
@@ -966,7 +1034,7 @@ html:has(.billbar.up) .site-foot {
   flex: none;
   width: var(--ic-l);
   height: var(--ic-l);
-  margin-top: 0.15rem;
+  margin-top: var(--sp-1);
   color: var(--mute);
 }
 .vtx {
@@ -974,8 +1042,26 @@ html:has(.billbar.up) .site-foot {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: var(--sp-1);
   overflow-wrap: anywhere;
+}
+/* open or closed at this moment */
+.open-now {
+  align-self: flex-start;
+  margin-top: var(--sp-2);
+  padding: 0 var(--sp-4);
+  border-radius: var(--r-xs);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  line-height: var(--lh-body);
+}
+.open-now.yes {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+.open-now.no {
+  background: var(--no-bg);
+  color: var(--no);
 }
 .vtx small {
   color: var(--mute);
@@ -1024,7 +1110,7 @@ html:has(.billbar.up) .site-foot {
 }
 a.vmap {
   display: block;
-  transition: opacity 0.15s;
+  transition: opacity var(--t-fast);
 }
 a.vmap:active {
   opacity: 0.85;
@@ -1042,25 +1128,23 @@ a.vmap:focus-visible {
   transform: translate(-50%, -94%);
   fill: var(--brand);
   stroke: var(--on-photo-ink);
+  stroke-width: 1.5;
   filter: var(--shadow-pin);
 }
 .osm {
   position: absolute;
   right: 0;
   bottom: 0;
-  padding: 0.1rem 0.4rem;
+  padding: var(--sp-1) var(--sp-3);
   border-top-left-radius: var(--r-s);
   background: var(--credit-bg);
   color: var(--credit-ink);
   font-size: var(--fs-xs);
-  line-height: 1.5;
+  line-height: var(--lh-body);
   pointer-events: none;
 }
-[dir="rtl"] .vgo {
-  transform: scaleX(-1);
-}
 a.vrow {
-  transition: opacity 0.15s;
+  transition: opacity var(--t-fast);
 }
 a.vrow:active {
   opacity: 0.6;
@@ -1077,7 +1161,7 @@ a.vrow:focus-visible {
   grid-auto-flow: column;
   grid-auto-columns: minmax(0, 1fr);
   grid-template-columns: minmax(0, 1fr);
-  gap: 0.5rem;
+  gap: var(--sp-4);
 }
 @container visit (width < 15rem) {
   .vdir {
@@ -1092,10 +1176,10 @@ a.vrow:focus-visible {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.3rem;
+  gap: var(--sp-2);
   min-height: var(--h-s);
-  padding: 0.55rem 0.4rem;
-  line-height: 1.25;
+  padding: var(--sp-4) var(--sp-3);
+  line-height: var(--lh-tight);
   border: 1px solid var(--line);
   border-radius: var(--r-s);
   background: var(--surface);
@@ -1105,8 +1189,8 @@ a.vrow:focus-visible {
   text-decoration: none;
   color: var(--ink);
   transition:
-    background-color 0.15s,
-    transform 0.12s var(--ease);
+    background-color var(--t-fast),
+    transform var(--t-fast) var(--ease);
 }
 .mapgo:active {
   transform: scale(0.96);
@@ -1122,27 +1206,27 @@ a.vrow:focus-visible {
 /* opening hours that differ by day */
 .vdays {
   display: grid;
-  gap: 0.2rem;
-  margin-top: 0.15rem;
+  gap: var(--sp-2);
+  margin-top: var(--sp-1);
   font-weight: 400;
 }
 .vdays > span {
   display: flex;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--sp-6);
 }
 .vdays .today {
-  font-weight: 700;
+  font-weight: 600;
 }
 .foot-end {
-  margin-top: 2rem;
+  margin-top: var(--sp-9);
   text-align: center;
 }
 .slogan {
   font-size: var(--fs-md);
 }
 .copy {
-  margin-top: 0.25rem;
+  margin-top: var(--sp-2);
   color: var(--mute);
   font-size: var(--fs-xs);
 }
@@ -1153,19 +1237,19 @@ a.vrow:focus-visible {
   inset-inline: 0;
   bottom: 0;
   z-index: 30;
-  padding: 0.75rem var(--pad-r) calc(0.75rem + env(safe-area-inset-bottom)) var(--pad-l);
+  padding: var(--sp-5) var(--pad-r) calc(var(--sp-5) + env(safe-area-inset-bottom)) var(--pad-l);
   transform: translateY(120%);
   visibility: hidden;
   transition:
-    transform 0.3s var(--ease),
-    visibility 0s linear 0.3s;
+    transform var(--t-slow) var(--ease),
+    visibility 0s linear var(--t-slow);
   pointer-events: none;
 }
 .billbar.up {
   transform: none;
   visibility: visible;
   transition:
-    transform 0.3s var(--ease),
+    transform var(--t-slow) var(--ease),
     visibility 0s;
 }
 .billbar button {
@@ -1176,11 +1260,11 @@ a.vrow:focus-visible {
   height: var(--h-l);
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: var(--sp-5);
   background: var(--ink);
   color: var(--bg);
   border-radius: var(--r-m);
-  padding-inline: 1rem;
+  padding-inline: var(--sp-6);
   box-shadow: var(--shadow-2);
 }
 .billbar .c {
@@ -1191,7 +1275,7 @@ a.vrow:focus-visible {
   border-radius: var(--r-xs);
   display: grid;
   place-items: center;
-  font-weight: 700;
+  font-weight: 600;
   font-size: var(--fs-sm);
 }
 .billbar [data-t="bill"] {
@@ -1224,7 +1308,7 @@ a.vrow:focus-visible {
 }
 .sheet::backdrop {
   background: var(--scrim);
-  animation: fade 0.2s;
+  animation: fade var(--t-mid);
 }
 html:has(dialog.sheet[open]) {
   overflow: hidden;
@@ -1243,8 +1327,8 @@ html:has(dialog.sheet[open]) {
   overscroll-behavior: contain;
   background: var(--surface);
   border-radius: var(--r-l) var(--r-l) 0 0;
-  padding: 0.5rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
-  animation: up 0.28s var(--ease);
+  padding: var(--sp-4) var(--sp-7) calc(var(--sp-7) + env(safe-area-inset-bottom));
+  animation: up var(--t-slow) var(--ease);
   touch-action: pan-y;
 }
 .panel.dragging {
@@ -1256,21 +1340,21 @@ html:has(dialog.sheet[open]) {
   height: 5px;
   border-radius: var(--r-pill);
   background: var(--line);
-  margin: 0.2rem auto 0.9rem;
+  margin: var(--sp-2) auto var(--sp-6);
 }
 .sheet-title {
-  margin-bottom: 0.15rem;
+  margin-bottom: var(--sp-1);
 }
 .panel .sub {
   color: var(--mute);
   font-size: var(--fs-sm);
-  margin-bottom: 0.9rem;
+  margin-bottom: var(--sp-6);
 }
 .acts {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1.25rem;
+  gap: var(--sp-4);
+  margin-top: var(--sp-7);
 }
 .acts .btn {
   flex: 1 1 0%;
@@ -1279,7 +1363,7 @@ html:has(dialog.sheet[open]) {
 .note {
   font-size: var(--fs-xs);
   color: var(--mute);
-  margin-top: 0.9rem;
+  margin-top: var(--sp-6);
   text-align: center;
 }
 @keyframes up {
@@ -1298,9 +1382,9 @@ html:has(dialog.sheet[open]) {
 .line {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.8rem;
+  gap: var(--sp-5);
   align-items: center;
-  padding: 0.65rem 0;
+  padding: var(--sp-5) 0;
   border-bottom: 1px solid var(--line);
 }
 .line .nm {
@@ -1325,9 +1409,9 @@ html:has(dialog.sheet[open]) {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  margin-top: 1rem;
-  padding: 0.75rem 1rem;
+  gap: var(--sp-6);
+  margin-top: var(--sp-6);
+  padding: var(--sp-5) var(--sp-6);
   background: var(--soft);
   border-radius: var(--r-m);
 }
@@ -1335,7 +1419,7 @@ html:has(dialog.sheet[open]) {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding: 1rem 0 0.2rem;
+  padding: var(--sp-6) 0 var(--sp-2);
 }
 .tot b {
   font-size: var(--fs-xl);
@@ -1352,11 +1436,11 @@ html:has(dialog.sheet[open]) {
 
 /* item card */
 .panel.dpanel {
-  padding: 0 0 calc(1.25rem + env(safe-area-inset-bottom));
+  padding: 0 0 calc(var(--sp-7) + env(safe-area-inset-bottom));
 }
 .dpanel .grab {
   position: absolute;
-  top: 0.4rem;
+  top: var(--sp-3);
   left: 50%;
   transform: translateX(-50%);
   z-index: 2;
@@ -1405,7 +1489,7 @@ html:has(dialog.sheet[open]) {
 }
 .gdots {
   position: absolute;
-  bottom: 0.55rem;
+  bottom: var(--sp-4);
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -1426,8 +1510,8 @@ html:has(dialog.sheet[open]) {
   border-radius: 3px;
   background: var(--on-photo-dim);
   transition:
-    width 0.2s var(--ease),
-    background-color 0.2s;
+    width var(--t-mid) var(--ease),
+    background-color var(--t-mid);
 }
 .gdots button[aria-current]::after {
   width: 16px;
@@ -1435,20 +1519,19 @@ html:has(dialog.sheet[open]) {
 }
 .dclose {
   position: absolute;
-  top: 0.75rem;
-  inset-inline-end: 0.75rem;
-  width: var(--h-s);
-  height: var(--h-s);
+  top: var(--sp-5);
+  inset-inline-end: var(--sp-5);
+  width: var(--h-m);
+  height: var(--h-m);
   border-radius: 50%;
   background: var(--on-photo-bg);
   color: var(--on-photo-ink);
-  font-size: 1rem;
   display: grid;
   place-items: center;
   box-shadow: var(--shadow-control);
 }
 .dbody {
-  padding: 1.1rem 1.25rem 0;
+  padding: var(--sp-6) var(--sp-7) 0;
   overflow: hidden;
 }
 .dbin {
@@ -1459,40 +1542,40 @@ html:has(dialog.sheet[open]) {
 }
 .dbody h2 {
   font-size: var(--fs-xl);
-  font-weight: 700;
-  line-height: 1.35;
+  font-weight: 600;
+  line-height: var(--lh-tight);
 }
 .dbody .alt {
   color: var(--mute);
   font-size: var(--fs-sm);
 }
 .dbody .desc {
-  margin-top: 0.7rem;
-  line-height: 1.75;
+  margin-top: var(--sp-5);
+  line-height: var(--lh-loose);
 }
 .dbody .ingr {
-  margin-top: 0.5rem;
+  margin-top: var(--sp-4);
   font-size: var(--fs-sm);
   color: var(--mute);
 }
 .dbody .ask {
-  margin-top: 0.9rem;
+  margin-top: var(--sp-6);
   font-size: var(--fs-xs);
   color: var(--mute);
 }
 .dbody .beans {
-  margin-top: 0.8rem;
+  margin-top: var(--sp-5);
 }
 .dbuy {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.8rem;
-  margin-top: 1.25rem;
+  gap: var(--sp-5);
+  margin-top: var(--sp-7);
 }
 .dbuy .pr {
   font-size: var(--fs-xl);
-  font-weight: 700;
+  font-weight: 600;
   flex: 1 1 auto;
 } /* takes the free space, so the button sits at the end */
 .dbuy .btn {
@@ -1514,13 +1597,13 @@ html:has(dialog.sheet[open]) {
   max-width: calc(100vw - 2rem);
   background: var(--ink);
   color: var(--bg);
-  padding: 0.55rem 1rem;
+  padding: var(--sp-4) var(--sp-6);
   border-radius: var(--r-s);
   font-size: var(--fs-sm);
   z-index: 60;
   opacity: 0;
   visibility: hidden;
-  transition: 0.2s;
+  transition: var(--t-mid);
   width: max-content;
   text-align: center;
 }
@@ -1531,25 +1614,30 @@ html:has(dialog.sheet[open]) {
 }
 
 /* ---------- responsive ---------- */
-@media (max-width: 380px) {
+/* the narrowest phones (320px): slightly smaller controls, so a row still fits */
+@media (max-width: 340px) {
   :root {
-    --gut: 0.8rem;
-    --thumb: 72px;
     --h-xs: 32px;
     --h-s: 36px;
     --h-m: 40px;
   }
+}
+@media (max-width: 380px) {
+  :root {
+    --gut: var(--sp-5);
+    --thumb: 72px;
+  }
   .it {
-    gap: 0.7rem;
+    gap: var(--sp-5);
   }
   .top-actions {
-    gap: 0.2rem;
+    gap: var(--sp-2);
   }
   .panel {
-    padding-inline: 1rem;
+    padding-inline: var(--sp-6);
   }
   .dbody {
-    padding-inline: 1rem;
+    padding-inline: var(--sp-6);
   }
 }
 @media (min-width: 700px) {
@@ -1562,7 +1650,7 @@ html:has(dialog.sheet[open]) {
     bottom: 50%;
     transform: translateY(50%);
     border-radius: var(--r-l);
-    animation: fade 0.2s;
+    animation: fade var(--t-mid);
   }
   .panel .grab {
     display: none;
@@ -1604,7 +1692,7 @@ html:has(dialog.sheet[open]) {
     align-self: flex-start;
   } /* the choice keeps its own width */
   .dpanel .ask {
-    margin-bottom: 1.1rem;
+    margin-bottom: var(--sp-6);
   }
   .dpanel .dsib {
     margin-top: auto;
@@ -1621,7 +1709,7 @@ html:has(dialog.sheet[open]) {
     height: calc(var(--w) * var(--card-shape));
   }
   .dpanel .dbody {
-    padding-bottom: 1.25rem;
+    padding-bottom: var(--sp-7);
   }
 }
 @media (min-width: 1400px) {
@@ -1635,13 +1723,13 @@ html:has(dialog.sheet[open]) {
 /* phones: the logo row scrolls away with the page; search and categories stay */
 @media (max-width: 699.98px) {
   .appbar {
-    top: calc(-1 * (var(--bar-row) + 0.25rem));
+    top: calc(-1 * (var(--bar-row) + var(--sp-2)));
   }
 }
 /* short screens (phones held sideways): the search field scrolls away too, only categories stay */
 @media (max-height: 520px) {
   .appbar {
-    top: calc(-1 * (var(--bar-row) + var(--h-m) + 0.75rem));
+    top: calc(-1 * (var(--bar-row) + var(--h-m) + var(--sp-5)));
   }
   .panel {
     max-height: 94dvh;
@@ -1660,7 +1748,7 @@ html:has(dialog.sheet[open]) {
     height: var(--ph);
   }
   .dpanel .dbody {
-    padding: 1.25rem;
+    padding: var(--sp-7);
   }
 }
 
@@ -1682,13 +1770,13 @@ html:has(dialog.sheet[open]) {
 }
 @media (max-width: 380px) {
   .bean {
-    padding-inline: 0.4rem;
+    padding-inline: var(--sp-3);
   }
 }
 /* espresso row: the bean picker gets its own line under the name, across to the + button */
 .it.has-beans {
   grid-template-rows: auto auto;
-  row-gap: 0.35rem;
+  row-gap: var(--sp-3);
 }
 .it.has-beans .pic {
   grid-row: 1 / 3;
@@ -1696,8 +1784,18 @@ html:has(dialog.sheet[open]) {
 .it.has-beans .info {
   align-self: end;
 }
-.it.has-beans .add {
+.it.has-beans .buy {
   align-self: end;
+}
+/* a row's bill control: the + button, or the quantity control once the item is in the bill */
+.buy {
+  display: grid;
+  justify-items: end;
+}
+.buy .stepper {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  animation: pop var(--t-mid) var(--ease);
 }
 .it.has-beans .beans {
   grid-column: 2 / 4;
@@ -1710,24 +1808,24 @@ html:has(dialog.sheet[open]) {
 .dsib {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
-  gap: 0.5rem;
-  margin-top: 1.1rem;
-  padding-top: 1rem;
+  gap: var(--sp-4);
+  margin-top: var(--sp-6);
+  padding-top: var(--sp-6);
   border-top: 1px solid var(--line);
 }
 .sib {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: var(--sp-4);
   min-width: 0;
   min-height: 56px;
-  padding: 0.45rem 0.55rem;
+  padding: var(--sp-4) var(--sp-4);
   border: 1px solid var(--line);
   border-radius: var(--r-m);
   text-align: start;
   transition:
-    background-color 0.15s,
-    transform 0.12s var(--ease);
+    background-color var(--t-fast),
+    transform var(--t-fast) var(--ease);
 }
 .sib.next {
   flex-direction: row-reverse;
@@ -1777,7 +1875,7 @@ html:has(dialog.sheet[open]) {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  line-height: 1.35;
+  line-height: var(--lh-tight);
 }
 .sib-t small {
   font-size: var(--fs-xs);
@@ -1789,12 +1887,10 @@ html:has(dialog.sheet[open]) {
 .sib-t b {
   font-size: var(--fs-sm);
   font-weight: 600;
-  line-height: 1.3;
+  line-height: var(--lh-tight);
   overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 /* photo arrows for galleries, computers only */
 .gnav {
@@ -1814,17 +1910,17 @@ html:has(dialog.sheet[open]) {
     color: var(--on-photo-ink);
     box-shadow: var(--shadow-control);
     opacity: 0;
-    transition: opacity 0.2s;
+    transition: opacity var(--t-mid);
   }
   .gnav svg {
     width: var(--ic-s);
     height: var(--ic-s);
   }
   .gprev {
-    inset-inline-start: 0.75rem;
+    inset-inline-start: var(--sp-5);
   }
   .gnext {
-    inset-inline-end: 0.75rem;
+    inset-inline-end: var(--sp-5);
   }
   .dimg:hover .gnav:not(:disabled),
   .gnav:focus-visible {
@@ -1836,11 +1932,11 @@ html:has(dialog.sheet[open]) {
 }
 .panel.slide-next .dimg img,
 .panel.slide-next .dbin {
-  animation: slideN 0.25s var(--ease);
+  animation: slideN var(--t-mid) var(--ease);
 }
 .panel.slide-prev .dimg img,
 .panel.slide-prev .dbin {
-  animation: slideP 0.25s var(--ease);
+  animation: slideP var(--t-mid) var(--ease);
 }
 @keyframes slideN {
   from {
@@ -1869,7 +1965,7 @@ html[dir="ltr"] {
 }
 .chip-ind {
   position: absolute;
-  top: 0.5rem;
+  top: var(--sp-4);
   left: 0;
   width: 0;
   height: var(--h-s);
@@ -1880,13 +1976,13 @@ html[dir="ltr"] {
 }
 .chip-ind.ready {
   transition:
-    transform 0.32s var(--ease),
-    width 0.32s var(--ease),
-    opacity 0.2s;
+    transform var(--t-slow) var(--ease),
+    width var(--t-slow) var(--ease),
+    opacity var(--t-mid);
 }
 
 .empty .pill {
-  margin: 1rem auto 0;
+  margin: var(--sp-6) auto 0;
 }
 .empty span {
   display: block;
@@ -1922,10 +2018,5 @@ html[dir="ltr"] {
   .fchip {
     outline: 3px solid Highlight;
     outline-offset: -3px;
-  }
-  .add.has {
-    background: Highlight;
-    color: HighlightText;
-    border-color: Highlight;
   }
 }

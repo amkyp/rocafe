@@ -4,7 +4,7 @@ import { CONFIG } from "../../data/config.js";
 import { T } from "../../data/strings.js";
 import { $ } from "./dom.js";
 import { FILES } from "./files.js";
-import { icon, PIN } from "./icons.js";
+import { arrowOn, icon } from "./icons.js";
 import { openSheet } from "./sheets.js";
 import { state, t, digits, on } from "./state.js";
 import { esc, safeUrl } from "./text.js";
@@ -13,9 +13,33 @@ import { esc, safeUrl } from "./text.js";
 const DAYS = ["sat", "sun", "mon", "tue", "wed", "thu", "fri"];
 const DAY_SHORT = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
 
-function todayInTehran() {
-  const weekday = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Tehran", weekday: "short" });
-  return DAY_SHORT.indexOf(weekday.format(new Date()));
+const TEHRAN = new Intl.DateTimeFormat("en-US", {
+  timeZone: "Asia/Tehran",
+  weekday: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+const minutesOf = (time) => {
+  const [hour, minute] = time.split(":").map(Number);
+  return hour * 60 + minute;
+};
+
+/* the day of the week and the minutes since midnight, in Tehran */
+function nowInTehran() {
+  const parts = Object.fromEntries(TEHRAN.formatToParts(new Date()).map((p) => [p.type, p.value]));
+  return {
+    day: DAY_SHORT.indexOf(parts.weekday),
+    minutes: minutesOf(`${parts.hour}:${parts.minute}`),
+  };
+}
+
+function isOpenNow() {
+  const { day, minutes } = nowInTehran();
+  const spans = CONFIG.hours[DAYS[day]] || [];
+  return spans.some(
+    ([opens, closes]) => minutesOf(opens) <= minutes && minutes < minutesOf(closes),
+  );
 }
 
 /* the Persian name for the part of the day an hour falls in */
@@ -52,12 +76,18 @@ function hoursHTML() {
   if (perDay.every((day) => day === perDay[0])) {
     return `${t().everyDay}${t().sep}${spans(hours[DAYS[0]])}`;
   }
-  const today = todayInTehran();
+  const today = nowInTehran().day;
   const lines = DAYS.map(
     (key, i) =>
       `<span${i === today ? ' class="today"' : ""}><span>${t().days[i]}</span><span>${spans(hours[key])}</span></span>`,
   );
   return `<span class="vdays">${lines.join("")}</span>`;
+}
+
+/* open or closed at this moment, in words and colour */
+function openNowHTML() {
+  const open = isOpenNow();
+  return `<span class="open-now ${open ? "yes" : "no"}">${open ? t().openNow : t().closedNow}</span>`;
 }
 
 /* ---------- the card ---------- */
@@ -75,7 +105,7 @@ function mapHTML() {
   const { map } = CONFIG.place;
   const opens = maps().find((m) => m.app === CONFIG.place.mapOpens);
   const picture = `<img src="${esc(map.src)}" width="${map.width}" height="${map.height}" alt="${esc(t().mapAlt)}" loading="lazy" decoding="async">
-    <svg class="vpin" viewBox="0 0 24 24" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">${PIN}</svg>
+    ${icon("pin", "vpin")}
     <small class="osm" lang="en" dir="ltr">© OpenStreetMap contributors</small>`;
   if (!opens) return `<figure class="vmap">${picture}</figure>`;
   return `<a class="vmap" href="${esc(placeUrl(opens.url))}" ${NEW_TAB}>
@@ -87,10 +117,10 @@ const mapButtonHTML = (m) =>
   `<a class="mapgo" href="${esc(placeUrl(m.url))}" ${NEW_TAB}>${m.icon ? brand(m.icon) : ""}<span>${esc(appName(m.app))}</span></a>`;
 
 /* one row: an icon, a small label and the value; rows that link are links over their whole width */
-function rowHTML({ mark, label, value, href, attrs = "" }) {
-  const text = `${mark}<span class="vtx"><small>${label}</small><b${href ? ' class="ltr"' : ""}>${value}</b></span>`;
+function rowHTML({ mark, label, value, href, attrs = "", note = "" }) {
+  const text = `${mark}<span class="vtx"><small>${label}</small><b${href ? ' class="ltr"' : ""}>${value}</b>${note}</span>`;
   if (!href) return `<div class="vrow">${text}</div>`;
-  return `<a class="vrow" href="${esc(href)}" ${attrs}>${text}${icon("go", "vgo")}</a>`;
+  return `<a class="vrow" href="${esc(href)}" ${attrs}>${text}${arrowOn("vgo")}</a>`;
 }
 
 /* Inside <address>: address, the map with directions, phone, Instagram, hours.
@@ -98,14 +128,14 @@ function rowHTML({ mark, label, value, href, attrs = "" }) {
 function cardHTML() {
   const { phone, phoneDisplay, instagram, hours } = CONFIG;
   return `<div class="vlist">
-    <div class="vrow vaddr">${icon("pin")}<span class="vtx"><small>${t().addr}</small><b>${t().addrV}</b></span></div>
+    <div class="vrow vaddr">${icon("pin", "vic")}<span class="vtx"><small>${t().addr}</small><b>${t().addrV}</b></span></div>
     <div class="vmapbox">
       ${mapHTML()}
       <span class="vdir" role="group" aria-label="${t().map}">${maps().map(mapButtonHTML).join("")}</span>
     </div>
-    ${rowHTML({ mark: icon("phone"), label: t().phone, value: esc(phoneDisplay), href: safeUrl(`tel:${phone}`, ["tel:"]) })}
+    ${rowHTML({ mark: icon("phone", "vic"), label: t().phone, value: esc(phoneDisplay), href: safeUrl(`tel:${phone}`, ["tel:"]) })}
     ${rowHTML({ mark: brand(instagram.icon, "vbrand vic"), label: t().insta, value: `@${esc(instagram.handle)}`, href: safeUrl(instagram.url), attrs: NEW_TAB })}
-    ${hours ? rowHTML({ mark: icon("clock"), label: t().hours, value: hoursHTML() }) : ""}
+    ${hours ? rowHTML({ mark: icon("clock", "vic"), label: t().hours, value: hoursHTML(), note: openNowHTML() }) : ""}
   </div>`;
 }
 
@@ -116,20 +146,23 @@ function yearNow() {
   return parts.find((part) => part.type === "year").value;
 }
 
-/* The footer's card is drawn at once. The info panel's copy is drawn when the panel is first
-   opened, so a guest who never opens it never pays for it. */
+/* The footer's card is drawn at once. The info panel's copy is drawn when the panel is opened,
+   so a guest who never opens it never pays for it. */
 const inPanel = $("visitCard2");
 
 export function draw() {
   $("visitCard").innerHTML = cardHTML();
   if (inPanel.hasChildNodes()) inPanel.innerHTML = cardHTML();
   $("copy").textContent = `© ${yearNow()} ${t().name}`;
-  $("infoBtn").setAttribute("aria-label", t().info);
   $("visit").hidden = false;
 }
 
 on("sheet:open", (id) => {
-  if (id === "infoSheet" && !inPanel.hasChildNodes()) inPanel.innerHTML = cardHTML();
+  if (id === "infoSheet") inPanel.innerHTML = cardHTML(); // fresh each time: "open now" is current
+});
+/* a tab left open comes back with the right "open now" */
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) draw();
 });
 $("infoBtn").addEventListener("click", () => openSheet("infoSheet"));
 

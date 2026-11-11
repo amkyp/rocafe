@@ -32,8 +32,17 @@ export function closeSheet(id) {
   $(id).close();
 }
 
+/* The browser hands focus back to whatever opened the panel. Safari then draws the keyboard's
+   focus ring there even when the panel was closed by touch; a panel closed by touch or mouse
+   lets go of focus instead, so no ring appears. */
+let lastInputWasPointer = false;
+addEventListener("pointerdown", () => (lastInputWasPointer = true), true);
+addEventListener("keydown", () => (lastInputWasPointer = false), true);
+const closedByKeyboard = () => (lastInputWasPointer = false); // Escape, where it sends no keydown
+
 /* closed by a button, Escape, Back, a swipe or a tap outside */
 function onClose(dialog) {
+  if (lastInputWasPointer) document.activeElement?.blur();
   openStack.splice(openStack.indexOf(dialog.id), 1);
   const panel = dialog.querySelector(".panel");
   panel.style.transform = "";
@@ -88,6 +97,7 @@ function allowSwipe(panel) {
 }
 
 for (const dialog of document.querySelectorAll("dialog.sheet")) {
+  dialog.addEventListener("cancel", closedByKeyboard);
   dialog.addEventListener("close", () => onClose(dialog));
   dialog.addEventListener("click", (e) => {
     // a click on the dialog itself is a click outside the panel

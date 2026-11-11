@@ -1,10 +1,10 @@
 /* The menu list on the page: building it, hiding what the search and filters exclude,
    and its taps. */
 import { MENU } from "../../data/menu.js";
-import { change, inBill } from "./bill.js";
+import { change, inBill, isEmpty } from "./bill.js";
 import { $ } from "./dom.js";
-import { ITEMS, billKey, priceOf, setOption } from "./items.js";
-import { addLabel, menuHTML } from "./rows.js";
+import { ITEMS, billKey, optionOf, priceOf, setOption } from "./items.js";
+import { buyHTML, menuHTML } from "./rows.js";
 import { matches, marked, searchWords } from "./search.js";
 import { state, t, digits, on, emit } from "./state.js";
 import { toast, LONG } from "./toast.js";
@@ -12,7 +12,7 @@ import { toast, LONG } from "./toast.js";
 const menu = $("menu");
 let rows = new Map(); // menu rows by item id
 let markedWords = ""; // the search words currently marked in the rows
-let toldHowToOrder = false;
+let toldHowToOrder = !isEmpty(); // a bill kept from before the reload was explained then
 
 /* the ids now showing, in page order (the item card moves through these) */
 export const visibleIds = () =>
@@ -23,6 +23,7 @@ export function draw() {
   menu.innerHTML = menuHTML();
   rows = new Map([...menu.querySelectorAll(".it")].map((row) => [row.dataset.open, row]));
   markedWords = ""; // freshly built names carry no marks
+  emit("menu:drawn");
   applySearch();
 }
 
@@ -55,35 +56,46 @@ function applySearch() {
   emit("filtered", { total, shown });
 }
 
-/* every + button shows how many of its item are in the bill */
-function drawAdds() {
-  for (const button of menu.querySelectorAll("[data-add]")) {
-    const count = inBill(button.dataset.add);
-    button.classList.toggle("has", count > 0);
-    button.textContent = count ? digits(count) : "+";
-    button.setAttribute("aria-label", addLabel(button.dataset.add));
+/* A row's bill control follows the bill: the + button, or the quantity control once the item is
+   in it. It is rebuilt only when it changes kind, so the keyboard stays on the button in use. */
+function drawBuy(cell) {
+  const count = inBill(cell.dataset.key);
+  const number = cell.querySelector(".stepper .num");
+  if (number && count) {
+    number.textContent = digits(count);
+    return;
   }
+  if (!number && !count && cell.querySelector(`[data-add="${cell.dataset.key}"]`)) return;
+  const focused = cell.contains(document.activeElement);
+  cell.innerHTML = buyHTML(cell.dataset.key);
+  if (focused) cell.querySelector("[data-inc], [data-add]").focus();
+}
+
+function drawBuys() {
+  for (const cell of menu.querySelectorAll(".buy")) drawBuy(cell);
 }
 
 /* an item's option changed (e.g. the espresso bean): its price, + button and choice follow */
 function drawOption(it) {
   const row = rows.get(it.id);
-  row.querySelector(".price").textContent = digits(priceOf(it));
-  row.querySelector("[data-add]").dataset.add = billKey(it);
+  row.querySelector(".price").firstChild.textContent = digits(priceOf(it));
+  const cell = row.querySelector(".buy");
+  cell.dataset.key = billKey(it);
+  cell.replaceChildren(); // its control belongs to the other option: build it anew
+  drawBuy(cell);
   for (const button of row.querySelectorAll("[data-bean]")) {
-    const on = Number(button.dataset.bean) === it.sel;
+    const on = Number(button.dataset.bean) === optionOf(it);
     button.classList.toggle("on", on);
     button.setAttribute("aria-pressed", on);
   }
-  drawAdds();
 }
 
-/* The bill is the guest's own list, not an order: say so the first time something is added. */
-function sayAdded(key) {
-  const name = ITEMS[key][state.lang];
-  if (toldHowToOrder) return toast(`${name} ${t().added}`);
+/* The bill is the guest's own list, not an order: say so the first time something is added.
+   After that the row's own count is the answer to a tap. */
+function sayHowToOrder(key) {
+  if (toldHowToOrder) return;
   toldHowToOrder = true;
-  toast(t().addedFirst.replace("{item}", name), LONG);
+  toast(t().addedFirst.replace("{item}", ITEMS[key][state.lang]), LONG);
 }
 
 menu.addEventListener("click", (e) => {
@@ -94,8 +106,8 @@ menu.addEventListener("click", (e) => {
   if (option) setOption(row.dataset.open, Number(option.dataset.bean));
   else if (add) {
     change(add.dataset.add, 1);
-    sayAdded(add.dataset.add);
-  } else emit("item:open", row.dataset.open);
+    sayHowToOrder(add.dataset.add);
+  } else if (!e.target.closest(".buy")) emit("item:open", row.dataset.open); // not the − or +
 });
 
 /* a finger or mouse on a row: its large photo can start downloading */
@@ -111,5 +123,5 @@ for (const event of ["pointerdown", "mouseover"]) {
 }
 
 on("search", applySearch);
-on("bill", drawAdds);
+on("bill", drawBuys);
 on("option", drawOption);

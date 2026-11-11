@@ -2,6 +2,8 @@
    and the message shown when nothing matches. menu.js hides the rows that do not match. */
 import { FILTERS } from "../../data/menu.js";
 import { $ } from "./dom.js";
+import { icon } from "./icons.js";
+import { sectionOf } from "./items.js";
 import { state, t, digits, on, emit } from "./state.js";
 import { esc, norm } from "./text.js";
 
@@ -19,24 +21,34 @@ export const searchWords = () => words;
 function passes(filter, it) {
   return (
     (filter.tag && it.tags?.includes(filter.tag)) ||
-    filter.sections?.includes(it.cat.id) ||
+    filter.sections?.includes(sectionOf(it).id) ||
     filter.items?.includes(it.id)
   );
 }
 
+/* everything an item can be found by, in both languages; prepared once per item */
+const searchText = new Map();
+function textOf(it) {
+  if (!searchText.has(it)) {
+    const section = sectionOf(it);
+    const options = (it.options || []).flatMap((o) => [o.fa, o.en]);
+    const text = [it.fa, it.en, it.sub?.fa, it.sub?.en, section.fa, section.en, ...options];
+    searchText.set(it, text.map(norm).join(" | "));
+  }
+  return searchText.get(it);
+}
+
 export function matches(it) {
   for (const id of filters) if (!passes(FILTER.get(id), it)) return false;
-  if (!words) return true;
-  const options = (it.options || []).flatMap((o) => [o.fa, o.en]);
-  const text = [it.fa, it.en, it.sub?.fa, it.sub?.en, it.cat.fa, it.cat.en, ...options];
-  return text.map(norm).join(" | ").includes(words);
+  return !words || textOf(it).includes(words);
 }
 
 /* the text as safe HTML, with the search words marked */
 export function marked(text) {
-  const at = words ? norm(text).indexOf(words) : -1;
+  const plain = norm(text);
+  const at = words ? plain.indexOf(words) : -1;
   // when normalising changed the length, positions no longer line up: leave the text unmarked
-  if (at < 0 || norm(text).length !== text.length) return esc(text);
+  if (at < 0 || plain.length !== text.length) return esc(text);
   const end = at + words.length;
   return `${esc(text.slice(0, at))}<mark>${esc(text.slice(at, end))}</mark>${esc(text.slice(end))}`;
 }
@@ -80,10 +92,10 @@ $("filters").addEventListener("click", (e) => {
   if (button) toggleFilter(button.dataset.f);
 });
 
-/* with filters on: how many items show, and each filter as a chip that removes it */
+/* while searching or filtering: how many items show, and each filter as a chip that removes it */
 function drawFilterState(total) {
   const box = $("fstat");
-  box.hidden = filters.size === 0;
+  box.hidden = filters.size === 0 && !words;
   if (box.hidden) {
     box.replaceChildren();
     return;
@@ -91,7 +103,7 @@ function drawFilterState(total) {
   const count = `<span class="num">${t().nItems.replace("{n}", digits(total))}</span>`;
   const chips = [...filters].map((id) => {
     const label = esc(t().removeF.replace("{f}", filterName(id)));
-    return `<button type="button" class="fchip" data-f="${id}" aria-label="${label}">${filterName(id)}<span aria-hidden="true">✕</span></button>`;
+    return `<button type="button" class="fchip" data-f="${id}" aria-label="${label}">${filterName(id)}${icon("x")}</button>`;
   });
   box.innerHTML = count + chips.join("");
 }
@@ -204,8 +216,5 @@ for (const event of ["scroll", "resize"]) {
 /* the words that depend on the language */
 export function draw() {
   input.placeholder = t().ph;
-  $("clearQ").setAttribute("aria-label", t().clearSearch);
-  filterBtn.setAttribute("aria-label", t().filter);
-  filterPop.setAttribute("aria-label", t().filter);
   drawFilters();
 }

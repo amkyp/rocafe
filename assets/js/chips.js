@@ -28,6 +28,7 @@ function syncHeader() {
   document.documentElement.style.setProperty("--bar-h", `${headerHeight}px`);
   watchSections(); // the line under the header moved
 }
+on("menu:drawn", watchSections); // the sections are new elements
 new ResizeObserver(([entry]) => {
   headerSize = entry.borderBoxSize[0].blockSize;
   syncHeader();
@@ -131,6 +132,7 @@ function watchSections() {
 
 function pickSection() {
   if (heldFor) return;
+  if (crossing && $(crossing).hidden) crossing = null; // the search or filters hid it
   const shown = document.querySelectorAll(".sec:not([hidden])");
   const last = shown[shown.length - 1];
   setCurrent((atBottom && last?.id) || crossing || shown[0]?.id || null);
@@ -151,6 +153,6 @@ addEventListener(
 /* the menu changed what it shows: sections with nothing to show lose their chip */
 on("filtered", ({ shown }) => {
   for (const chip of bar.querySelectorAll("[data-go]")) chip.hidden = !shown.get(chip.dataset.go);
-  watchSections();
-  moveMarker();
+  pickSection();
+  moveMarker(); // chips beside the current one may have gone
 });

@@ -1,15 +1,38 @@
-/* The table's bill: a private running total. Nothing is sent to the cafe. */
+/* The table's bill: a private running total. Nothing is sent to the cafe.
+   It is remembered while the tab lives, so a reload (phones reload background tabs) keeps it. */
 import { $ } from "./dom.js";
 import { ITEMS } from "./items.js";
 import { openSheet, closeSheet } from "./sheets.js";
-import { state, t, digits, money, on, emit } from "./state.js";
+import { state, session, t, digits, money, on, emit } from "./state.js";
 import { esc } from "./text.js";
 
+const SAVED = "ro-bill";
+const MAX_PEOPLE = 20;
 const bill = {}; // how many of each, by item key
 let people = 1;
-const MAX_PEOPLE = 20;
+
+const validPeople = (n) => (Number.isInteger(n) ? Math.max(1, Math.min(MAX_PEOPLE, n)) : 1);
+
+/* what was saved may be anything: keep only real items with whole, positive counts */
+function restore() {
+  let saved = null;
+  try {
+    saved = JSON.parse(session.get(SAVED));
+  } catch {
+    return;
+  }
+  for (const [key, count] of Object.entries(saved?.items || {})) {
+    if (ITEMS[key] && Number.isInteger(count) && count > 0) bill[key] = count;
+  }
+  people = validPeople(saved?.people);
+}
+
+function save() {
+  session.set(SAVED, JSON.stringify({ items: bill, people }));
+}
 
 export const inBill = (key) => bill[key] || 0;
+export const isEmpty = () => Object.keys(bill).length === 0;
 
 export function change(key, by) {
   if (by > 0) navigator.vibrate?.(8);
@@ -18,15 +41,22 @@ export function change(key, by) {
   emit("bill");
 }
 
+/* the quantity control: one fewer, the count, one more */
+export function stepperHTML(key, cls = "") {
+  const name = ITEMS[key][state.lang];
+  const label = (text) => esc(text.replace("{item}", name));
+  return `<div class="stepper${cls ? ` ${cls}` : ""}">
+    <button type="button" data-dec="${key}" aria-label="${label(t().less)}">−</button>
+    <span class="num" aria-live="polite">${digits(inBill(key))}</span>
+    <button type="button" data-inc="${key}" aria-label="${label(t().more)}">+</button>
+  </div>`;
+}
+
 function lineHTML(key) {
   const item = ITEMS[key];
   return `<div class="line">
     <div class="nm">${esc(item[state.lang])}<small class="num">${digits(item.p)} ${t().unit}</small></div>
-    <div class="stepper">
-      <button type="button" data-dec="${key}" aria-label="-">−</button>
-      <span class="num">${digits(bill[key])}</span>
-      <button type="button" data-inc="${key}" aria-label="+">+</button>
-    </div>
+    ${stepperHTML(key)}
     <span class="s num">${digits(bill[key] * item.p)}</span>
   </div>`;
 }
@@ -60,11 +90,16 @@ export function draw() {
 }
 
 function setPeople(n) {
-  people = Math.max(1, Math.min(MAX_PEOPLE, n));
+  people = validPeople(n);
+  save();
   draw();
 }
 
-on("bill", draw);
+restore();
+on("bill", () => {
+  save();
+  draw();
+});
 $("openBill").addEventListener("click", () => openSheet("billSheet"));
 $("pMinus").addEventListener("click", () => setPeople(people - 1));
 $("pPlus").addEventListener("click", () => setPeople(people + 1));
@@ -73,7 +108,7 @@ $("clearBill").addEventListener("click", () => {
   people = 1;
   emit("bill");
 });
-/* the − and + of any quantity control, in the bill or on an item card */
+/* the − and + of any quantity control: on a menu row, on an item card, in the bill */
 document.addEventListener("click", (e) => {
   const more = e.target.closest("[data-inc]");
   const less = e.target.closest("[data-dec]");

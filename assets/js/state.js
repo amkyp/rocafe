@@ -2,23 +2,33 @@
 import { T } from "../../data/strings.js";
 import { faDigits } from "./text.js";
 
-/* localStorage can be missing (private mode) or hold anything: read through these and validate. */
-export const store = {
+/* The browser's storage can be missing (private mode) or hold anything: read through these and
+   validate what comes back. If storage is unavailable, things just aren't remembered. */
+const storage = (area) => ({
   get(key) {
     try {
-      return localStorage.getItem(key);
+      return area().getItem(key);
     } catch {
       return null;
     }
   },
   set(key, value) {
     try {
-      localStorage.setItem(key, value);
+      area().setItem(key, value);
     } catch {
-      /* storage unavailable: the setting just isn't remembered */
+      /* not remembered */
     }
   },
-};
+  remove(key) {
+    try {
+      area().removeItem(key);
+    } catch {
+      /* nothing to forget */
+    }
+  },
+});
+export const store = storage(() => localStorage); // kept between visits: language, theme
+export const session = storage(() => sessionStorage); // kept while the tab lives: bill, place
 
 const LANGS = ["fa", "en"];
 const saved = store.get("ro-lang");
@@ -42,6 +52,7 @@ export const money = (thousands) => `${NUMBER[state.lang].format(thousands * 100
      bill                   the bill changed
      option   (item)        an item's option was switched
      search                 the search words or filters changed
+     menu:drawn             the menu list was built anew
      filtered ({ total, shown })   the menu now shows these counts (shown: per section id)
      item:open (id)         a menu row was tapped
      item:near (id)         a finger or mouse is on a menu row

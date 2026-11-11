@@ -1,88 +1,96 @@
 /* Ro Cafe menu: works offline and from the home screen.
-   Pages, data, styles and scripts: always from the network when online (so they are never out of
-   date), the saved copy when offline. Photos: saved once, then from the phone. */
-const SITE = "ro-site-2",
-  PHOTOS = "ro-photos-3";
-const CORE = [
-  "./",
-  "index.html",
-  "assets/css/style.css",
-  "assets/js/theme.js",
-  "assets/js/app.js",
-  "assets/js/bill.js",
-  "assets/js/card.js",
-  "assets/js/chips.js",
-  "assets/js/dom.js",
-  "assets/js/files.js",
-  "assets/js/gallery.js",
-  "assets/js/header.js",
-  "assets/js/icons.js",
-  "assets/js/items.js",
-  "assets/js/menu.js",
-  "assets/js/rows.js",
-  "assets/js/search.js",
-  "assets/js/sheets.js",
-  "assets/js/state.js",
-  "assets/js/text.js",
-  "assets/js/toast.js",
-  "assets/js/visit.js",
-  "data/config.js",
-  "data/strings.js",
-  "data/menu.js",
-  "data/photos.js",
-  "assets/fonts/plex-arabic-400-500.woff2",
-  "assets/fonts/plex-arabic-600-800.woff2",
-  "assets/fonts/plex-latin-400-500.woff2",
-  "assets/fonts/plex-latin-600-800.woff2",
-  "assets/icon.svg",
-  "manifest.webmanifest",
-];
+   Pages, data, styles and scripts come from the network when it answers in time (so they are
+   never out of date) and from the saved copy when it is slow or absent. Photos are saved once,
+   then come from the phone. */
+const SITE = "ro-site-3";
+const PHOTOS = "ro-photos-4";
+const WAIT = 3000; // ms the network gets before a saved copy is shown instead
+
+/* What to save at install is read from the page itself (its styles, scripts, fonts and icons,
+   and the fonts its stylesheet names), so there is no second list to keep up to date. */
+async function siteFiles() {
+  const files = new Set(); // full addresses, so a file named twice is saved once
+  const add = (path, base = location.href) => files.add(new URL(path, base).href);
+  add("./");
+  add("index.html");
+  const page = await (await fetch("index.html", { cache: "reload" })).text();
+  for (const [, path] of page.matchAll(/<(?:link|script)\b[^>]*?\b(?:href|src)="([^":#]+)"/g)) {
+    add(path);
+  }
+  for (const sheet of [...files].filter((file) => file.endsWith(".css"))) {
+    const css = await (await fetch(sheet, { cache: "reload" })).text();
+    for (const [, path] of css.matchAll(/url\(["']?([^"')]+)["']?\)/g)) add(path, sheet);
+  }
+  return [...files];
+}
 
 self.addEventListener("install", (e) => {
   e.waitUntil(
-    caches
-      .open(SITE)
-      .then((c) => c.addAll(CORE))
+    siteFiles()
+      .then((files) => caches.open(SITE).then((cache) => cache.addAll(files)))
       .then(() => self.skipWaiting()),
   );
 });
+
 self.addEventListener("activate", (e) => {
   // remove every older store this site ever made
   e.waitUntil(
     caches
       .keys()
-      .then((keys) =>
-        Promise.all(keys.filter((k) => k !== SITE && k !== PHOTOS).map((k) => caches.delete(k))),
-      )
+      .then((keys) => keys.filter((key) => key !== SITE && key !== PHOTOS))
+      .then((old) => Promise.all(old.map((key) => caches.delete(key))))
       .then(() => self.clients.claim()),
   );
 });
-const keep = (store, req, res) => {
-  if (res.ok && res.type === "basic") {
-    const copy = res.clone();
-    caches.open(store).then((c) => c.put(req, copy));
+
+function keep(store, request, response) {
+  if (response.ok && response.type === "basic") {
+    const copy = response.clone();
+    caches.open(store).then((cache) => cache.put(request, copy));
   }
-  return res;
-};
+  return response;
+}
+
+const savedCopy = (request) =>
+  caches
+    .match(request, { ignoreSearch: true })
+    .then((hit) => hit || (request.mode === "navigate" ? caches.match("./") : undefined));
+
+const after = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/* The network's answer if it comes within WAIT, otherwise the saved copy (if there is one).
+   Once the network has been that slow, the files that follow come straight from the saved copies
+   for a while, so a page waits once, not once per file. Every answer that does arrive, however
+   late, replaces the saved copy. */
+const SLOW_FOR = 30000; // ms
+let slowUntil = 0;
+
+async function freshOrSaved(e) {
+  const fresh = fetch(e.request).then((response) => keep(SITE, e.request, response));
+  const saved = await savedCopy(e.request);
+  if (!saved) return fresh;
+  e.waitUntil(fresh.catch(() => {}));
+  if (Date.now() < slowUntil) return saved;
+  let answered = false;
+  const inTime = fresh.catch(() => saved).finally(() => (answered = true));
+  const tooSlow = after(WAIT).then(() => {
+    if (!answered) slowUntil = Date.now() + SLOW_FOR;
+    return saved;
+  });
+  return Promise.race([inTime, tooSlow]);
+}
+
 self.addEventListener("fetch", (e) => {
-  const req = e.request,
-    url = new URL(req.url);
-  if (req.method !== "GET" || url.origin !== location.origin) return;
+  const request = e.request;
+  const url = new URL(request.url);
+  if (request.method !== "GET" || url.origin !== location.origin) return;
   if (url.pathname.includes("/img/")) {
     e.respondWith(
-      caches.match(req).then((hit) => hit || fetch(req).then((res) => keep(PHOTOS, req, res))),
+      caches
+        .match(request)
+        .then((hit) => hit || fetch(request).then((r) => keep(PHOTOS, request, r))),
     );
   } else {
-    e.respondWith(
-      fetch(req)
-        .then((res) => keep(SITE, req, res))
-        .catch(() =>
-          caches
-            .match(req, { ignoreSearch: true })
-            .then(
-              (hit) => hit || (req.mode === "navigate" ? caches.match("./") : Response.error()),
-            ),
-        ),
-    );
+    e.respondWith(freshOrSaved(e).catch(() => Response.error()));
   }
 });
