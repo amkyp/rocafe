@@ -720,7 +720,7 @@ main.wrap {
   color: var(--mute);
 }
 .sec-h {
-  margin-bottom: var(--sp-3);
+  margin-bottom: var(--sp-5);
   font-size: var(--fs-xl);
   font-weight: 600;
   line-height: var(--lh-tight);
