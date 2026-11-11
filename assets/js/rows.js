@@ -118,5 +118,5 @@ export function menuHTML() {
       <ul class="grid" role="list">${items.join("")}</ul>
     </section>`;
   });
-  return `<p class="unit-note">${t().unitNote}</p>${sections.join("")}`;
+  return sections.join("");
 }

@@ -59,7 +59,6 @@ function applySearch() {
     shown.set(section.id, count);
     total += count;
   }
-  menu.querySelector(".unit-note").hidden = !total; // no prices shown, no price note
   emit("filtered", { total, shown });
 }
 

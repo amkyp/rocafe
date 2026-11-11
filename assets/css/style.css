@@ -714,11 +714,6 @@ main.wrap {
 .sec:first-of-type {
   padding-top: var(--sp-5);
 }
-.unit-note {
-  padding-top: var(--sp-6);
-  font-size: var(--fs-xs);
-  color: var(--mute);
-}
 .sec-h {
   margin-bottom: var(--sp-5);
   font-size: var(--fs-xl);
