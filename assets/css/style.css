@@ -460,14 +460,22 @@ html[data-theme="dark"] .tool .moon {
   box-shadow: var(--shadow-header);
 }
 .bar-row {
-  position: relative;
+  margin-top: var(--sp-2);
+}
+/* The logo and the tools. Where the motto has the line under them, the header slides up by that
+   line as the page scrolls and this row stays put over it (two sticky positions, no script), so
+   the logo, the language and day/night are always in reach. */
+.bar-top {
+  position: sticky;
+  top: calc(env(safe-area-inset-top) + var(--sp-2));
+  z-index: 1;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   column-gap: var(--sp-4);
   min-height: var(--bar-row);
-  margin-top: var(--sp-2);
+  background: var(--bg);
 }
 /* the name never gets squeezed: with very large text the buttons move to a second row instead */
 .bar-row .brand {
@@ -541,9 +549,7 @@ html[data-theme="dark"] .tool .moon {
   }
 }
 /* the cafe's own words: a line of their own under the logo on phones, beside it on wide screens */
-.slogan {
-  order: 1;
-  flex-basis: 100%;
+.motto {
   height: var(--hello-h);
   line-height: var(--hello-h);
   color: var(--mute);
@@ -1679,10 +1685,21 @@ html:has(dialog.sheet[open]) {
 }
 @media (min-width: 860px) {
   /* the header in two rows: logo, slogan and tools; then search, filters and categories */
-  .slogan {
-    order: 0;
+  .bar-row {
+    display: flex;
+    align-items: center;
+    column-gap: var(--sp-4);
+    min-height: var(--bar-row);
+  }
+  .bar-top {
+    display: contents; /* the logo and the tools join the row, with the motto between them */
+  }
+  .motto {
     flex: 1;
     margin-inline-start: var(--sp-4);
+  }
+  .top-actions {
+    order: 1;
   }
   .find {
     display: flex;
@@ -1840,26 +1857,28 @@ html:has(dialog.sheet[open]) {
     --cols: 3;
   }
 }
-/* where the slogan has a line of its own: the whole header stays while the page scrolls (logo to
-   go back up, language and day/night always in reach); only the slogan folds away */
+/* where the motto has a line of its own: the header slides up by that line, then stays */
 @media (max-width: 859.98px) {
-  .slogan {
-    transition:
-      height var(--t-mid) var(--ease),
-      opacity var(--t-fast);
-  }
-  .appbar.stuck .slogan {
-    height: 0;
-    opacity: 0;
+  .appbar {
+    top: calc(-1 * var(--hello-h));
   }
 }
-/* short screens (phones held sideways): there is room for the categories only */
+/* short screens (phones held sideways): there is room for the categories only; where they share
+   their row with the search field, that row stays and the logo row scrolls away */
 @media (max-height: 520px) {
   .appbar {
-    top: calc(-1 * (var(--bar-row) + var(--h-m) + var(--sp-5)));
+    top: calc(-1 * (var(--bar-row) + var(--hello-h) + var(--h-m) + var(--sp-5)));
+  }
+  .bar-top {
+    position: static;
   }
   .panel {
     max-height: 94dvh;
+  }
+}
+@media (max-height: 520px) and (min-width: 860px) {
+  .appbar {
+    top: calc(-1 * (var(--bar-row) + var(--sp-2)));
   }
 }
 /* wide screens (computers, tablets and phones held sideways): the square photo beside the
