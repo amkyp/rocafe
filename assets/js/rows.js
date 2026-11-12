@@ -43,13 +43,13 @@ export function priceHTML(thousands, cls = "price", text = digits(thousands)) {
    line per option (assets/js/choose.js). */
 const optionKeys = (it) => it.options.map((option, i) => `${it.id}.${i}`);
 
-/* the options by name, or, once some are in the bill, those with their counts */
+/* how many options there are (one short line, like the other rows); once some are in the bill,
+   those with their counts */
 export function optionsLine(it) {
-  const names = it.options.map((option) => esc(option[state.lang]));
   const taken = optionKeys(it)
-    .map((key, i) => inBill(key) && `${names[i]} × ${digits(inBill(key))}`)
+    .map((key, i) => inBill(key) && `${esc(it.options[i][state.lang])} × ${digits(inBill(key))}`)
     .filter(Boolean);
-  return (taken.length ? taken : names).join(" · ");
+  return taken.length ? taken.join(" · ") : t().beans.replace("{n}", digits(it.options.length));
 }
 
 /* the menu's lines: an option not in the bill is one button (name and price); one that is in
