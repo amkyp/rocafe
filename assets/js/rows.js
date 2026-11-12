@@ -53,13 +53,18 @@ export function optionsLine(it) {
 }
 
 /* the menu's lines: an option not in the bill is one button (name and price); one that is in
-   the bill shows its quantity control */
-export function choicesHTML(it) {
+   the bill shows its quantity control. On the item card the prices say their unit, as the
+   card's other prices do. */
+export function choicesHTML(it, withUnit = false) {
   return optionKeys(it)
     .map((key, i) => {
       const name = `<span>${esc(it.options[i][state.lang])}</span>`;
       if (inBill(key)) return `<div class="pick">${name}${stepperHTML(key)}</div>`;
-      return `<button type="button" class="pick" data-add="${key}">${name}${priceHTML(it.options[i].price, "")}</button>`;
+      const price = it.options[i].price;
+      const shown = withUnit
+        ? `<data class="num" value="${price * 1000}">${digits(price)} <small>${t().unit}</small></data>`
+        : priceHTML(price, "");
+      return `<button type="button" class="pick" data-add="${key}">${name}${shown}</button>`;
     })
     .join("");
 }

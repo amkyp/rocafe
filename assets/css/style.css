@@ -1607,6 +1607,11 @@ html:has(dialog.sheet[open]) {
   border: 1px solid var(--line);
   border-radius: var(--r-m);
 }
+.picks small {
+  color: var(--mute);
+  font-size: var(--fs-xs);
+  font-weight: 400;
+}
 /* once the item is in the bill: the bill is the guest's own list, not an order */
 .dbuy .order-note {
   flex: 1 0 100%;

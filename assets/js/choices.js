@@ -7,7 +7,7 @@ import { choicesHTML } from "./rows.js";
 export function drawChoices(box, it) {
   const lineOf = (el) => el?.closest(".pick")?.firstChild.textContent;
   const focused = box.contains(document.activeElement) && lineOf(document.activeElement);
-  box.innerHTML = choicesHTML(it);
+  box.innerHTML = choicesHTML(it, box.matches(".picks")); // .picks: on the item card
   if (!focused) return;
   const again = [...box.querySelectorAll(".pick")].find((pick) => lineOf(pick) === focused);
   (again.querySelector("[data-inc]") || again).focus();
