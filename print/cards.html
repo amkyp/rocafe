@@ -5,10 +5,10 @@
 <meta name="robots" content="noindex">
 <title>کافه رو، کارت QR منو</title>
 <style>
-@font-face{font-family:'RoPlex';font-weight:400 500;font-display:block;src:url(../assets/fonts/plex-arabic-400-500.woff2) format('woff2');unicode-range:U+0600-06FF,U+200C-200F,U+FB50-FDFF,U+FE70-FEFF}
-@font-face{font-family:'RoPlex';font-weight:400 500;font-display:block;src:url(../assets/fonts/plex-latin-400-500.woff2) format('woff2');unicode-range:U+0000-00FF,U+2000-206F}
-@font-face{font-family:'RoPlex';font-weight:600 800;font-display:block;src:url(../assets/fonts/plex-arabic-600-800.woff2) format('woff2');unicode-range:U+0600-06FF,U+200C-200F,U+FB50-FDFF,U+FE70-FEFF}
-@font-face{font-family:'RoPlex';font-weight:600 800;font-display:block;src:url(../assets/fonts/plex-latin-600-800.woff2) format('woff2');unicode-range:U+0000-00FF,U+2000-206F}
+@font-face{font-family:'RoPlex';font-weight:400;font-display:block;src:url(../assets/fonts/plex-arabic-400.woff2) format('woff2');unicode-range:U+0600-06FF,U+200C-200F,U+FB50-FDFF,U+FE70-FEFF}
+@font-face{font-family:'RoPlex';font-weight:400;font-display:block;src:url(../assets/fonts/plex-latin-400.woff2) format('woff2');unicode-range:U+0000-00FF,U+2000-206F}
+@font-face{font-family:'RoPlex';font-weight:600;font-display:block;src:url(../assets/fonts/plex-arabic-600.woff2) format('woff2');unicode-range:U+0600-06FF,U+200C-200F,U+FB50-FDFF,U+FE70-FEFF}
+@font-face{font-family:'RoPlex';font-weight:600;font-display:block;src:url(../assets/fonts/plex-latin-600.woff2) format('woff2');unicode-range:U+0000-00FF,U+2000-206F}
 
 /* A4 sheet, four A6 table cards. Print at 100% (actual size). */
 @page{size:A4;margin:0}
@@ -16,14 +16,15 @@
 html{print-color-adjust:exact}
 body{margin:0;font-family:'RoPlex',sans-serif;color:#141416;background:#e8e8e3}
 .sheet{width:210mm;height:297mm;margin:0 auto;display:grid;grid-template:repeat(2,1fr)/repeat(2,1fr);background:#fff}
-.card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7mm;padding:10mm;outline:.2mm dashed #b8b8b0;outline-offset:-.1mm;text-align:center}
-.brand{display:flex;align-items:center;gap:3mm;font-size:8mm;font-weight:700}
+.card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6mm;padding:10mm;outline:.2mm dashed #b8b8b0;outline-offset:-.1mm;text-align:center}
+.brand{display:flex;align-items:center;gap:3mm;font-size:8mm;font-weight:600}
 .brand img{width:11mm;height:11mm}
 .qr{padding:3.5mm;border-radius:5mm;background:#f2c230}
 .qr img{display:block;width:55.5mm;height:55.5mm}
 .cta{display:flex;flex-direction:column;gap:1mm}
-.cta b{font-size:6.2mm;font-weight:700}
-.cta span{font-size:4mm;font-weight:500;color:#55555c}
+.cta b{font-size:6.2mm;font-weight:600}
+.cta span{font-size:4mm;font-weight:400;color:#55555c}
+.web{font-size:4.6mm;font-weight:600;letter-spacing:.2mm;white-space:nowrap}
 .ig{font-size:3.6mm;color:#55555c}
 @media screen{body{padding:8mm 0}.sheet{box-shadow:0 1mm 6mm rgb(0 0 0/.15)}}
 @media print{body{background:#fff}}
@@ -31,10 +32,10 @@ body{margin:0;font-family:'RoPlex',sans-serif;color:#141416;background:#e8e8e3}
 </head>
 <body>
 <main class="sheet">
-<section class="card"><div class="brand"><img src="../assets/icon.svg" alt="">کافه رو</div><div class="qr"><img src="menu-qr.svg" alt="QR منو"></div><div class="cta"><b>برای دیدن منو اسکن کنید</b><span lang="en" dir="ltr">Scan to see the menu</span></div><div class="ig" dir="ltr">@ro.cafe.ramsar</div></section>
-<section class="card"><div class="brand"><img src="../assets/icon.svg" alt="">کافه رو</div><div class="qr"><img src="menu-qr.svg" alt="QR منو"></div><div class="cta"><b>برای دیدن منو اسکن کنید</b><span lang="en" dir="ltr">Scan to see the menu</span></div><div class="ig" dir="ltr">@ro.cafe.ramsar</div></section>
-<section class="card"><div class="brand"><img src="../assets/icon.svg" alt="">کافه رو</div><div class="qr"><img src="menu-qr.svg" alt="QR منو"></div><div class="cta"><b>برای دیدن منو اسکن کنید</b><span lang="en" dir="ltr">Scan to see the menu</span></div><div class="ig" dir="ltr">@ro.cafe.ramsar</div></section>
-<section class="card"><div class="brand"><img src="../assets/icon.svg" alt="">کافه رو</div><div class="qr"><img src="menu-qr.svg" alt="QR منو"></div><div class="cta"><b>برای دیدن منو اسکن کنید</b><span lang="en" dir="ltr">Scan to see the menu</span></div><div class="ig" dir="ltr">@ro.cafe.ramsar</div></section>
+<section class="card"><div class="brand"><img src="../assets/icon.svg" alt="">کافه رو</div><div class="qr"><img src="menu-qr.svg" alt="QR منو"></div><div class="cta"><b>برای دیدن منو اسکن کنید</b><span lang="en" dir="ltr">Scan to see the menu</span></div><div class="web" dir="ltr">ro-coffee.ir</div><div class="ig" dir="ltr">@ro.cafe.ramsar</div></section>
+<section class="card"><div class="brand"><img src="../assets/icon.svg" alt="">کافه رو</div><div class="qr"><img src="menu-qr.svg" alt="QR منو"></div><div class="cta"><b>برای دیدن منو اسکن کنید</b><span lang="en" dir="ltr">Scan to see the menu</span></div><div class="web" dir="ltr">ro-coffee.ir</div><div class="ig" dir="ltr">@ro.cafe.ramsar</div></section>
+<section class="card"><div class="brand"><img src="../assets/icon.svg" alt="">کافه رو</div><div class="qr"><img src="menu-qr.svg" alt="QR منو"></div><div class="cta"><b>برای دیدن منو اسکن کنید</b><span lang="en" dir="ltr">Scan to see the menu</span></div><div class="web" dir="ltr">ro-coffee.ir</div><div class="ig" dir="ltr">@ro.cafe.ramsar</div></section>
+<section class="card"><div class="brand"><img src="../assets/icon.svg" alt="">کافه رو</div><div class="qr"><img src="menu-qr.svg" alt="QR منو"></div><div class="cta"><b>برای دیدن منو اسکن کنید</b><span lang="en" dir="ltr">Scan to see the menu</span></div><div class="web" dir="ltr">ro-coffee.ir</div><div class="ig" dir="ltr">@ro.cafe.ramsar</div></section>
 </main>
 </body>
 </html>
