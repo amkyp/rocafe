@@ -943,10 +943,10 @@ main.wrap {
   text-align: center;
   color: var(--mute);
 }
-/* While the menu is being built it holds at least a screen, so what follows it (the address)
-   never shows for a moment only to be pushed down. */
+/* While the menu is being built it holds two screens, so what follows it (the address and its
+   map) neither shows for a moment only to be pushed down, nor counts as near and gets fetched. */
 #menu[aria-busy="true"] {
-  min-height: 100vh;
+  min-height: 200vh;
 }
 /* while the menu is on its way: grey rows in the menu's own shape, so nothing jumps when it arrives */
 .sk {
