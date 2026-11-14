@@ -42,22 +42,33 @@ export function setLang(lang) {
   emit("lang");
 }
 
-/* numbers in the language's own digits; prices with its thousands separator (made once, reused) */
+/* something costly to make (a browser formatter loads its language data): made on first use,
+   then reused, so the page's start does not pay for what it may never show */
+export const lazy = (make) => {
+  let made;
+  return () => (made ??= make());
+};
+
+/* numbers in the language's own digits; prices with its thousands separator */
 export const digits = (s) => (state.lang === "fa" ? faDigits(s) : String(s));
-const NUMBER = { fa: new Intl.NumberFormat("fa-IR"), en: new Intl.NumberFormat("en-US") };
+const NUMBER = {
+  fa: lazy(() => new Intl.NumberFormat("fa-IR")),
+  en: lazy(() => new Intl.NumberFormat("en-US")),
+};
 /* a price (kept in thousands) as the full amount, and with its unit */
-export const amount = (thousands) => NUMBER[state.lang].format(thousands * 1000);
+export const amount = (thousands) => NUMBER[state.lang]().format(thousands * 1000);
 export const money = (thousands) => `${amount(thousands)} ${t().toman}`;
 
 /* Parts of the page tell each other what happened instead of calling into each other:
      lang                   the language changed
      bill                   the bill changed
      search                 the search words or filters changed
-     menu:drawn             the menu list was built anew
+     menu:drawn             the menu list was built anew (all of it)
      filtered ({ total, shown })   the menu now shows these counts (shown: per section id)
      item:open (id)         a menu row was tapped
      item:near (id)         a finger or mouse is on a menu row
      sheet:open (id)        a panel opened */
-export const on = (name, fn) => document.addEventListener(`ro:${name}`, (e) => fn(e.detail));
+export const on = (name, fn, options) =>
+  document.addEventListener(`ro:${name}`, (e) => fn(e.detail), options);
 export const emit = (name, detail) =>
   document.dispatchEvent(new CustomEvent(`ro:${name}`, { detail }));

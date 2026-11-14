@@ -103,7 +103,8 @@ function rowHTML(it, first) {
   </li>`;
 }
 
-export function menuHTML() {
+/* the menu, one piece of markup per section */
+export function sectionsHTML() {
   let rows = 0;
   const sections = MENU.map((section) => {
     const items = section.items.map((it) => rowHTML(it, rows++ < LOAD_FIRST));
@@ -114,5 +115,5 @@ export function menuHTML() {
       <ul class="grid" role="list">${items.join("")}</ul>
     </section>`;
   });
-  return sections.join("");
+  return sections;
 }

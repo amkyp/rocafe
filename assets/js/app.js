@@ -31,7 +31,7 @@ drawAll();
 card.openFromAddress();
 /* arriving at a section's address (a category opened in a new tab) */
 const section = MENU.find(({ id }) => `#${id}` === location.hash);
-if (section) chips.arriveAt(section.id);
+if (section) menu.whenBuilt(() => chips.arriveAt(section.id));
 
 /* A reload (phones reload background tabs) returns to the same place in the menu. The menu is
    built by script, after the moment a browser restores the scroll position by itself, so the
@@ -41,7 +41,8 @@ history.scrollRestoration = "manual";
 addEventListener("pagehide", () => session.set(PLACE, String(Math.round(scrollY))));
 const arrival = performance.getEntriesByType("navigation")[0]?.type;
 if (arrival === "reload" || arrival === "back_forward") {
-  scrollTo({ top: Number(session.get(PLACE)) || 0, behavior: "instant" });
+  const place = Number(session.get(PLACE)) || 0;
+  menu.whenBuilt(() => scrollTo({ top: place, behavior: "instant" }));
 }
 visit.describeForSearchEngines();
 

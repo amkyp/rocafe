@@ -2,6 +2,7 @@
    the chip of the section being read is highlighted. The bar itself only scrolls sideways. */
 import { MENU } from "../../data/menu.js";
 import { $, scrollStyle } from "./dom.js";
+import { whenBuilt } from "./menu.js";
 import { state, on } from "./state.js";
 import { esc } from "./text.js";
 
@@ -38,7 +39,8 @@ new ResizeObserver(([entry]) => {
 }).observe(header);
 /* the page was opened at a section's address */
 export function arriveAt(id) {
-  arrival = id;
+  if (headerSize) goTo(id);
+  else arrival = id;
 }
 addEventListener("resize", () => {
   viewHeight = innerHeight;
@@ -46,13 +48,19 @@ addEventListener("resize", () => {
 });
 
 /* ---------- the highlighted chip ---------- */
+/* bring a chip to the middle of the bar; measured on the next frame, after the browser's own
+   layout, so a freshly built menu is never laid out an extra time just to place a chip */
+function centre(chip) {
+  requestAnimationFrame(() => {
+    const left = chip.offsetLeft - (bar.clientWidth - chip.offsetWidth) / 2;
+    bar.scrollTo({ left, behavior: scrollStyle() });
+  });
+}
+
 function setCurrent(id) {
   for (const chip of bar.querySelectorAll(".chip")) {
     const current = chip.dataset.go === id;
-    if (current && !chip.classList.contains("on")) {
-      const left = chip.offsetLeft - (bar.clientWidth - chip.offsetWidth) / 2;
-      bar.scrollTo({ left, behavior: scrollStyle() }); // bring it to the middle of the bar
-    }
+    if (current && !chip.classList.contains("on")) centre(chip);
     chip.classList.toggle("on", current);
     if (current) chip.setAttribute("aria-current", "true");
     else chip.removeAttribute("aria-current");
@@ -73,6 +81,10 @@ function release() {
 
 function goTo(id) {
   const section = $(id);
+  if (!section) {
+    whenBuilt(() => goTo(id)); // tapped while the menu is still being built
+    return;
+  }
   const top = section.getBoundingClientRect().top + scrollY - headerHeight + 1;
   // load this section's photos now, so they are there when the scroll arrives
   for (const img of section.querySelectorAll('img[loading="lazy"]')) img.loading = "eager";

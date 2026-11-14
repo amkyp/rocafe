@@ -6,7 +6,7 @@ import { drawChoices } from "./choices.js";
 import { $ } from "./dom.js";
 import { ITEMS, findItem } from "./items.js";
 import { closePopup, togglePopup } from "./popup.js";
-import { buyHTML, menuHTML, optionsLine } from "./rows.js";
+import { buyHTML, optionsLine, sectionsHTML } from "./rows.js";
 import { matches, marked, matchedText, searchWords } from "./search.js";
 import { state, t, digits, on, emit } from "./state.js";
 import { toast, LONG } from "./toast.js";
@@ -20,10 +20,38 @@ let toldHowToOrder = !isEmpty(); // a bill kept from before the reload was expla
 export const visibleIds = () =>
   [...menu.querySelectorAll(".sec:not([hidden]) .it:not([hidden])")].map((row) => row.dataset.open);
 
-/* Build the whole menu (on start and when the language changes). */
+/* Build the whole menu: on start, and when the language changes.
+   On start it is built section by section: the first at once, so the first screen needs no
+   waiting, then each of the others in a short task of its own, so a tap meanwhile is answered
+   at once rather than after the whole menu. What needs all of it (the search, the category bar,
+   a place in the menu to go to) waits for whenBuilt. A later build (a language change) is one
+   step: the guest is somewhere down the page, and the page must not get shorter under them. */
+let built = false; // the whole menu is on the page
+let build = 0; // the build under way: a newer one stops an older one
+const nextTask = () => new Promise((go) => setTimeout(go));
+
 export function draw() {
   closePopup(); // an open choice menu is part of what is redrawn
-  menu.innerHTML = menuHTML();
+  const sections = sectionsHTML();
+  const current = ++build;
+  if (built) {
+    menu.innerHTML = sections.join("");
+    finish();
+    return;
+  }
+  menu.innerHTML = sections.shift();
+  (async () => {
+    for (const section of sections) {
+      await nextTask();
+      if (current !== build) return; // the language changed: that build drew it all
+      menu.insertAdjacentHTML("beforeend", section);
+    }
+    finish();
+  })();
+}
+
+function finish() {
+  built = true;
   menu.removeAttribute("aria-busy");
   rows = new Map([...menu.querySelectorAll(".it")].map((row) => [row.dataset.open, row]));
   markedWords = ""; // freshly built names carry no marks
@@ -31,9 +59,13 @@ export function draw() {
   applySearch();
 }
 
+/* do something that needs the whole menu: now, or as soon as it is built */
+export const whenBuilt = (fn) => (built ? fn() : on("menu:drawn", fn, { once: true }));
+
 /* Hide what doesn't match and mark the matching words. Nothing is rebuilt, so photos never
    reload or blink while typing. */
 function applySearch() {
+  if (!built) return; // the build ends by applying it
   const words = searchWords();
   const remark = words !== markedWords; // rewrite names only when the search words changed
   markedWords = words;
