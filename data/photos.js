@@ -1,7 +1,7 @@
 /* Made by the photo preparation script: do not edit by hand.
    Every photo is square, in these widths (px), as .avif and .webp: list photos all the same,
    card photos per photo. */
-export const THUMB_WIDTHS = [160, 320];
+export const THUMB_WIDTHS = [160];
 export const CARD_WIDTHS = {
   "aeropress_0": [480, 675],
   "affogato_1": [405],

@@ -4,6 +4,7 @@ import { inBill, stepperHTML } from "./bill.js";
 import { FILES, pictureHTML } from "./files.js";
 import { drawing } from "./icons.js";
 import { ITEMS, pics } from "./items.js";
+import { whenNear } from "./near.js";
 import { state, t, digits } from "./state.js";
 import { esc } from "./text.js";
 
@@ -26,11 +27,21 @@ export function buyHTML(key) {
   return `<button type="button" class="add" data-add="${key}" aria-label="${name}">+</button>`;
 }
 
-function thumbHTML(it, first) {
+/* A row's photo. The first rows, which open the page, carry theirs from the start; every other
+   row names its photo, and it is fetched when the row comes near the screen (loadPhotos). */
+function picHTML(it, first) {
   const name = pics(it)[0];
-  if (!name) return drawing(it.icon);
-  const loading = first ? 'fetchpriority="high"' : 'loading="lazy"';
-  return pictureHTML(FILES.thumb(name), `alt="" ${loading}`);
+  if (!name) return `<div class="pic">${drawing(it.icon)}</div>`;
+  if (!first) return `<div class="pic" data-photo="${esc(name)}"></div>`;
+  return `<div class="pic">${pictureHTML(FILES.thumb(name), 'alt="" fetchpriority="high"')}</div>`;
+}
+
+export function loadPhotos(root) {
+  for (const pic of root.querySelectorAll(".pic[data-photo]")) {
+    whenNear(pic, () => {
+      pic.innerHTML = pictureHTML(FILES.thumb(pic.dataset.photo));
+    });
+  }
 }
 
 /* a price: the number guests read (in thousands), and the full amount in Toman for machines */
@@ -88,7 +99,7 @@ function optionRowEndHTML(it) {
    .why is filled while searching, when the item matched through something other than its name. */
 function rowHTML(it, first) {
   return `<li class="it" data-open="${it.id}">
-    <div class="pic">${thumbHTML(it, first)}</div>
+    ${picHTML(it, first)}
     <div class="info">
       <h3><button type="button" class="it-name">${esc(it[state.lang])}</button></h3>
       <p class="why" hidden></p>

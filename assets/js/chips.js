@@ -3,6 +3,7 @@
 import { MENU } from "../../data/menu.js";
 import { $, scrollStyle } from "./dom.js";
 import { whenBuilt } from "./menu.js";
+import { travelling } from "./near.js";
 import { state, on } from "./state.js";
 import { esc } from "./text.js";
 
@@ -75,8 +76,10 @@ let heldFor = null;
 let holdTimer = 0;
 
 function release() {
+  if (!heldFor) return;
   heldFor = null;
   clearTimeout(holdTimer);
+  travelling(false);
 }
 
 function goTo(id) {
@@ -86,11 +89,10 @@ function goTo(id) {
     return;
   }
   const top = section.getBoundingClientRect().top + scrollY - headerHeight + 1;
-  // load this section's photos now, so they are there when the scroll arrives
-  for (const img of section.querySelectorAll('img[loading="lazy"]')) img.loading = "eager";
   release();
   heldFor = id;
   holdTimer = setTimeout(release, HOLD);
+  travelling(true);
   setCurrent(id);
   scrollTo({ top, behavior: scrollStyle() });
 }
@@ -103,8 +105,9 @@ bar.addEventListener("click", (e) => {
   e.preventDefault();
   goTo(chip.dataset.go);
 });
-// the guest took over the scrolling
-for (const event of ["wheel", "touchstart", "keydown"]) {
+// the page arrived (where the browser says so; elsewhere the timer does), or the guest took
+// over the scrolling
+for (const event of ["scrollend", "wheel", "touchstart", "keydown"]) {
   addEventListener(event, release, { passive: true });
 }
 

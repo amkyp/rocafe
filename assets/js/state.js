@@ -66,7 +66,6 @@ export const money = (thousands) => `${amount(thousands)} ${t().toman}`;
      menu:drawn             the menu list was built anew (all of it)
      filtered ({ total, shown })   the menu now shows these counts (shown: per section id)
      item:open (id)         a menu row was tapped
-     item:near (id)         a finger or mouse is on a menu row
      sheet:open (id)        a panel opened */
 export const on = (name, fn, options) =>
   document.addEventListener(`ro:${name}`, (e) => fn(e.detail), options);

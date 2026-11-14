@@ -7,6 +7,7 @@ import * as gallery from "./gallery.js";
 import { arrowBack, arrowOn, drawing, icon } from "./icons.js";
 import { findItem, pics, sectionOf } from "./items.js";
 import { visibleIds } from "./menu.js";
+import { forgetIn, whenNear } from "./near.js";
 import { tagsHTML } from "./rows.js";
 import { openSheet, setSheetAddress, topSheet } from "./sheets.js";
 import { state, t, otherLang, digits, on } from "./state.js";
@@ -23,20 +24,19 @@ const isOpen = () => $(SHEET).open;
    quantity) shows the photo instantly. */
 const largePhotos = new Map();
 
-function largePhoto(name, lazy = false) {
+function largePhoto(name, alt) {
   if (!largePhotos.has(name)) {
     const holder = document.createElement("div");
-    holder.innerHTML = pictureHTML(FILES.card(name), `class="hi"${lazy ? ' loading="lazy"' : ""}`);
+    holder.innerHTML = pictureHTML(FILES.card(name), 'class="hi"');
     largePhotos.set(name, holder.firstElementChild);
   }
-  return largePhotos.get(name);
+  const picture = largePhotos.get(name);
+  picture.querySelector("img").alt = alt;
+  return picture;
 }
 
-/* start downloading an item's first large photo before its card is opened */
-function warm(id) {
-  const name = id && pics(findItem(id))[0];
-  if (name) largePhoto(name);
-}
+/* the small menu photo shows at once, softened, until the large one has loaded over it */
+const smallPhoto = (name) => pictureHTML(FILES.thumb(name), 'class="lo" alt=""');
 
 /* ---------- the items before and after, in the order now showing on the page ---------- */
 function neighbour(step) {
@@ -94,11 +94,9 @@ function drawOptions(it) {
 function photosHTML(names) {
   if (!names.length) return "";
   const many = names.length > 1;
-  // the small menu photo shows at once, softened, until the large one has loaded over it
-  // (the same file the menu list already downloaded)
-  const slides = names.map(
-    (name) => `<div class="sl">${pictureHTML(FILES.thumb(name), 'class="lo" alt=""')}</div>`,
-  );
+  // the first photo's small copy is the one the menu list already downloaded; the other
+  // slides are filled when they are swiped to (drawCard)
+  const slides = names.map((name, i) => `<div class="sl">${i ? "" : smallPhoto(name)}</div>`);
   // several photos: a named part of the page that the keyboard can reach and scroll
   if (!many) return `<div class="gal">${slides.join("")}</div>`;
   return `<section class="gal" tabindex="0" aria-label="${t().photos}">${slides.join("")}</section>
@@ -122,6 +120,7 @@ function drawCard() {
   const many = names.length > 1;
   const name = it[state.lang];
 
+  forgetIn(panel);
   panel.innerHTML = `
     <div class="grab" aria-hidden="true"></div>
     <div class="dimg">
@@ -140,14 +139,17 @@ function drawCard() {
     </div></div>`;
 
   panel.querySelectorAll(".sl").forEach((slide, i) => {
-    const picture = largePhoto(names[i], i > 0);
-    picture.querySelector("img").alt = many ? `${name} (${digits(i + 1)})` : name;
-    slide.append(picture);
+    const large = () => largePhoto(names[i], many ? `${name} (${digits(i + 1)})` : name);
+    if (!i) slide.append(large());
+    else {
+      whenNear(slide, () => {
+        slide.innerHTML = smallPhoto(names[i]);
+        slide.append(large());
+      });
+    }
   });
   if (it.options) drawOptions(it);
   if (many) gallery.start(panel);
-  warm(neighbour(-1));
-  warm(neighbour(1));
 }
 
 /* The open item is in the address (…?item=latte), so it can be shared and a reload reopens it. */
@@ -222,5 +224,4 @@ addEventListener("keydown", (e) => {
 });
 
 on("item:open", open);
-on("item:near", warm);
 on("bill", drawBuy);

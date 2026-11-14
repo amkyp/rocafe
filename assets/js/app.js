@@ -46,6 +46,7 @@ if (arrival === "reload" || arrival === "back_forward") {
 }
 visit.describeForSearchEngines();
 
-/* works offline and from the home screen */
-navigator.serviceWorker?.register("sw.js");
+/* works offline and from the home screen; set up once the page itself has everything, so
+   saving the offline copy never competes with showing the menu */
+addEventListener("load", () => navigator.serviceWorker?.register("sw.js"));
 addEventListener("offline", () => toast(t().offline));

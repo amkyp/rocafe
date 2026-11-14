@@ -5,8 +5,9 @@ import { change, inBill, isEmpty } from "./bill.js";
 import { drawChoices } from "./choices.js";
 import { $ } from "./dom.js";
 import { ITEMS, findItem } from "./items.js";
+import { forgetIn } from "./near.js";
 import { closePopup, togglePopup } from "./popup.js";
-import { buyHTML, optionsLine, sectionsHTML } from "./rows.js";
+import { buyHTML, loadPhotos, optionsLine, sectionsHTML } from "./rows.js";
 import { matches, marked, matchedText, searchWords } from "./search.js";
 import { state, t, digits, on, emit } from "./state.js";
 import { toast, LONG } from "./toast.js";
@@ -34,17 +35,21 @@ export function draw() {
   closePopup(); // an open choice menu is part of what is redrawn
   const sections = sectionsHTML();
   const current = ++build;
+  forgetIn(menu);
   if (built) {
     menu.innerHTML = sections.join("");
+    loadPhotos(menu);
     finish();
     return;
   }
   menu.innerHTML = sections.shift();
+  loadPhotos(menu);
   (async () => {
     for (const section of sections) {
       await nextTask();
       if (current !== build) return; // the language changed: that build drew it all
       menu.insertAdjacentHTML("beforeend", section);
+      loadPhotos(menu.lastElementChild);
     }
     finish();
   })();
@@ -150,18 +155,6 @@ menu.addEventListener("click", (e) => {
     }
   } else if (!e.target.closest(".buy")) emit("item:open", row.dataset.open); // not the − or +
 });
-
-/* a finger or mouse on a row: its large photo can start downloading */
-for (const event of ["pointerdown", "mouseover"]) {
-  menu.addEventListener(
-    event,
-    (e) => {
-      const row = e.target.closest("[data-open]");
-      if (row) emit("item:near", row.dataset.open);
-    },
-    { passive: true },
-  );
-}
 
 on("search", applySearch);
 on("bill", drawBuys);

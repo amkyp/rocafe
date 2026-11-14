@@ -5,6 +5,7 @@ import { T } from "../../data/strings.js";
 import { $, scrollStyle } from "./dom.js";
 import { FILES } from "./files.js";
 import { arrowOn, icon } from "./icons.js";
+import { forgetIn, whenNear } from "./near.js";
 import { state, t, digits } from "./state.js";
 import { esc, safeUrl } from "./text.js";
 
@@ -73,10 +74,8 @@ const appName = (app) => t()[`app_${app}`] || app;
 
 /* the map picture: a link to the app named in the settings (CONFIG.place.mapOpens), or a picture */
 function mapHTML() {
-  const { map } = CONFIG.place;
   const opens = maps().find((m) => m.app === CONFIG.place.mapOpens);
-  const picture = `<img src="${esc(map.src)}" width="${map.width}" height="${map.height}" alt="${esc(t().mapAlt)}" loading="lazy" decoding="async">
-    ${icon("pin", "vpin")}
+  const picture = `${icon("pin", "vpin")}
     <small class="osm" lang="en" dir="ltr">© OpenStreetMap contributors</small>`;
   if (!opens) return `<figure class="vmap">${picture}</figure>`;
   return `<a class="vmap" href="${esc(placeUrl(opens.url))}" ${NEW_TAB}>
@@ -141,7 +140,18 @@ function yearNow() {
 }
 
 export function draw() {
-  $("visitCard").innerHTML = cardHTML();
+  const card = $("visitCard");
+  forgetIn(card);
+  card.innerHTML = cardHTML();
+  /* the map picture is fetched when the card comes near the screen */
+  const holder = card.querySelector(".vmap");
+  const { map } = CONFIG.place;
+  whenNear(holder, () => {
+    holder.insertAdjacentHTML(
+      "afterbegin",
+      `<img src="${esc(map.src)}" width="${map.width}" height="${map.height}" alt="${esc(t().mapAlt)}" decoding="async">`,
+    );
+  });
   $("copy").textContent = `© ${yearNow()} ${t().name}`;
   $("visit").hidden = false;
 }
