@@ -28,6 +28,12 @@
      was drawn in Display P3; screens that show it get it exactly, others its sRGB match) */
   --logo-tile: #fddd04;
   --logo-mark: #093052;
+  --logo-frame: #154b7d; /* the logo's corner lines */
+  --logo-letters: #000;
+  /* the accent: what is selected or in use (a category, a filter, the bill bar). By day it is
+     the logo's navy; at night navy would sink into the dark page, so it is the light ink. */
+  --accent: var(--logo-mark);
+  --on-accent: #fff;
   --pm-bg: #e7f2e4;
   --pm: #2f6a2a;
   --cf-bg: #eef0fb;
@@ -128,6 +134,10 @@ html[data-theme="dark"] {
   --ink: #f1f1ee;
   --mute: #a1a1a9;
   --brand-soft: #4a3d12;
+  --accent: var(--ink);
+  --on-accent: var(--bg);
+  --logo-frame: #6f9fd0; /* the corner lines and CAFE drawn light, so they show on the dark page */
+  --logo-letters: var(--ink);
   --pm-bg: #1d2e1b;
   --pm: #9fd394;
   --cf-bg: #1f2340;
@@ -368,13 +378,13 @@ picture {
 }
 .chip.on,
 .fbtn[aria-pressed="true"] {
-  background: var(--ink);
-  color: var(--bg);
-  border-color: var(--ink);
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
 }
 #filterBtn.open {
-  background: var(--ink);
-  color: var(--bg);
+  background: var(--accent);
+  color: var(--on-accent);
 }
 @media (hover: hover) {
   .chip:not(.on):hover {
@@ -552,8 +562,8 @@ html[data-theme="dark"] .tool .moon {
 }
 .tool-fill.open,
 .tool-fill.on {
-  background: var(--ink);
-  color: var(--bg);
+  background: var(--accent);
+  color: var(--on-accent);
 }
 @media (hover: hover) {
   .tool-fill:not(.open):hover {
@@ -1249,6 +1259,30 @@ a.vmap:focus-visible {
   margin-top: var(--sp-9);
   text-align: center;
 }
+/* the full logo above the closing line; its colours are the logo's, with the corner lines and
+   letters drawn light at night */
+.foot-logo {
+  width: 8.5rem;
+  aspect-ratio: 499 / 557;
+  margin: 0 auto var(--sp-7);
+}
+.foot-logo svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.foot-logo .lf {
+  fill: var(--logo-frame);
+}
+.foot-logo .lt {
+  fill: var(--logo-tile);
+}
+.foot-logo .lm {
+  fill: var(--logo-mark);
+}
+.foot-logo .ll {
+  fill: var(--logo-letters);
+}
 .slogan {
   font-size: var(--fs-md);
 }
@@ -1288,8 +1322,8 @@ a.vmap:focus-visible {
   display: flex;
   align-items: center;
   gap: var(--sp-5);
-  background: var(--ink);
-  color: var(--bg);
+  background: var(--accent);
+  color: var(--on-accent);
   border-radius: var(--r-m);
   padding-inline: var(--sp-6);
   box-shadow: var(--shadow-2);

@@ -139,6 +139,17 @@ function yearNow() {
   return parts.find((part) => part.type === "year").value;
 }
 
+/* The full logo at the foot of the page: fetched when the foot comes near the screen, and put
+   in the page itself (not as a picture) so the stylesheet colours it for day and night. */
+function drawFootLogo() {
+  const holder = $("footLogo");
+  if (holder.firstChild) return;
+  whenNear(holder, async () => {
+    const answer = await fetch("assets/logo.svg").catch(() => null);
+    if (answer?.ok) holder.innerHTML = await answer.text();
+  });
+}
+
 export function draw() {
   const card = $("visitCard");
   forgetIn(card);
@@ -153,6 +164,7 @@ export function draw() {
     );
   });
   $("copy").textContent = `© ${yearNow()} ${t().name}`;
+  drawFootLogo();
   $("visit").hidden = false;
 }
 

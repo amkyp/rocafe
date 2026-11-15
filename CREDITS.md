@@ -12,5 +12,5 @@ other servers) and keeps its own licence; the LICENSE file does not apply to the
 
 ## Photos
 
-Photos named `ro-*` in `img/` are Ro Cafe's own. The other menu photos are not Ro Cafe's and are
+Photos named `ro-*` in `img/` are Ro Café's own. The other menu photos are not Ro Café's and are
 not covered by the LICENSE file; they are being replaced with the cafe's own.

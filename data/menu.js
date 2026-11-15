@@ -76,7 +76,7 @@ export const MENU = [
      { id: "affogato", fa: "آفاگاتو", en: "Affogato", price: 285, icon: "affogato", desc: { fa: "یک اسکوپ بستنی وانیلی با شات اسپرسوی داغ.", en: "A scoop of vanilla ice cream drowned in hot espresso." }, photos: ["affogato_1"] },
      { id: "affogato-your-choice-of-ice-cream", fa: "آفاگاتو (بستنی انتخابی)", en: "Affogato (your choice of ice cream)", price: 335, icon: "affogato", desc: { fa: "آفاگاتو با بستنی به انتخاب شما.", en: "Affogato with the ice cream flavour of your choice." }, photos: ["affogato_2"] },
      { id: "matchagato", fa: "ماچاگاتو", en: "Matchagato", price: 325, icon: "affogato", desc: { fa: "بستنی با ماچا به جای اسپرسو.", en: "Ice cream topped with matcha instead of espresso." }, photos: ["pistgelato_2"] },
-     { id: "ro-cafe-bottle", fa: "باتل کافه رو", en: "Ro Cafe Bottle", price: 285, icon: "bottle", photos: ["bottle_1"] },
+     { id: "ro-cafe-bottle", fa: "باتل کافه رو", en: "Ro Café Bottle", price: 285, icon: "bottle", photos: ["bottle_1"] },
      { id: "bomb", fa: "بمب", en: "Bomb", price: 320, icon: "bomb", photos: ["frapp_1"] },
    ] },
  { id: "shake", fa: "شیک‌ها", en: "Shakes", tint: "shake",

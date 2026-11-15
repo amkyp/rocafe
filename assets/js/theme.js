@@ -1,4 +1,4 @@
-/* Ro Cafe menu: sets light or dark before the page is drawn, so it never flashes. Loaded in <head>. */
+/* Ro Café menu: sets light or dark before the page is drawn, so it never flashes. Loaded in <head>. */
 {
   let saved = null;
   try {

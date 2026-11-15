@@ -1,4 +1,4 @@
-/* Ro Cafe menu: works offline and from the home screen.
+/* Ro Café menu: works offline and from the home screen.
    Pages, data, styles and scripts come from the network when it answers in time (so they are
    never out of date) and from the saved copy when it is slow or absent. Photos are saved once,
    then come from the phone. */

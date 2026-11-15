@@ -1,4 +1,4 @@
-/* Ro Cafe menu: starts the page. Each part lives in its own file:
+/* Ro Café menu: starts the page. Each part lives in its own file:
      header    logo, theme, language      chips    category bar
      search    search field and filters   menu     the list of items
      card      item card (with gallery)   bill     the table's bill

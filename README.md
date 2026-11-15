@@ -1,3 +1,3 @@
 # کافه رو
 
-Static QR menu for Ro Cafe, Ramsar.
+Static QR menu for Ro Café, Ramsar.
