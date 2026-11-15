@@ -1,4 +1,5 @@
 /* The item card: large photos, description, price and quantity, and the items before and after. */
+import { CLOSER } from "../../data/photos.js";
 import { change, inBill, stepperHTML } from "./bill.js";
 import { drawChoices } from "./choices.js";
 import { $ } from "./dom.js";
@@ -35,8 +36,12 @@ function largePhoto(name, alt) {
   return picture;
 }
 
-/* the small menu photo shows at once, softened, until the large one has loaded over it */
-const smallPhoto = (name) => pictureHTML(FILES.thumb(name), 'class="lo" alt=""');
+/* A small copy shows at once, softened, until the large photo has loaded over it: the list photo
+   (already downloaded), or, where that is cut closer to the item, the photo's tiny whole copy. */
+const smallPhoto = (name) =>
+  CLOSER.has(name)
+    ? `<img class="lo" src="${FILES.whole(name)}" width="32" height="32" alt="">`
+    : pictureHTML(FILES.thumb(name), 'class="lo" alt=""');
 
 /* ---------- the items before and after, in the order now showing on the page ---------- */
 function neighbour(step) {

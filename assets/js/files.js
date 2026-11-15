@@ -29,6 +29,8 @@ export const FILES = {
     const widths = CARD_WIDTHS[name];
     return photo("img/lg/", name, widths, `(min-width: ${CARD}px) ${CARD}px, 100vw`, widths.at(-1));
   },
+  /* a photo cut closer for the list has a tiny whole one, shown softened while the card's loads */
+  whole: (name) => `img/${encodeURIComponent(name)}-whole-32.webp`,
   brand: (key) => `assets/brands/${encodeURIComponent(key)}.webp`,
 };
 

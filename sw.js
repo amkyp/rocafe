@@ -3,7 +3,7 @@
    never out of date) and from the saved copy when it is slow or absent. Photos are saved once,
    then come from the phone. */
 const SITE = "ro-site-3";
-const PHOTOS = "ro-photos-4";
+const PHOTOS = "ro-photos-5";
 const WAIT = 3000; // ms the network gets before a saved copy is shown instead
 
 /* What to save at install is read from the page itself (its styles, scripts, fonts and icons,
