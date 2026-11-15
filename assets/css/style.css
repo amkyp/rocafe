@@ -24,9 +24,10 @@
   --brand: #f2c230;
   --brand-soft: #fdf3cf;
   --brand-ink: #18181b;
-  /* the logo's own colours: a navy mark on a yellow tile, the same in day and night */
-  --logo-tile: #f8de4b;
-  --logo-mark: #1a3a5e;
+  /* the logo's own colours: a navy mark on a yellow tile, the same in day and night (the logo
+     was drawn in Display P3; screens that show it get it exactly, others its sRGB match) */
+  --logo-tile: #fddd04;
+  --logo-mark: #093052;
   --pm-bg: #e7f2e4;
   --pm: #2f6a2a;
   --cf-bg: #eef0fb;
@@ -514,6 +515,12 @@ html[data-theme="dark"] .tool .moon {
 .top-actions {
   display: flex;
   gap: var(--sp-1);
+}
+@supports (color: color(display-p3 0 0 0)) {
+  :root {
+    --logo-tile: color(display-p3 0.973 0.871 0.294);
+    --logo-mark: color(display-p3 0.082 0.184 0.314);
+  }
 }
 /* a plain header button: an icon or a short word, no outline; its shape shows on hover and focus */
 .tool,
