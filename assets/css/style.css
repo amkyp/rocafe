@@ -24,7 +24,9 @@
   --brand: #f2c230;
   --brand-soft: #fdf3cf;
   --brand-ink: #18181b;
-  --mark: #18181b;
+  /* the logo's own colours: a navy mark on a yellow tile, the same in day and night */
+  --logo-tile: #f8de4b;
+  --logo-mark: #1a3a5e;
   --pm-bg: #e7f2e4;
   --pm: #2f6a2a;
   --cf-bg: #eef0fb;
@@ -125,7 +127,6 @@ html[data-theme="dark"] {
   --ink: #f1f1ee;
   --mute: #a1a1a9;
   --brand-soft: #4a3d12;
-  --mark: #000;
   --pm-bg: #1d2e1b;
   --pm: #9fd394;
   --cf-bg: #1f2340;
@@ -500,13 +501,15 @@ html[data-theme="dark"] .tool .moon {
   width: var(--h-s);
   height: var(--h-s);
   border-radius: var(--r-s);
-  background: var(--mark);
+  background: var(--logo-tile);
+  color: var(--logo-mark);
   display: grid;
   place-items: center;
   flex: none;
 }
 .mark svg {
-  width: 26px;
+  width: 28px;
+  fill: currentColor;
 }
 .top-actions {
   display: flex;
