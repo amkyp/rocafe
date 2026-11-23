@@ -2122,7 +2122,9 @@ div.pick {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* the name in full on up to two lines (one line cut "Caramel Macchiato" to "Caramel …") */
+/* the name in full on up to two lines (one line cut "Caramel Macchiato" to "Caramel …"). The
+   -webkit- trio is the way every browser clamps lines: plain line-clamp is not yet in all of them
+   (MDN: limited availability), and the trio's behaviour is specified to stay. */
 .sib-t b {
   display: -webkit-box;
   -webkit-box-orient: vertical;

@@ -86,7 +86,8 @@ function setWords(text) {
 }
 input.addEventListener("input", () => setWords(input.value));
 // Enter closes the phone's keyboard, but not the Enter that confirms a word in an input method
-// (Chinese, Japanese, Korean); Safari reports that one only by keyCode 229
+// (Chinese, Japanese, Korean). keyCode is otherwise retired, but Safari has no isComposing and
+// marks that Enter only by keyCode 229 (WebKit bug 165004)
 input.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.isComposing && e.keyCode !== 229) input.blur();
 });

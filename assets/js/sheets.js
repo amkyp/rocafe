@@ -108,7 +108,8 @@ function allowSwipe(panel) {
 /* A tap outside the panel closes it only when it both starts and ends outside, so selecting text
    or dragging out of the panel does not. The dialog covers the whole screen (the panel inside is
    the visible card), so the browser's own closedby="any" never sees a tap outside it: tried in
-   Chrome, it left the panel open. */
+   Chrome, it left the panel open. Safari has no closedby at all, so this code would stay for it
+   even if the dialog were the card itself. */
 const outsideOf = (box, e) => {
   const r = box.getBoundingClientRect();
   return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
