@@ -23,8 +23,9 @@ export function tagsHTML(it) {
    (so a mistaken tap can be undone right there). */
 export function buyHTML(key) {
   if (inBill(key)) return stepperHTML(key);
-  const name = esc(ITEMS[key][state.lang]);
-  return `<button type="button" class="add" data-add="${key}" aria-label="${name}">+</button>`;
+  // not the bare name: the row's name button already has it, and opens the card instead
+  const label = esc(`${t().add}: ${ITEMS[key][state.lang]}`);
+  return `<button type="button" class="add" data-add="${key}" aria-label="${label}">+</button>`;
 }
 
 /* A row's photo. The first rows, which open the page, carry theirs from the start; every other
@@ -120,9 +121,11 @@ export function sectionsHTML() {
   const sections = MENU.map((section) => {
     const items = section.items.map((it) => rowHTML(it, rows++ < LOAD_FIRST));
     const id = esc(section.id);
-    // role="list": Safari stops announcing a list once its bullets are styled away
-    return `<section class="sec" id="${id}" aria-labelledby="${id}-title" data-tint="${esc(section.tint)}">
-      <h2 class="sec-h" id="${id}-title">${esc(section[state.lang])}</h2>
+    // role="list": Safari stops announcing a list once its bullets are styled away.
+    // The section is not named: a named section is a landmark, and a dozen of them would bury the
+    // page's real ones (header, search, categories, menu, address); its heading leads the way.
+    return `<section class="sec" id="${id}" data-tint="${esc(section.tint)}">
+      <h2 class="sec-h">${esc(section[state.lang])}</h2>
       <ul class="grid" role="list">${items.join("")}</ul>
     </section>`;
   });

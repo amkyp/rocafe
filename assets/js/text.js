@@ -1,18 +1,13 @@
 /* Small text helpers. Nothing here touches the page. */
-
-const FA_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
-export const faDigits = (s) => String(s).replace(/\d/g, (d) => FA_DIGITS[d]);
+import { uniformPersian } from "./persian.js";
 
 const ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
 /* makes any text safe to place inside HTML */
 export const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ESCAPES[c]);
 
-/* the same word however it was typed: Arabic or Persian letters, half-spaces, capitals */
+/* the same word however it was typed: Persian from any keyboard, half-spaces, spaces, capitals */
 export const norm = (s) =>
-  (s || "")
-    .replace(/‌/g, " ")
-    .replace(/ي/g, "ی")
-    .replace(/ك/g, "ک")
+  uniformPersian(s || "")
     .replace(/\s+/g, " ")
     .trim()
     .toLowerCase();

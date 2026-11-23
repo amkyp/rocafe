@@ -1,6 +1,6 @@
 /* What every part of the page shares: the language, saved settings, and messages between parts. */
 import { T } from "../../data/strings.js";
-import { faDigits } from "./text.js";
+import { persianDigits } from "./persian.js";
 
 /* The browser's storage can be missing (private mode) or hold anything: read through these and
    validate what comes back. If storage is unavailable, things just aren't remembered. */
@@ -36,6 +36,9 @@ export const state = { lang: LANGS.includes(saved) ? saved : "fa" };
 
 export const t = () => T[state.lang];
 export const otherLang = () => (state.lang === "fa" ? "en" : "fa");
+/* which way a language is written: the page's own direction, and that of any text shown in the
+   other language (Persian stays right to left on the English page, and English left to right) */
+export const dirOf = (lang) => (lang === "fa" ? "rtl" : "ltr");
 export function setLang(lang) {
   state.lang = lang;
   store.set("ro-lang", lang);
@@ -50,7 +53,7 @@ export const lazy = (make) => {
 };
 
 /* numbers in the language's own digits; prices with its thousands separator */
-export const digits = (s) => (state.lang === "fa" ? faDigits(s) : String(s));
+export const digits = (s) => (state.lang === "fa" ? persianDigits(s) : String(s));
 const NUMBER = {
   fa: lazy(() => new Intl.NumberFormat("fa-IR")),
   en: lazy(() => new Intl.NumberFormat("en-US")),

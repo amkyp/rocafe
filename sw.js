@@ -2,7 +2,7 @@
    Pages, data, styles and scripts come from the network when it answers in time (so they are
    never out of date) and from the saved copy when it is slow or absent. Photos are saved once,
    then come from the phone. */
-const SITE = "ro-site-3";
+const SITE = "ro-site-4";
 const PHOTOS = "ro-photos-5";
 const WAIT = 3000; // ms the network gets before a saved copy is shown instead
 
@@ -43,10 +43,19 @@ self.addEventListener("activate", (e) => {
   );
 });
 
+/* The page is saved once, under its plain address: an item's address (?item=latte) is the same
+   page, and a copy kept per item would be found in place of the newest one. */
+function savedUnder(request) {
+  if (request.mode !== "navigate") return request;
+  const url = new URL(request.url);
+  url.search = "";
+  return url.href;
+}
+
 function keep(store, request, response) {
   if (response.ok && response.type === "basic") {
     const copy = response.clone();
-    caches.open(store).then((cache) => cache.put(request, copy));
+    caches.open(store).then((cache) => cache.put(savedUnder(request), copy));
   }
   return response;
 }

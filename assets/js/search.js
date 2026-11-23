@@ -6,6 +6,7 @@ import { icon } from "./icons.js";
 import { sectionOf } from "./items.js";
 import { togglePopup } from "./popup.js";
 import { state, t, otherLang, digits, on, emit } from "./state.js";
+import { writingDirection } from "./persian.js";
 import { esc, norm } from "./text.js";
 
 const FILTER = new Map(FILTERS.map((f) => [f.id, f]));
@@ -75,14 +76,19 @@ export function marked(text) {
 /* ---------- the search field ---------- */
 function setWords(text) {
   input.value = text;
+  // Persian typed on the English page runs right to left, English on the Persian page left to right
+  const direction = writingDirection(text);
+  if (direction) input.dir = direction;
+  else input.removeAttribute("dir");
   words = norm(text);
   $("searchBox").classList.toggle("has", !!text);
   emit("search");
 }
 input.addEventListener("input", () => setWords(input.value));
-// Enter closes the phone's keyboard
+// Enter closes the phone's keyboard, but not the Enter that confirms a word in an input method
+// (Chinese, Japanese, Korean); Safari reports that one only by keyCode 229
 input.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") input.blur();
+  if (e.key === "Enter" && !e.isComposing && e.keyCode !== 229) input.blur();
 });
 $("clearQ").addEventListener("click", () => {
   setWords("");
@@ -92,17 +98,25 @@ $("clearQ").addEventListener("click", () => {
 /* ---------- filters ---------- */
 const filterName = (id) => t()[`tag_${id}`];
 
+/* the filter buttons, in the current language */
 function drawFilters() {
   $("filters").innerHTML = FILTERS.map(
-    ({ id }) =>
-      `<button type="button" class="fbtn" data-f="${id}" aria-pressed="${filters.has(id)}">${filterName(id)}</button>`,
+    ({ id }) => `<button type="button" class="fbtn" data-f="${id}">${filterName(id)}</button>`,
   ).join("");
+  showFilters();
+}
+
+/* which filters are on: the buttons stay, so the keyboard stays on the one pressed */
+function showFilters() {
+  for (const button of $("filters").querySelectorAll("[data-f]")) {
+    button.setAttribute("aria-pressed", filters.has(button.dataset.f));
+  }
   filterBtn.classList.toggle("on", filters.size > 0);
 }
 
 function toggleFilter(id) {
   if (!filters.delete(id)) filters.add(id);
-  drawFilters();
+  showFilters();
   emit("search");
 }
 
@@ -150,14 +164,27 @@ function drawEmpty(total) {
 $("emptyClear").addEventListener("click", () => {
   const hadWords = !!words;
   filters.clear();
-  drawFilters();
+  showFilters();
   setWords("");
   (hadWords ? input : filterBtn).focus();
 });
 
+/* Read out for screen readers: how many items the search or filters found, or that nothing was
+   found (shown only as the message in the page), once typing pauses, not at every keystroke. */
+const ANNOUNCE_AFTER = 700; // ms
+let announceTimer = 0;
+function announce(total) {
+  clearTimeout(announceTimer);
+  announceTimer = setTimeout(() => {
+    const looking = words || filters.size;
+    $("found").textContent = !looking ? "" : total ? t().nItems.replace("{n}", digits(total)) : t().noneT;
+  }, ANNOUNCE_AFTER);
+}
+
 on("filtered", ({ total }) => {
   drawFilterState(total);
   drawEmpty(total);
+  announce(total);
 });
 
 /* ---------- the filter menu: the list updates underneath while it is open ---------- */

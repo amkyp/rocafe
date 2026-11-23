@@ -105,12 +105,25 @@ function allowSwipe(panel) {
   });
 }
 
+/* A tap outside the panel closes it only when it both starts and ends outside, so selecting text
+   or dragging out of the panel does not. The dialog covers the whole screen (the panel inside is
+   the visible card), so the browser's own closedby="any" never sees a tap outside it: tried in
+   Chrome, it left the panel open. */
+const outsideOf = (box, e) => {
+  const r = box.getBoundingClientRect();
+  return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+};
+
 for (const dialog of document.querySelectorAll("dialog.sheet")) {
+  const panel = dialog.querySelector(".panel");
+  let pressedOutside = false;
   dialog.addEventListener("cancel", closedByKeyboard);
   dialog.addEventListener("close", () => onClose(dialog));
+  dialog.addEventListener("pointerdown", (e) => (pressedOutside = e.target === dialog));
   dialog.addEventListener("click", (e) => {
-    // a click on the dialog itself is a click outside the panel
-    if (e.target === dialog || e.target.closest("[data-close]")) dialog.close();
+    if (e.target.closest("[data-close]")) dialog.close();
+    // a press and release on either side of the panel's edge clicks the dialog itself too
+    else if (e.target === dialog && pressedOutside && outsideOf(panel, e)) dialog.close();
   });
-  allowSwipe(dialog.querySelector(".panel"));
+  allowSwipe(panel);
 }

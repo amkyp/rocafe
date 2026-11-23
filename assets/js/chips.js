@@ -49,12 +49,17 @@ addEventListener("resize", () => {
 });
 
 /* ---------- the highlighted chip ---------- */
-/* bring a chip to the middle of the bar; measured on the next frame, after the browser's own
-   layout, so a freshly built menu is never laid out an extra time just to place a chip */
+/* Bring a chip to the middle of the bar; measured on the next frame, after the browser's own
+   layout, so a freshly built menu is never laid out an extra time just to place a chip. The chip
+   is measured against the bar itself (offsetLeft counts from the header, which on wide screens
+   includes the search field beside the bar), and the bar is scrolled by the difference, which is
+   the same in both reading directions. */
 function centre(chip) {
   requestAnimationFrame(() => {
-    const left = chip.offsetLeft - (bar.clientWidth - chip.offsetWidth) / 2;
-    bar.scrollTo({ left, behavior: scrollStyle() });
+    const barBox = bar.getBoundingClientRect();
+    const chipBox = chip.getBoundingClientRect();
+    const by = chipBox.left + chipBox.width / 2 - (barBox.left + barBox.width / 2);
+    bar.scrollBy({ left: by, behavior: scrollStyle() });
   });
 }
 
@@ -113,30 +118,35 @@ for (const event of ["scrollend", "wheel", "touchstart", "keydown"]) {
 
 /* ---------- which section is being read ----------
    The one crossing a line just under the header. The browser reports it (IntersectionObserver),
-   so the page is never measured by hand. At the very bottom the last section counts, even if it
-   is too short to reach the line. */
+   so the page is never measured by hand. Sections follow one another without gaps, so as one
+   leaves the line the next reaches it. Nothing at the line: above the menu, the first section is
+   the one ahead; below it (the address and the foot of the page), no category is current. Where
+   each section lies is what the observer last reported, so picking never makes the browser lay
+   the page out again in the middle of a search. */
 const BELOW_HEADER = 24; // px
 let observer = null;
 let crossing = null;
-let atBottom = false;
+const belowLine = new Map(); // section id -> its top is below the line
 
 function watchSections() {
   observer?.disconnect();
   crossing = null;
-  const line = headerHeight + BELOW_HEADER;
+  belowLine.clear();
+  // Never below zero: turning a wide screen into a short one, the header's new sticky offset is
+  // read a moment before its new height arrives, the line comes out negative, and rootMargin
+  // refuses "--7px" (and the observer with it).
+  const line = Math.max(0, Math.round(headerHeight + BELOW_HEADER));
   observer = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
+        belowLine.set(entry.target.id, entry.boundingClientRect.top > line);
         if (entry.isIntersecting) crossing = entry.target.id;
-        // a section that scrolls up past the line stays current until the next one reaches it;
-        // one that drops back below the line hands over to the one above
-        else if (crossing === entry.target.id && entry.boundingClientRect.top > line)
-          crossing = null;
+        else if (crossing === entry.target.id) crossing = null;
       }
       pickSection();
     },
     // a 1px band at the line
-    { rootMargin: `-${line}px 0px -${Math.max(0, viewHeight - line - 1)}px 0px` },
+    { rootMargin: `-${line}px 0px -${Math.max(0, Math.round(viewHeight) - line - 1)}px 0px` },
   );
   for (const section of document.querySelectorAll(".sec")) observer.observe(section);
 }
@@ -144,22 +154,17 @@ function watchSections() {
 function pickSection() {
   if (heldFor) return;
   if (crossing && $(crossing).hidden) crossing = null; // the search or filters hid it
-  const shown = document.querySelectorAll(".sec:not([hidden])");
-  const last = shown[shown.length - 1];
-  setCurrent((atBottom && last?.id) || crossing || shown[0]?.id || null);
+  if (crossing) {
+    setCurrent(crossing);
+    return;
+  }
+  const first = document.querySelector(".sec:not([hidden])");
+  setCurrent(first && belowLine.get(first.id) ? first.id : null);
 }
 
-addEventListener(
-  "scroll",
-  () => {
-    header.classList.toggle("stuck", scrollY > 4);
-    const bottom = innerHeight + scrollY >= document.documentElement.scrollHeight - 2;
-    if (bottom === atBottom) return;
-    atBottom = bottom;
-    pickSection();
-  },
-  { passive: true },
-);
+addEventListener("scroll", () => header.classList.toggle("stuck", scrollY > 4), {
+  passive: true,
+});
 
 /* the menu changed what it shows: sections with nothing to show lose their chip */
 on("filtered", ({ shown }) => {

@@ -6,6 +6,9 @@
 
 :root {
   /* colour */
+  /* the browser's own parts (scrollbars, fields, system colours) drawn light to match, also on a
+     device set to dark where the guest chose light */
+  color-scheme: light;
   --bg: #ffffff;
   --surface: #ffffff;
   --soft: #f5f5f2;
@@ -124,80 +127,52 @@
   --focus-w: 2px;
   --focus: var(--focus-w) solid var(--ink);
 }
-html[data-theme="dark"] {
-  --map-filter: brightness(0.8); /* the light map, dimmed so it does not glare in the dark */
-  color-scheme: dark;
-  --bg: #121214;
-  --surface: #1a1a1d;
-  --soft: #222226;
-  --line: #2d2d33;
-  --ink: #f1f1ee;
-  --mute: #a1a1a9;
-  --brand-soft: #4a3d12;
-  --accent: var(--ink);
-  --on-accent: var(--bg);
-  --logo-frame: #6f9fd0; /* the corner lines and CAFE drawn light, so they show on the dark page */
-  --logo-letters: var(--ink);
-  --pm-bg: #1d2e1b;
-  --pm: #9fd394;
-  --cf-bg: #1f2340;
-  --cf: #aab3f2;
-  --n-bg: #33280f;
-  --n: #e9be6a;
-  --scrim: rgba(0, 0, 0, 0.6);
-  --t-coffee: #26211c;
-  --t-brew: #20231e;
-  --t-warm: #271f1d;
-  --t-tea: #1d241d;
-  --t-shake: #281e21;
-  --t-iced: #1d2127;
-  --t-cold: #23251b;
-  --t-cake: #27211a;
-  --t-food: #24211d;
-  --t-extra: #222224;
+/* night is for the screen: paper always takes the day colours above */
+@media screen {
+  html[data-theme="dark"] {
+    --map-filter: brightness(0.8); /* the light map, dimmed so it does not glare in the dark */
+    color-scheme: dark;
+    --bg: #121214;
+    --surface: #1a1a1d;
+    --soft: #222226;
+    --line: #2d2d33;
+    --ink: #f1f1ee;
+    --mute: #a1a1a9;
+    --brand-soft: #4a3d12;
+    --accent: var(--ink);
+    --on-accent: var(--bg);
+    --logo-frame: #6f9fd0; /* the corner lines and CAFE drawn light, so they show on the dark page */
+    --logo-letters: var(--ink);
+    --pm-bg: #1d2e1b;
+    --pm: #9fd394;
+    --cf-bg: #1f2340;
+    --cf: #aab3f2;
+    --n-bg: #33280f;
+    --n: #e9be6a;
+    --scrim: rgba(0, 0, 0, 0.6);
+    --t-coffee: #26211c;
+    --t-brew: #20231e;
+    --t-warm: #271f1d;
+    --t-tea: #1d241d;
+    --t-shake: #281e21;
+    --t-iced: #1d2127;
+    --t-cold: #23251b;
+    --t-cake: #27211a;
+    --t-food: #24211d;
+    --t-extra: #222224;
+  }
 }
 
 /* ---------- base ---------- */
-/* IBM Plex Sans Arabic (SIL Open Font License), regular and semibold: the only two weights the
-   site uses. Each is split into Persian/Arabic and Latin letters (made by the font preparation
-   script), so the browser downloads only what a page shows. */
+/* Vazirmatn (SIL Open Font License, assets/fonts/OFL.txt): a Persian typeface, with English
+   letters from Roboto. The file is the release's own variable font, unchanged: every weight in one
+   file (the site uses regular and semibold), Persian and English together. */
 @font-face {
-  font-family: "RoPlex";
+  font-family: "Vazirmatn";
   font-style: normal;
-  font-weight: 400;
+  font-weight: 100 900;
   font-display: swap;
-  src: url(../fonts/plex-arabic-400.woff2) format("woff2");
-  unicode-range:
-    U+060C, U+061B, U+061F, U+0621-063A, U+0640-0655, U+0660-066C, U+0670, U+067E, U+0686, U+0698,
-    U+06A9, U+06AF, U+06BE, U+06C0-06C3, U+06CC, U+06D5, U+06F0-06F9;
-}
-@font-face {
-  font-family: "RoPlex";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url(../fonts/plex-latin-400.woff2) format("woff2");
-  unicode-range:
-    U+0020-007E, U+00A0-00FF, U+2013-2014, U+2018-201A, U+201C-201D, U+2022, U+2026, U+2212;
-}
-@font-face {
-  font-family: "RoPlex";
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url(../fonts/plex-arabic-600.woff2) format("woff2");
-  unicode-range:
-    U+060C, U+061B, U+061F, U+0621-063A, U+0640-0655, U+0660-066C, U+0670, U+067E, U+0686, U+0698,
-    U+06A9, U+06AF, U+06BE, U+06C0-06C3, U+06CC, U+06D5, U+06F0-06F9;
-}
-@font-face {
-  font-family: "RoPlex";
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url(../fonts/plex-latin-600.woff2) format("woff2");
-  unicode-range:
-    U+0020-007E, U+00A0-00FF, U+2013-2014, U+2018-201A, U+201C-201D, U+2022, U+2026, U+2212;
+  src: url("../fonts/Vazirmatn[wght].woff2") format("woff2");
 }
 
 *,
@@ -213,9 +188,14 @@ html[data-theme="dark"] {
 html {
   scroll-behavior: smooth;
   scroll-padding-top: var(--bar-h, 150px);
+  /* an open panel locks the page (below), which takes its scrollbar away; the scrollbar's room
+     stays, so the page behind does not jump sideways. (The lock stays rather than
+     overscroll-behavior on the dialog alone, which Safari does not apply to a panel that cannot
+     scroll.) */
+  scrollbar-gutter: stable;
 }
 body {
-  font-family: "RoPlex", Tahoma, system-ui, sans-serif;
+  font-family: "Vazirmatn", Tahoma, system-ui, sans-serif;
   font-size: var(--fs-md);
   line-height: var(--lh-body);
   background: var(--bg);
@@ -243,6 +223,18 @@ h2,
 h3 {
   font-weight: 600;
 }
+/* headings break into lines of even length; running text never leaves one word alone on its
+   last line */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+p,
+.empty span,
+.toast {
+  text-wrap: pretty;
+}
 img {
   max-width: 100%;
   display: block;
@@ -252,7 +244,9 @@ img {
   outline-offset: 2px;
   border-radius: var(--r-xs);
 }
-.num {
+/* English digits of equal width, so counts and totals stay in line as they change; Persian digits
+   keep their own widths, as the font's equal-width Persian digits stand far apart ("۲ ۱ ۰") */
+.num:lang(en) {
   font-variant-numeric: tabular-nums;
 }
 .ltr {
@@ -363,6 +357,7 @@ picture {
 .fbtn {
   border: 1px solid var(--line);
   padding-inline: var(--sp-5);
+  text-decoration: none; /* a pill can be a link too (404.html) */
 }
 .pill,
 .chip,
@@ -416,6 +411,11 @@ picture {
 }
 .btn-out {
   border: 1px solid var(--line);
+}
+/* the bill's clear button asking to be tapped again (assets/js/bill.js) */
+.btn-out.ask {
+  border-color: var(--ink);
+  background: var(--soft);
 }
 @media (hover: hover) {
   .btn-out:hover {
@@ -623,7 +623,9 @@ html[data-theme="dark"] .tool .moon {
   border-radius: var(--r-m);
   border: 1px solid transparent;
   background: var(--soft);
-  padding-inline: var(--sp-10) var(--h-s);
+  /* the same room on both sides (the icon on one, the clear button on the other), so the words
+     clear both whichever way they run (see writingDirection in assets/js/persian.js) */
+  padding-inline: var(--sp-10);
   font: inherit;
   font-size: var(--fs-md);
   color: var(--ink);
@@ -632,8 +634,15 @@ html[data-theme="dark"] .tool .moon {
 .search input::-webkit-search-decoration {
   appearance: none; /* the field has its own clear button */
 }
+/* the example text is the field's only visible hint on phones: the theme's own muted ink, which
+   reads clearly on the field (the browser's grey does not, least of all at night) */
+.search input::placeholder {
+  color: var(--mute);
+  opacity: 1;
+}
 .search input:focus {
-  outline: none;
+  /* invisible here; high-contrast mode paints it, where the border colour alone does not show */
+  outline: var(--focus-w) solid transparent;
   background: var(--surface);
   border-color: var(--ink);
 }
@@ -679,8 +688,9 @@ html[data-theme="dark"] .tool .moon {
   gap: var(--sp-4);
   padding-inline: var(--sp-5) var(--sp-5);
   border-radius: var(--r-pill);
-  background: var(--ink);
-  color: var(--bg);
+  /* the colour of a filter that is on, as in the filter menu and the chosen category */
+  background: var(--accent);
+  color: var(--on-accent);
   font-size: var(--fs-sm);
   font-weight: 600;
   white-space: nowrap;
@@ -720,9 +730,6 @@ html[data-theme="dark"] .tool .moon {
 .chip {
   flex: none;
   text-decoration: none;
-}
-.chip {
-  flex: none;
 }
 
 /* ---------- menu ---------- */
@@ -859,8 +866,10 @@ main.wrap {
 .it-name:focus-visible {
   outline: none;
 }
+/* the ring on the row's whole area; an outline, which high-contrast mode keeps (a shadow it drops) */
 .it-name:focus-visible::before {
-  box-shadow: inset 0 0 0 var(--focus-w) var(--ink);
+  outline: var(--focus);
+  outline-offset: calc(-1 * var(--focus-w));
 }
 /* the row's own buttons sit above that layer */
 .it .buy {
@@ -1094,7 +1103,8 @@ html:has(.billbar.up) .site-foot {
   outline: none;
 }
 .vrow dd a:focus-visible::before {
-  box-shadow: inset 0 0 0 var(--focus-w) var(--ink);
+  outline: var(--focus);
+  outline-offset: calc(-1 * var(--focus-w));
 }
 .vmapbox {
   display: flex;
@@ -1578,8 +1588,11 @@ html:has(dialog.sheet[open]) {
   width: 16px;
   background: var(--on-photo);
 }
+/* at the card's own top corner: over the photo where the photo is on top, over the details where
+   the photo is beside them (not at the photo's inner edge, in the middle of the card) */
 .dclose {
   position: absolute;
+  z-index: 3;
   top: var(--sp-5);
   inset-inline-end: var(--sp-5);
   width: var(--h-m);
@@ -1609,6 +1622,12 @@ html:has(dialog.sheet[open]) {
 .dbody .alt {
   color: var(--mute);
   font-size: var(--fs-sm);
+}
+/* A line in the other language (the card's second name, a search hint) runs in its own direction,
+   so its words and signs fall in order. Persian lines sit on the right, as Persian does; English
+   lines on the Persian page stay on the right too, under the name they belong to. */
+html[dir="rtl"] :is(.alt, .why)[dir="ltr"] {
+  text-align: right;
 }
 .dbody .desc {
   margin-top: var(--sp-5);
@@ -1774,39 +1793,42 @@ html:has(dialog.sheet[open]) {
     margin-top: 0;
     gap: var(--sp-3);
   }
-  /* the search field is the row's first pill and grows while in use */
+  /* The search field is the row's first pill and grows while it is in use: while the field itself
+     has focus, not the filter menu beside it, which would otherwise widen the field and push the
+     categories along each time it opens. At rest the pill is wide enough for its label in either
+     language and the "/" key beside it. */
   .find .field {
     flex: none;
-    width: 10.5rem;
+    width: 12rem;
     transition: width var(--t-mid) var(--ease);
   }
   /* at rest the field is a pill that shows its own label; the example text comes with the field */
-  .find .search:not(:focus-within, .has) .sr {
+  .find .search:not(.has) .field:not(:focus-within) .sr {
     inset-block: 0;
-    inset-inline-start: var(--sp-9);
-    display: flex;
-    align-items: center;
+    inset-inline: var(--sp-10) calc(var(--sp-4) + var(--sp-7) + var(--sp-3)); /* clear of the "/" */
+    display: block;
     width: auto;
     height: auto;
     margin: 0;
-    overflow: visible;
+    overflow: hidden;
+    text-overflow: ellipsis;
     clip-path: none;
+    line-height: var(--h-s);
     color: var(--mute);
     font-size: var(--fs-sm);
     font-weight: 600;
     pointer-events: none;
   }
-  .find .search:not(:focus-within, .has) input::placeholder {
+  .find .search:not(.has) .field:not(:focus-within) input::placeholder {
     color: transparent;
   }
-  .find .search:focus-within .field,
+  .find .field:focus-within,
   .find .search.has .field {
     width: 24rem;
   }
   .find .search input {
     height: var(--h-s);
     border-radius: var(--r-pill);
-    padding-inline-start: var(--sp-9);
     font-size: var(--fs-sm);
     text-overflow: ellipsis;
   }
@@ -1952,6 +1974,17 @@ html:has(dialog.sheet[open]) {
   .dpanel .dbody {
     padding: var(--sp-7);
   }
+  /* here the close button sits on the details, so it looks like the bill's own close button */
+  .dpanel .dclose {
+    background: none;
+    box-shadow: none;
+    color: var(--mute);
+  }
+  /* the name and the other language's name keep clear of it (the hgroup takes the page's
+     direction, which is the side the button is on) */
+  .dpanel .dhead {
+    padding-inline-end: var(--h-m);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2089,13 +2122,15 @@ div.pick {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* the name in full on up to two lines (one line cut "Caramel Macchiato" to "Caramel …") */
 .sib-t b {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   font-size: var(--fs-sm);
   font-weight: 600;
   line-height: var(--lh-tight);
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 /* photo arrows for galleries, computers only */
 .gnav {
@@ -2193,8 +2228,42 @@ html[dir="ltr"] {
     outline-offset: -3px;
   }
 }
+/* ---------- printing the menu ----------
+   A paper menu in the day colours whatever the screen's theme (the night colours are for screens
+   only): each item's name, notes and price with its unit, rows and section titles kept with what
+   follows them; then the address, phone and hours. Left out: the page's controls, the bill, the
+   map, and the photos (only those already scrolled to have loaded, so the rest would print as
+   empty squares). */
+@media print {
+  .skip,
+  .appbar,
+  .billbar,
+  .toast,
+  .buy,
+  .pic,
+  .vmapbox,
+  .foot-logo,
+  .vgo {
+    display: none !important;
+  }
+  .it,
+  .vrow {
+    break-inside: avoid;
+  }
+  .sec-h {
+    break-after: avoid;
+  }
+  .price .sr {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    font-weight: 400;
+  }
+}
 @media (min-width: 860px) and (hover: hover) {
-  .search:not(:focus-within, .has) .key {
+  .search:not(.has) .field:not(:focus-within) .key {
     display: grid;
     place-items: center;
     position: absolute;

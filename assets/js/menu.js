@@ -9,7 +9,7 @@ import { forgetIn } from "./near.js";
 import { closePopup, togglePopup } from "./popup.js";
 import { buyHTML, loadPhotos, optionsLine, sectionsHTML } from "./rows.js";
 import { matches, marked, matchedText, searchWords } from "./search.js";
-import { state, t, digits, on, emit } from "./state.js";
+import { state, t, dirOf, digits, on, emit } from "./state.js";
 import { toast, LONG } from "./toast.js";
 
 const menu = $("menu");
@@ -91,6 +91,7 @@ function applySearch() {
       const match = matchedText(it);
       why.innerHTML = match ? marked(match.text) : "";
       why.lang = match ? match.lang : "";
+      why.dir = match ? dirOf(match.lang) : "";
       why.hidden = !match;
     }
     const part = $(section.id);

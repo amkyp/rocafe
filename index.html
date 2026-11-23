@@ -6,7 +6,10 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#ffffff" id="themeColor">
+<!-- the browser's bar: the page colour of each theme (--bg in the stylesheet) -->
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121214" media="(prefers-color-scheme: dark)">
+<script src="assets/js/theme.js"></script>
 <title>کافه رو | منو</title>
 <meta name="description" content="منوی کافه رو، رامسر: قهوه، دمنوش، شیک، کیک و ساندویچ">
 <meta property="og:type" content="website">
@@ -27,10 +30,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
 <link rel="canonical" href="https://ro-coffee.ir/">
-<link rel="preload" href="assets/fonts/plex-arabic-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/plex-arabic-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/Vazirmatn[wght].woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/css/style.css">
-<script src="assets/js/theme.js"></script>
 <!-- fetch the menu's scripts together instead of one after another -->
 <link rel="modulepreload" href="assets/js/app.js">
 <link rel="modulepreload" href="assets/js/bill.js">
@@ -45,6 +46,7 @@
 <link rel="modulepreload" href="assets/js/items.js">
 <link rel="modulepreload" href="assets/js/menu.js">
 <link rel="modulepreload" href="assets/js/near.js">
+<link rel="modulepreload" href="assets/js/persian.js">
 <link rel="modulepreload" href="assets/js/popup.js">
 <link rel="modulepreload" href="assets/js/rows.js">
 <link rel="modulepreload" href="assets/js/search.js">
@@ -102,7 +104,7 @@
       <div class="field">
         <label class="sr" for="q" data-t="search">جستجو در منو</label>
         <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-search"/></svg>
-        <input id="q" type="search" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
+        <input id="q" type="search" aria-keyshortcuts="/" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
         <button class="clear" id="clearQ" type="button" data-label="clearSearch" aria-label="پاک کردن جستجو"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></button>
         <kbd class="key" aria-hidden="true">/</kbd>
       </div>
@@ -112,7 +114,8 @@
   </div>
   <nav class="chips" id="chips" data-label="cats" aria-label="دسته‌ها"></nav>
   </div>
-  <div class="wrap"><div class="fstat" id="fstat" role="status" hidden></div></div>
+  <div class="wrap"><div class="fstat" id="fstat" hidden></div></div>
+  <p class="sr" id="found" role="status"></p>
 
 </header>
 
@@ -150,7 +153,7 @@
     <!-- role="list": Safari stops announcing a list once its bullets are styled away -->
     <ul id="lines" role="list"></ul>
     <div class="split"><span data-t="people">تقسیم بین</span>
-      <div class="stepper"><button type="button" id="pMinus" aria-label="-">−</button><span class="num" id="pCount" aria-live="polite"></span><button type="button" id="pPlus" aria-label="+">+</button></div>
+      <div class="stepper"><button type="button" id="pMinus" data-label="fewerPeople" aria-label="یک نفر کمتر">−</button><span class="num" id="pCount" aria-live="polite"></span><button type="button" id="pPlus" data-label="morePeople" aria-label="یک نفر بیشتر">+</button></div>
     </div>
     <div class="tot"><span data-t="total">جمع کل</span><b class="num" id="sTotal"></b></div>
     <div class="per" id="perRow" hidden><span data-t="each">سهم هر نفر</span><b class="num" id="sEach"></b></div>

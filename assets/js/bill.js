@@ -52,16 +52,60 @@ export function stepperHTML(key, cls = "") {
   </div>`;
 }
 
+/* The bill's lines. A line stays on the page while its count changes and only its numbers are
+   rewritten, so the keyboard stays on its − or + and the count stays in its live region. */
+const lines = $("lines");
+
 function lineHTML(key) {
-  const item = ITEMS[key];
-  return `<li class="line">
-    <div class="nm">${esc(item[state.lang])}${bill[key] > 1 ? `<small class="num">${digits(bill[key])} × ${amount(item.p)}</small>` : ""}</div>
+  return `<li class="line" data-line="${key}">
+    <div class="nm">${esc(ITEMS[key][state.lang])}<small class="num"></small></div>
     ${stepperHTML(key)}
-    <span class="s num">${amount(bill[key] * item.p)}</span>
+    <span class="s num"></span>
   </li>`;
 }
 
-export function draw() {
+function fillLine(line, key) {
+  const { p } = ITEMS[key];
+  const each = line.querySelector(".nm small");
+  each.hidden = bill[key] < 2;
+  each.textContent = `${digits(bill[key])} × ${amount(p)}`;
+  line.querySelector(".stepper .num").textContent = digits(bill[key]);
+  line.querySelector(".s").textContent = amount(bill[key] * p);
+}
+
+/* A line whose item left the bill. If the keyboard was on it, it moves to the same button on the
+   line that takes its place (or the one before), else to the panel's title. */
+function removeLine(line) {
+  const focused = line.contains(document.activeElement) ? document.activeElement : null;
+  const neighbour = line.nextElementSibling || line.previousElementSibling;
+  line.remove();
+  if (!focused) return;
+  const same = focused.matches("[data-inc]") ? "[data-inc]" : "[data-dec]";
+  (neighbour?.querySelector(same) || $("billTitle")).focus();
+}
+
+/* anew: every line rebuilt (the language changed); otherwise lines are kept, added or removed */
+function drawLines(anew) {
+  const keys = Object.keys(bill);
+  if (anew || !keys.length) lines.replaceChildren();
+  if (!keys.length) {
+    lines.innerHTML = `<li class="sub">${t().empty}</li>`;
+    return;
+  }
+  lines.querySelector(".sub")?.remove();
+  const shown = new Map([...lines.querySelectorAll("[data-line]")].map((l) => [l.dataset.line, l]));
+  for (const [key, line] of shown) if (!bill[key]) removeLine(line);
+  for (const key of keys) {
+    let line = shown.get(key);
+    if (!line) {
+      lines.insertAdjacentHTML("beforeend", lineHTML(key));
+      line = lines.lastElementChild;
+    }
+    fillLine(line, key);
+  }
+}
+
+function drawTotals() {
   const keys = Object.keys(bill);
   const count = keys.reduce((n, key) => n + bill[key], 0);
   const sum = keys.reduce((n, key) => n + bill[key] * ITEMS[key].p, 0);
@@ -83,31 +127,59 @@ export function draw() {
   $("pCount").textContent = `${digits(people)} ${people === 1 ? t().person : t().persons}`;
   $("perRow").hidden = people === 1;
   $("sEach").textContent = money(Math.ceil(sum / people));
-  $("lines").innerHTML = keys.length
-    ? keys.map(lineHTML).join("")
-    : `<li class="sub">${t().empty}</li>`;
-  if (!count) closeSheet("billSheet");
+  if (count || !$("billSheet").open) return;
+  closeSheet("billSheet");
+  // the browser hands the keyboard back to the bar's button, which leaves with the bill
+  if (document.activeElement === $("openBill")) $("menu").focus({ preventScroll: true });
+}
+
+/* everything, in the current language */
+export function draw() {
+  drawLines(true);
+  drawTotals();
 }
 
 function setPeople(n) {
   people = validPeople(n);
   save();
-  draw();
+  drawTotals();
 }
 
 restore();
 on("bill", () => {
   save();
-  draw();
+  drawLines(false);
+  drawTotals();
 });
 $("openBill").addEventListener("click", () => openSheet("billSheet"));
 $("pMinus").addEventListener("click", () => setPeople(people - 1));
 $("pPlus").addEventListener("click", () => setPeople(people + 1));
-$("clearBill").addEventListener("click", () => {
+/* Clearing the whole bill takes two taps, as nothing brings it back: the first turns the button
+   into the question, the second clears. The question lapses after a few seconds, or with the panel. */
+const clearButton = $("clearBill");
+const ASK_FOR = 4000; // ms
+let askTimer = 0;
+
+function stopAsking() {
+  clearTimeout(askTimer);
+  if (!clearButton.classList.contains("ask")) return;
+  clearButton.classList.remove("ask");
+  clearButton.textContent = t().clear;
+}
+
+clearButton.addEventListener("click", () => {
+  if (!clearButton.classList.contains("ask")) {
+    clearButton.classList.add("ask");
+    clearButton.textContent = t().clearSure;
+    askTimer = setTimeout(stopAsking, ASK_FOR);
+    return;
+  }
+  stopAsking();
   for (const key of Object.keys(bill)) delete bill[key];
   people = 1;
   emit("bill");
 });
+$("billSheet").addEventListener("close", stopAsking);
 /* the − and + of any quantity control: on a menu row, on an item card, in the bill */
 document.addEventListener("click", (e) => {
   const more = e.target.closest("[data-inc]");

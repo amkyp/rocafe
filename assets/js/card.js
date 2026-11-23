@@ -7,11 +7,11 @@ import { FILES, pictureHTML } from "./files.js";
 import * as gallery from "./gallery.js";
 import { arrowBack, arrowOn, drawing, icon } from "./icons.js";
 import { findItem, pics, sectionOf } from "./items.js";
-import { visibleIds } from "./menu.js";
+import { visibleIds, whenBuilt } from "./menu.js";
 import { forgetIn, whenNear } from "./near.js";
 import { tagsHTML } from "./rows.js";
 import { openSheet, setSheetAddress, topSheet } from "./sheets.js";
-import { state, t, otherLang, digits, on } from "./state.js";
+import { state, t, otherLang, dirOf, digits, on } from "./state.js";
 import { esc } from "./text.js";
 
 const SHEET = "detailSheet";
@@ -77,16 +77,27 @@ function buyHTML(it) {
   return `${price}${stepperHTML(it.id, "lg")}${ORDER_NOTE()}`;
 }
 
-/* the bill changed: only the price and quantity area is redrawn */
+/* The bill changed. While the item stays in the bill only its count is rewritten (the keyboard
+   stays on − or +, and the count stays in its live region); the area is rebuilt only when it changes kind
+   (the add button becomes the quantity control or back), and the keyboard moves with it. */
 function drawBuy() {
   if (!isOpen()) return;
   const it = findItem(shownId);
-  const box = panel.querySelector(".dbuy");
-  if (!it.options) {
-    box.innerHTML = buyHTML(it);
+  if (it.options) {
+    drawOptions(it);
     return;
   }
-  drawOptions(it);
+  const box = panel.querySelector(".dbuy");
+  const number = box.querySelector(".stepper .num");
+  const count = inBill(it.id);
+  if (number && count) {
+    number.textContent = digits(count);
+    return;
+  }
+  if (!number && !count) return; // still the add button
+  const focused = box.contains(document.activeElement);
+  box.innerHTML = buyHTML(it);
+  if (focused) box.querySelector("[data-inc], [data-add]").focus();
 }
 
 function drawOptions(it) {
@@ -126,16 +137,20 @@ function drawCard() {
   const name = it[state.lang];
 
   forgetIn(panel);
+  // the item's own address carries its own title (the tab, history, a saved or shared link)
+  document.title = `${name} | ${t().name}`;
   panel.innerHTML = `
     <div class="grab" aria-hidden="true"></div>
     <div class="dimg">
       ${photosHTML(names)}
-      <button type="button" class="dclose" data-close aria-label="${t().close}">${icon("x")}</button>
       ${many ? gallery.arrowsHTML() : ""}
     </div>
+    <button type="button" class="dclose" data-close aria-label="${t().close}">${icon("x")}</button>
     <div class="dbody"><div class="dbin">
-      <h2 id="dName" tabindex="-1" autofocus>${esc(name)}</h2>
-      <div class="alt" lang="${otherLang()}">${esc(it[otherLang()])}</div>
+      <hgroup class="dhead">
+        <h2 id="dName" tabindex="-1" autofocus>${esc(name)}</h2>
+        <p class="alt" lang="${otherLang()}" dir="${dirOf(otherLang())}">${esc(it[otherLang()])}</p>
+      </hgroup>
       ${tagsHTML(it)}
       ${textHTML(it)}
       <div class="dbuy">${it.options ? `<div class="picks" role="group" aria-label="${t().bean}"></div>${ORDER_NOTE()}` : buyHTML(it)}</div>
@@ -177,6 +192,12 @@ export function openFromAddress() {
   if (!id) return;
   if (!history.state?.sheets) history.replaceState(null, "", location.pathname);
   open(id);
+  // the menu is still being built, so the items before and after are known only once it is
+  whenBuilt(drawNeighbours);
+}
+
+function drawNeighbours() {
+  if (isOpen()) panel.querySelector(".dsib").innerHTML = neighbourHTML(-1) + neighbourHTML(1);
 }
 /* Forward, or back to an entry that holds an item: show it again */
 addEventListener("popstate", () => {
@@ -230,3 +251,4 @@ addEventListener("keydown", (e) => {
 
 on("item:open", open);
 on("bill", drawBuy);
+$(SHEET).addEventListener("close", () => (document.title = t().docTitle));

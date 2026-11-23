@@ -1,7 +1,7 @@
 /* The top row: the logo, the theme and language buttons, and every fixed piece of text on the
    page that follows the language (data-t: an element's text; data-label: its spoken name). */
 import { $, scrollStyle } from "./dom.js";
-import { state, store, t, otherLang, setLang } from "./state.js";
+import { state, store, t, otherLang, setLang, dirOf } from "./state.js";
 
 const root = document.documentElement;
 const themeBtn = $("themeBtn");
@@ -10,13 +10,14 @@ const THEMES = ["light", "dark"];
 
 /* ---------- theme (theme.js chose light or dark before the page was drawn) ---------- */
 function showTheme() {
-  const dark = root.dataset.theme === "dark";
-  themeBtn.setAttribute("aria-label", dark ? t().toLight : t().toDark);
-  themeBtn.setAttribute("aria-pressed", dark);
-  // the browser's own bar takes the page colour from the stylesheet, so colours live in one place
+  // one name, "dark mode", pressed or not: a name that changed with the state would contradict it
+  themeBtn.setAttribute("aria-label", t().darkMode);
+  themeBtn.setAttribute("aria-pressed", root.dataset.theme === "dark");
+  // the browser's own bar takes the page colour from the stylesheet, whichever the device's setting
   // (read on the next frame, once the new colours are in place, so it costs no extra layout)
   requestAnimationFrame(() => {
-    $("themeColor").content = getComputedStyle(root).getPropertyValue("--bg").trim();
+    const colour = getComputedStyle(root).getPropertyValue("--bg").trim();
+    for (const bar of document.querySelectorAll('meta[name="theme-color"]')) bar.content = colour;
   });
 }
 
@@ -28,10 +29,13 @@ function setTheme(theme) {
 /* A choice that differs from the device's own setting is remembered; choosing what the device
    already uses is not a choice any more, and the page goes back to following the device. */
 const deviceDark = matchMedia("(prefers-color-scheme: dark)");
+const schemeMeta = document.querySelector('meta[name="color-scheme"]');
 themeBtn.addEventListener("click", () => {
   const theme = root.dataset.theme === "dark" ? "light" : "dark";
-  if (theme === (deviceDark.matches ? "dark" : "light")) store.remove("ro-theme");
-  else store.set("ro-theme", theme);
+  const chosen = theme === (deviceDark.matches ? "dark" : "light") ? null : theme;
+  if (chosen) store.set("ro-theme", chosen);
+  else store.remove("ro-theme");
+  schemeMeta.content = chosen ?? "light dark"; // as theme.js set it at load
   setTheme(theme);
 });
 /* follow the device's dark or light setting unless the guest picked one */
@@ -59,7 +63,7 @@ document.querySelector(".skip").addEventListener("click", (e) => {
 
 export function draw() {
   root.lang = state.lang;
-  root.dir = state.lang === "fa" ? "rtl" : "ltr";
+  root.dir = dirOf(state.lang);
   document.title = t().docTitle;
   for (const el of document.querySelectorAll("[data-t]")) el.textContent = t()[el.dataset.t];
   for (const el of document.querySelectorAll("[data-label]")) {
@@ -67,6 +71,7 @@ export function draw() {
   }
   langBtn.textContent = t().lang;
   langBtn.lang = otherLang();
+  langBtn.dir = dirOf(otherLang());
   langBtn.title = t().langName;
   showTheme();
 }
