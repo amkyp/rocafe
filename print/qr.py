@@ -10,8 +10,8 @@ always matches the site. To move to your own domain, change that link
 
     uv run print/qr.py        (or: pip install segno && python print/qr.py)
 
-Writes menu-qr.svg / .pdf / .png next to this file. Open cards.html in a
-browser and print it (A4, 100% scale) for the table cards.
+Writes menu-qr.svg / .pdf / .png next to this file. Then run
+print/cards_pdf.py for the table cards (cards-a4.pdf).
 """
 from html.parser import HTMLParser
 from pathlib import Path
